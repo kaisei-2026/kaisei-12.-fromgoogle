@@ -12,8 +12,9 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] bg-white/70 backdrop-blur-xl border-b border-zinc-200">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+    // 高さを h-16 (64px) に固定
+    <nav className="fixed top-0 left-0 right-0 z-[100] h-16 bg-white/80 backdrop-blur-xl border-b border-zinc-200">
+      <div className="max-w-full mx-auto px-6 h-full flex items-center justify-between">
         <Link href="/" className="text-xl font-[900] tracking-tighter text-zinc-950">
           KAISEI<span className="text-blue-600">.</span>HUB
         </Link>
