@@ -2,127 +2,195 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite Code Editor Pro</title>
-    <!--Ace Editorの読み込み-->
+    <title>Elite Code Editor - VFS Edition</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <!-- アイコン用のフォント読み込み -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --sidebar-bg: #1e1e1e; --toolbar-bg: #2d2d2d; --active-bg: #37373d; }
+        :root { --sidebar-bg: #181818; --folder-bg: #212121; --active-bg: #37373d; --text: #cccccc; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
         
-        header { height: 45px; background: #333; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; }
-        .btn-live { background: #0078d4; color: white; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .btn-live:hover { background: #0086ed; }
+        /* Header */
+        header { height: 45px; background: #333; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; }
+        .toolbar { display: flex; gap: 10px; align-items: center; }
+        .btn { background: #444; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .btn:hover { background: #555; }
+        .btn-save { background: #0078d4; font-weight: bold; }
+        .btn-save:hover { background: #0086ed; }
 
         #main { flex: 1; display: flex; overflow: hidden; }
 
-        /* Sidebar */
-        #sidebar { width: 200px; background: var(--sidebar-bg); color: #888; display: flex; flex-direction: column; user-select: none; border-right: 1px solid #000; }
-        .sidebar-header { padding: 10px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555; }
-        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #aaa; }
-        .file-item.active { background: var(--active-bg); color: #fff; border-left: 2px solid #0078d4; }
-        .file-item:hover:not(.active) { background: #2a2d2e; }
+        /* Sidebar Explorer */
+        #sidebar { width: 240px; background: var(--sidebar-bg); color: var(--text); display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .sidebar-header { padding: 12px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .sidebar-icons { display: flex; gap: 8px; font-size: 14px; }
+        .sidebar-icons i { cursor: pointer; color: #666; transition: 0.2s; }
+        .sidebar-icons i:hover { color: #fff; }
+
+        #file-tree { flex: 1; overflow-y: auto; padding: 10px 0; font-size: 13px; }
+        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; position: relative; }
+        .tree-item:hover { background: #2a2d2e; }
+        .tree-item.active { background: var(--active-bg); color: #fff; }
+        .tree-folder { font-weight: bold; color: #dcb67a; }
+        .indent { margin-left: 15px; border-left: 1px solid #333; }
 
         /* Editor Area */
         #editor-pane { flex: 1; display: flex; flex-direction: column; }
-        #ace-editor { flex: 1; font-size: 16px; } /* 文字サイズを大きく設定 */
-        
-        .tabs { height: 35px; background: #252526; display: flex; }
-        .tab { background: var(--active-bg); color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; font-border-right: 1px solid #1e1e1e; }
+        #ace-editor { flex: 1; font-size: 16px; }
+        .tabs { height: 35px; background: #252526; display: flex; overflow-x: auto; }
+        .tab { background: var(--active-bg); color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; border-right: 1px solid #1e1e1e; min-width: 100px; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
-        <span style="font-weight:bold; letter-spacing:1px;">ELITE CODE EDITOR</span>
+    <div style="font-weight:bold;">ELITE PRO IDE</div>
+    <div class="toolbar">
+        <button class="btn" onclick="openLivePreview()"><i class="fas fa-external-link-alt"></i> Preview</button>
+        <button class="btn btn-save" onclick="saveToStorage()"><i class="fas fa-save"></i> SAVE ALL</button>
     </div>
-    <button class="btn-live" onclick="openLivePreview()">
-        <span>🌐 OPEN LIVE PREVIEW</span>
-    </button>
 </header>
 
 <div id="main">
     <div id="sidebar">
-        <div class="sidebar-header">Explorer</div>
-        <div class="file-item active" onclick="switchFile('index.html')">📄 index.html</div>
-        <div class="file-item" onclick="switchFile('style.css')">📄 style.css</div>
-        <div class="file-item" onclick="switchFile('main.js')">📄 main.js</div>
+        <div class="sidebar-header">
+            <span>Explorer</span>
+            <div class="sidebar-icons">
+                <i class="fas fa-file-plus" title="New File" onclick="promptCreate('file')"></i>
+                <i class="fas fa-folder-plus" title="New Folder" onclick="promptCreate('folder')"></i>
+            </div>
+        </div>
+        <div id="file-tree"></div>
     </div>
 
     <div id="editor-pane">
-        <div class="tabs"><div class="tab" id="active-tab-name">index.html</div></div>
+        <div class="tabs" id="tabs-container"></div>
         <div id="ace-editor"></div>
     </div>
 </div>
 
 <script>
-    // 仮想ファイル管理
-    let files = {
-        'index.html': { content: '<!-- HTML -->\n<div class="box">\n  <h1>Hello Ace!</h1>\n</div>', mode: 'ace/mode/html' },
-        'style.css': { content: '/* CSS */\nbody { background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 90vh; }\n.box { background: white; padding: 50px; border: 3px solid black; }', mode: 'ace/mode/css' },
-        'main.js': { content: '// JavaScript\nconsole.log("JavaScript Loaded.");', mode: 'ace/mode/javascript' }
+    // --- 仮想ファイルシステムデータ ---
+    let vfs = JSON.parse(localStorage.getItem('elite_vfs')) || {
+        'root': {
+            name: 'Project',
+            type: 'folder',
+            isOpen: true,
+            children: {
+                'index.html': { name: 'index.html', type: 'file', content: '<h1>Hello IDE</h1>', mode: 'ace/mode/html' },
+                'style.css': { name: 'style.css', type: 'file', content: 'body { background: white; }', mode: 'ace/mode/css' }
+            }
+        }
     };
 
-    let currentFile = 'index.html';
-
-    // Ace Editorの初期化
+    let activeFileId = 'index.html';
     const editor = ace.edit("ace-editor");
-    editor.setTheme("ace/theme/monokai"); // 画像のような暗い背景
-    editor.getSession().setMode(files[currentFile].mode);
-    editor.setValue(files[currentFile].content, -1);
-    editor.setOptions({
-        fontFamily: "Consolas, 'Courier New', monospace",
-        enableBasicAutocompletion: true,
-        enableLiveAutocompletion: true
-    });
+    editor.setTheme("ace/theme/monokai");
+    editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true });
 
-    // ファイル切り替え機能
-    function switchFile(filename) {
-        // 現在の内容を保存
-        files[currentFile].content = editor.getValue();
-        
-        currentFile = filename;
-        document.getElementById('active-tab-name').innerText = filename;
-        
-        // サイドバーのアクティブ表示切り替え
-        document.querySelectorAll('.file-item').forEach(el => {
-            el.classList.toggle('active', el.innerText.includes(filename));
-        });
-
-        // エディタの設定更新
-        editor.getSession().setMode(files[filename].mode);
-        editor.setValue(files[filename].content, -1);
-        
-        updateLivePreviewData();
+    // --- ツリーの描画 ---
+    function renderTree() {
+        const treeEl = document.getElementById('file-tree');
+        treeEl.innerHTML = '';
+        drawNode(vfs.root, treeEl, '');
     }
 
-    // 別ページで開くライブプレビュー
-    let previewWindow = null;
+    function drawNode(node, parentEl, path) {
+        if (node.type === 'folder') {
+            const el = document.createElement('div');
+            el.className = 'tree-item tree-folder';
+            el.innerHTML = `<i class="fas ${node.isOpen ? 'fa-chevron-down' : 'fa-chevron-right'}"></i> <i class="fas fa-folder"></i> ${node.name}`;
+            el.onclick = (e) => { e.stopPropagation(); node.isOpen = !node.isOpen; renderTree(); };
+            parentEl.appendChild(el);
+
+            if (node.isOpen) {
+                const container = document.createElement('div');
+                container.className = 'indent';
+                Object.keys(node.children).forEach(key => {
+                    drawNode(node.children[key], container, key);
+                });
+                parentEl.appendChild(container);
+            }
+        } else {
+            const el = document.createElement('div');
+            el.className = `tree-item ${activeFileId === path ? 'active' : ''}`;
+            el.innerHTML = `<i class="fas fa-file-code"></i> ${node.name}`;
+            el.onclick = (e) => { e.stopPropagation(); openFile(path, node); };
+            parentEl.appendChild(el);
+        }
+    }
+
+    // --- ファイル操作 ---
+    function openFile(id, node) {
+        // 現在のファイルを保存
+        const oldFile = findFileById(vfs.root, activeFileId);
+        if(oldFile) oldFile.content = editor.getValue();
+
+        activeFileId = id;
+        editor.getSession().setMode(node.mode || getMode(id));
+        editor.setValue(node.content, -1);
+        
+        // タブの更新
+        document.getElementById('tabs-container').innerHTML = `<div class="tab">${node.name} <i class="fas fa-times"></i></div>`;
+        renderTree();
+    }
+
+    function findFileById(root, id) {
+        return root.children[id]; // シンプル化のため直下のみ対応（拡張可能）
+    }
+
+    function promptCreate(type) {
+        const name = prompt(`${type === 'file' ? 'ファイル名' : 'フォルダ名'}を入力してください:`);
+        if (!name) return;
+        
+        if (type === 'file') {
+            vfs.root.children[name] = {
+                name: name,
+                type: 'file',
+                content: '',
+                mode: getMode(name)
+            };
+            openFile(name, vfs.root.children[name]);
+        } else {
+            vfs.root.children[name] = { name: name, type: 'folder', isOpen: true, children: {} };
+        }
+        renderTree();
+        saveToStorage();
+    }
+
+    function getMode(name) {
+        if (name.endsWith('.html')) return 'ace/mode/html';
+        if (name.endsWith('.css')) return 'ace/mode/css';
+        if (name.endsWith('.js')) return 'ace/mode/javascript';
+        return 'ace/mode/text';
+    }
+
+    // --- 保存とプレビュー ---
+    function saveToStorage() {
+        const current = findFileById(vfs.root, activeFileId);
+        if(current) current.content = editor.getValue();
+        
+        localStorage.setItem('elite_vfs', JSON.stringify(vfs));
+        
+        // プレビュー用データの更新
+        const fullCode = `
+            ${vfs.root.children['index.html']?.content || ''}
+            <style>${vfs.root.children['style.css']?.content || ''}</style>
+            <script>${vfs.root.children['main.js']?.content || ''}<\/script>
+        `;
+        localStorage.setItem('elite_live_code', fullCode);
+        alert('Saved!');
+    }
 
     function openLivePreview() {
-        // 別タブを開く
-        const path = window.location.pathname.replace('code-editor.html', 'live-preview.html');
-        previewWindow = window.open(path, 'LivePreview');
-        updateLivePreviewData();
+        saveToStorage();
+        window.open('live-preview.html', 'LivePreview');
     }
 
-    function updateLivePreviewData() {
-        files[currentFile].content = editor.getValue();
-        const fullCode = `
-            ${files['index.html'].content}
-            <style>${files['style.css'].content}</style>
-            <script>${files['main.js'].content}<\/script>
-        `;
-        // LocalStorageを使って別タブにデータを送る（確実な方法）
-        localStorage.setItem('elite_live_code', fullCode);
-    }
-
-    // 入力するたびにLocalStorageを更新
-    editor.on('change', () => {
-        updateLivePreviewData();
-    });
-
+    // 初期化
+    renderTree();
+    openFile('index.html', vfs.root.children['index.html']);
 </script>
 </body>
 </html>
