@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Forenote Pro - Supreme Master V24</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root { --bg-color: #f1f3f4; --primary-blue: #8ab4f8; --border-color: #dadce0; --icon-active-bg: #e8f0fe; --icon-active-color: #1a73e8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); overflow: hidden; color: #3c4043; user-select: none; -webkit-user-select: none; }
+        .hidden { display: none !important; }
+
+        /* Dashboard */
+        #dashboard { height: 100vh; display: flex; flex-direction: column; background: #fff; }
+        .dash-header { padding: 15px 32px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); }
+        .btn-group { display: flex; gap: 12px; }
+        .blue-btn { background: var(--primary-blue); color: #1a73e8; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .blue-btn:hover { filter: brightness(0.95); }
+        .breadcrumb { padding: 20px 32px 10px; font-size: 18px; color: #5f6368; display: flex; gap: 8px; align-items: center; min-height: 50px; }
+        .breadcrumb span { cursor: pointer; transition: 0.2s; padding: 4px 8px; border-radius: 6px;} .breadcrumb span:hover { color: var(--icon-active-color); background: #f1f3f4;}
+        .grid-container { flex: 1; padding: 10px 32px 32px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, 180px); gap: 32px; align-content: flex-start; }
+        .item-card { width: 180px; cursor: pointer; position: relative; transition: transform 0.2s; }
+        .item-card:hover { transform: translateY(-3px); }
+        .folder-icon { width: 140px; height: 110px; background: #fff; border-radius: 8px; position: relative; border: 2px solid #ddd; margin: 20px auto 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.2s; }
+        .folder-tab { position: absolute; top: -15px; left: -2px; width: 50px; height: 20px; border-radius: 8px 8px 0 0; border: 2px solid #ddd; border-bottom: none; transition: 0.2s; }
+        .notebook-card { background: #fff; border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-top: 20px; transition: 0.2s; }
+        .card-cover { width: 100%; height: 140px; border-bottom: 1px solid #eee; }
+        .card-info { padding: 12px; position: relative; }
+        .card-title { font-size: 14px; font-weight: 500; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .delete-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; color: #ea4335; opacity: 0; transition: 0.2s; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .item-card:hover .delete-btn { opacity: 1; }
+
+        /* Editor */
+        #editor { height: 100vh; display: flex; flex-direction: column; background: var(--bg-color); position: relative; }
+        .toolbar { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #fff; border-bottom: 1px solid var(--border-color); z-index: 1000; }
+        .tool-group { display: flex; align-items: center; gap: 4px; }
+        .divider { width: 1px; height: 24px; background: var(--border-color); margin: 0 8px; }
+        .icon-btn { width: 38px; height: 38px; border: none; background: transparent; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #5f6368; transition: background 0.2s; }
+        .icon-btn.active { background: var(--icon-active-bg); color: var(--icon-active-color); }
+        .icon-btn:hover:not(.active) { background: #f1f3f4; }
+        #sub-toolbar { background: #f8f9fa; border-bottom: 1px solid var(--border-color); padding: 8px 24px; display: flex; gap: 24px; align-items: center; z-index: 999; min-height: 48px; }
+        .sub-group { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #5f6368; font-weight: bold; }
+        .shape-btn { border: 1px solid #ddd; background: #fff; width: 32px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #5f6368; }
+        .shape-btn.active { background: #e8f0fe; color: #1a73e8; border-color: #1a73e8; }
+        .color-swatch { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 1px solid #ddd; position: relative; }
+        .color-swatch.selected::after { content: ""; position: absolute; inset: -4px; border: 2px solid var(--icon-active-color); border-radius: 50%; }
+        input[type="range"] { width: 100px; accent-color: var(--icon-active-color); cursor: pointer; }
+
+        /* Workspace & Canvas */
+        .workspace { flex: 1; overflow: auto; padding: 40px 0; touch-action: none; position: relative; scroll-behavior: auto; }
+        #scroll-wrapper { margin: 0 auto; position: relative; transform-origin: top left; }
+        .canvas-stack { display: flex; flex-direction: column; gap: 40px; align-items: center; transform-origin: top left; position: absolute; top: 0; left: 0; width: 1240px; }
+        .page-container { position: relative; width: 1240px; height: 1754px; background: #fff; box-shadow: 0 1px 10px rgba(0,0,0,0.1); }
+        .main-canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: auto; touch-action: none; }
+        .temp-canvas { position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none; touch-action: none; }
+        .page-actions { position: absolute; top: 10px; right: -50px; display: flex; flex-direction: column; gap: 10px; opacity: 0.3; transition: 0.2s; z-index: 10; pointer-events: auto; }
+        .page-container:hover .page-actions { opacity: 1; right: 10px; }
+        .page-action-btn { background: #fff; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #5f6368; border: 1px solid #ddd; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .page-action-btn:hover { background: #f1f3f4; }
+        .page-action-btn.del { color: #ea4335; }
+
+        /* Lasso UI */
+        #lasso-ui { position: absolute; z-index: 100; touch-action: none; pointer-events: none; display: none; box-sizing: border-box; }
+        .lasso-dot { position: absolute; width: 16px; height: 16px; background: #ea4335; border-radius: 50%; border: 3px solid #fff; pointer-events: auto; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .shape-edit-dot { position: absolute; width: 16px; height: 16px; background: #ea4335; border-radius: 50%; border: 3px solid #fff; pointer-events: auto; z-index: 110; cursor: move; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .top-left { top: -8px; left: -8px; cursor: nwse-resize; } .top-right { top: -8px; right: -8px; cursor: nesw-resize; } .bottom-left { bottom: -8px; left: -8px; cursor: nesw-resize; } .bottom-right { bottom: -8px; right: -8px; cursor: nwse-resize; }
+        .lasso-menu-btn { position: absolute; top: -35px; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 4px 12px; cursor: pointer; pointer-events: auto; font-size: 12px; color: #1a73e8; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); white-space: nowrap; width: max-content; }
+        #lasso-menu { position: absolute; top: 0; right: 0; background: white; border: 1px solid #ddd; border-radius: 8px; width: 180px; z-index: 1000; pointer-events: auto; }
+        #lasso-menu div { padding: 12px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px; font-weight: bold; color: #3c4043;} #lasso-menu div:hover { background: #f1f3f4; }
+
+        /* Settings Menu */
+        #settings-menu { position: absolute; top: 50px; right: 16px; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); z-index: 2000; border: 1px solid #ddd; width: 260px; overflow: hidden; }
+        .menu-item { padding: 14px 20px; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f3f4; color: #3c4043; }
+        .menu-item:hover { background: #f8f9fa; }
+        .menu-item:last-child { border-bottom: none; }
+
+        /* Modals */
+        .modal-container { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5000; }
+        .modal { background: #fff; width: 450px; border-radius: 16px; padding: 24px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto; }
+        .modal h3 { font-size: 18px; margin-bottom: 15px; font-weight: 600; }
+        .modal input[type="text"], .modal input[type="number"], .modal select { width: 100%; padding: 10px; background: #f1f3f4; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; margin-bottom: 10px; outline: none; }
+        .char-count { text-align: right; font-size: 12px; color: #ea4335; margin-bottom: 20px; }
+        .color-selection { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; justify-content: center; }
+        .color-opt { width: 30px; height: 40px; border-radius: 4px; border: 1px solid #ddd; cursor: pointer; position: relative; }
+        .color-opt.selected { border: 2px solid #1a73e8; box-shadow: 0 0 0 2px #fff inset; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+        .modal-btns button { padding: 10px 24px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .confirm-btn { background: #1a73e8; color: white; width: 100%; opacity: 0.5; pointer-events: none; }
+        .confirm-btn.active { opacity: 1; pointer-events: auto; }
+        .cancel-btn { background: transparent; color: #5f6368; border: 1px solid #ddd !important; }
+
+        /* Tools & Utilities */
+        #text-input-box { position: absolute; z-index: 3000; background: rgba(255,255,255,0.8); border: 2px dashed #1a73e8; outline: none; min-width: 150px; min-height: 40px; padding: 4px; font-family: sans-serif; cursor: text; font-size: 24px; }
+        #tooltip { position: fixed; background: rgba(0,0,0,0.8); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 12px; opacity: 0; pointer-events: none; z-index: 10000; transition: opacity 0.2s; font-weight: bold; }
+        #zoom-indicator { position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; z-index: 2000; pointer-events: none; }
+        #space-line { position: absolute; left: 0; right: 0; height: 2px; background: #1a73e8; z-index: 500; pointer-events: none; }
+        .mode-toggle { display:flex; gap:10px; margin: 15px 0 10px; }
+        .mode-toggle label { font-size: 13px; font-weight: bold; color: #5f6368; cursor:pointer; display:flex; align-items:center; gap:4px; padding:6px 12px; background:#f1f3f4; border-radius:20px; transition:0.2s; }
+        .mode-toggle input[type="radio"] { display:none; }
+        .mode-toggle input[type="radio"]:checked + span { color: #1a73e8; }
+        .mode-toggle label:has(input[type="radio"]:checked) { background: #e8f0fe; border: 1px solid #1a73e8; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 0; }
+            html, body { width: 100%; height: auto; margin: 0; padding: 0; overflow: visible !important; background: #fff; }
+            body * { visibility: hidden; }
+            #editor, #workspace, #scroll-wrapper, .canvas-stack, .page-container, .main-canvas { visibility: visible; }
+            #editor { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: block; }
+            #workspace { position: absolute; left: 0; top: 0; width: 100%; height: auto; overflow: visible; padding: 0; }
+            #scroll-wrapper { position: relative; width: 100% !important; height: auto !important; transform: none !important; margin: 0; }
+            .canvas-stack { position: relative; width: 100%; gap: 0; transform: none !important; }
+            .page-container { width: 100% !important; height: auto !important; aspect-ratio: 1240 / 1754; box-shadow: none !important; border: none !important; margin: 0 !important; page-break-after: always; break-after: page; }
+            .main-canvas { width: 100% !important; height: 100% !important; display: block; }
+            .temp-canvas, .page-actions, .toolbar, #sub-toolbar, #lasso-ui, #zoom-indicator, #settings-menu, #text-input-box { display: none !important; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="dashboard">
+    <header class="dash-header">
+        <div class="btn-group">
+            <button class="blue-btn" onclick="fnApp.openModal('folder')">新しいフォルダ</button>
+            <button class="blue-btn" onclick="fnApp.openModal('notebook')">新しいノート</button>
+        </div>
+        <i data-lucide="settings" style="color:#5f6368; cursor:pointer;"></i>
+    </header>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="grid-container" id="dash-grid"></div>
+</div>
+
+<div id="editor" class="hidden">
+    <header class="toolbar">
+        <div class="tool-group">
+            <button class="icon-btn" onclick="fnApp.closeEditor()" data-desc="ホームへ戻る"><i data-lucide="home"></i></button>
+            <div class="divider"></div>
+            <!-- ノートタイトル (クリックでリネーム可能) -->
+            <div id="editor-note-title" onclick="fnApp.renameCurrentFromEditor()" style="font-size:16px; font-weight:bold; color:#3c4043; cursor:pointer; padding:4px 8px; border-radius:6px; transition:0.2s;" onmouseover="this.style.background='#f1f3f4'" onmouseout="this.style.background='transparent'">ノートタイトル</div>
+            <div class="divider"></div>
+            
+            <button class="icon-btn" data-tool="pan" onclick="fnApp.setTool('pan')" data-desc="手のひら (スクロール/タップ選択)"><i data-lucide="hand"></i></button>
+            <button class="icon-btn active" data-tool="pen" onclick="fnApp.setTool('pen')" data-desc="ペン (通常)"><i data-lucide="pen"></i></button>
+            <button class="icon-btn" data-tool="brush" onclick="fnApp.setTool('brush')" data-desc="筆 (筆圧対応)"><i data-lucide="paintbrush"></i></button>
+            <button class="icon-btn" data-tool="highlighter" onclick="fnApp.setTool('highlighter')" data-desc="蛍光ペン"><i data-lucide="highlighter"></i></button>
+            <button class="icon-btn" data-tool="eraser-partial" onclick="fnApp.setTool('eraser-partial')" data-desc="部分消しゴム (なぞって消す)"><i data-lucide="eraser"></i></button>
+            <button class="icon-btn" data-tool="eraser-stroke" onclick="fnApp.setTool('eraser-stroke')" data-desc="一括消しゴム (丸ごと消去)"><i data-lucide="trash-2"></i></button>
+            <button class="icon-btn" data-tool="text" onclick="fnApp.setTool('text')" data-desc="テキストボックス"><i data-lucide="type"></i></button>
+            <button class="icon-btn" data-tool="shape" onclick="fnApp.setTool('shape')" data-desc="図形描画"><i data-lucide="triangle"></i></button>
+            <button class="icon-btn" data-tool="lasso" onclick="fnApp.setTool('lasso')" data-desc="なげなわ (移動・変形)"><i data-lucide="mouse-pointer-square-dashed"></i></button>
+            <div class="divider"></div>
+            <button class="icon-btn" onclick="fnApp.openCustomModal('graph')" data-desc="グラフ挿入"><i data-lucide="line-chart"></i></button>
+            <button class="icon-btn" onclick="fnApp.openCustomModal('table')" data-desc="表の挿入"><i data-lucide="grid"></i></button>
+            <button class="icon-btn" onclick="document.getElementById('image-upload').click()" data-desc="画像の挿入"><i data-lucide="image"></i></button>
+            <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="fnApp.handleImageInsert(event)">
+            <button class="icon-btn" data-tool="insert-space" onclick="fnApp.setTool('insert-space')" data-desc="隙間を作る (下へずらす)"><i data-lucide="unfold-vertical"></i></button>
+            <div class="divider"></div>
+            <button class="icon-btn" id="touch-draw-btn" onclick="fnApp.toggleTouchDraw()" data-desc="指で描く ON/OFF"><i data-lucide="mouse-pointer-2"></i></button>
+            <button class="icon-btn" id="snap-btn" onclick="fnApp.toggleSnap()" data-desc="グリッドスナップ"><i data-lucide="magnet"></i></button>
+            <button class="icon-btn" onclick="fnApp.addPage()" data-desc="ページを下に追加"><i data-lucide="file-plus"></i></button>
+        </div>
+        <div class="tool-group">
+            <button class="icon-btn" onclick="fnApp.undo()" data-desc="元に戻す"><i data-lucide="undo"></i></button>
+            <button class="icon-btn" onclick="fnApp.redo()" data-desc="やり直し"><i data-lucide="redo"></i></button>
+            <button class="icon-btn" onclick="fnApp.toggleSettingsMenu(event)" data-desc="メニュー"><i data-lucide="more-vertical"></i></button>
+        </div>
+    </header>
+    
+    <div id="settings-menu" class="hidden">
+        <div class="menu-item" onclick="fnApp.openBgSettingsModal()">背景を変更 <i data-lucide="chevron-right"></i></div>
+        <div class="menu-item" onclick="fnApp.copyAllToClipboard()">すべてをクリップボードにコピー</div>
+        <div class="menu-item" onclick="fnApp.exportToPDF()">PDF形式でエクスポート</div>
+    </div>
+
+    <div id="sub-toolbar">
+        <div id="sub-shape" class="sub-group hidden">
+            <span>図形:</span>
+            <button class="shape-btn active" data-shape="rect" onclick="fnApp.setShapeType('rect')"><i data-lucide="square"></i></button>
+            <button class="shape-btn" data-shape="circle" onclick="fnApp.setShapeType('circle')"><i data-lucide="circle"></i></button>
+            <button class="shape-btn" data-shape="triangle" onclick="fnApp.setShapeType('triangle')"><i data-lucide="triangle"></i></button>
+            <button class="shape-btn" data-shape="line" onclick="fnApp.setShapeType('line')"><i data-lucide="minus"></i></button>
+            <div style="width:1px; height:20px; background:#ddd; margin:0 5px;"></div>
+            <button class="blue-btn" style="padding: 6px 12px; height: 32px; font-size:12px;" onclick="fnApp.openExactShapeModal()">📏 数値で作図</button>
+        </div>
+        <div id="sub-color" class="sub-group">
+            <span>色:</span><div id="sub-palette" style="display:flex; gap:6px;"></div>
+        </div>
+        <div id="sub-size" class="sub-group">
+            <span>太さ:</span><input type="range" id="sub-size-slider" min="1" max="100" value="3" oninput="fnApp.setSize(this.value)">
+        </div>
+    </div>
+
+    <div class="workspace" id="workspace">
+        <div id="scroll-wrapper">
+            <div class="canvas-stack" id="canvas-stack"></div>
+            <div id="text-input-box" contenteditable="true" class="hidden" onblur="fnApp.commitText()"></div>
+        </div>
+    </div>
+    <div id="zoom-indicator">100%</div>
+</div>
+
+<!-- Modals -->
+<div id="modal-overlay" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3 id="modal-title">作成</h3>
+        <input type="text" id="modal-input" maxlength="32" oninput="fnApp.updateModalUI()" placeholder="タイトルを入力">
+        <div class="char-count" id="char-count">0 / 32</div>
+        <div id="modal-bg-section">
+            <div class="color-selection" id="modal-bg-colors"></div>
+            <div id="pattern-section">
+                <label style="font-size:12px; color:#5f6368">パターン</label>
+                <select id="modal-pattern-sel">
+                    <option value="dot">ドット</option><option value="line">横線</option><option value="grid">方眼十字</option><option value="blank">無地</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="cancel-btn" onclick="fnApp.hideModal()">キャンセル</button>
+            <button class="confirm-btn create-confirm-btn" id="modal-create-btn" onclick="fnApp.handleModalCreate()">作成</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-bg-settings" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h3>背景を変更</h3>
+        <div class="color-selection" id="editor-bg-colors" style="margin-bottom:15px; display:flex; gap:8px;"></div>
+        <select id="editor-pattern-sel" onchange="fnApp.changeBgPattern(this.value)" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; margin-bottom:15px;">
+            <option value="dot">ドット</option><option value="line">横線</option><option value="grid">方眼十字</option><option value="blank">無地</option>
+        </select>
+        <div class="modal-btns">
+            <button class="confirm-btn active" style="opacity:1; pointer-events:auto;" onclick="fnApp.hideModal()">完了</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-graph" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" style="width:900px; max-width:95vw;" onclick="event.stopPropagation()">
+        <h3>グラフを挿入 (y = 式)</h3>
+        <div style="display:flex; gap:30px; align-items:flex-start;">
+            <div style="flex:1">
+                <input type="text" id="graph-func" value="Math.sin(x)" oninput="fnApp.updateGraphPreview()" placeholder="y= は不要。例: x^2" style="font-family:monospace; font-size:18px;">
+                <div class="mode-toggle">
+                    <label><input type="radio" name="g-mode" value="pan" checked onchange="fnApp.graphMode='pan'"><span>✋ 移動</span></label>
+                    <label><input type="radio" name="g-mode" value="crop" onchange="fnApp.graphMode='crop'"><span>✂️ 切り取り</span></label>
+                    <label><input type="radio" name="g-mode" value="point" onchange="fnApp.graphMode='point'"><span>📍 座標追加</span></label>
+                </div>
+                <p style="font-size:12px; color:#888; line-height:1.5; margin-bottom:15px;">※ <code>x^2</code>、<code>Math.log(x)</code> など。<br>スクロールでズームできます。</p>
+                <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                    <label style="flex:1; font-size:12px; color:#5f6368">X最小 <input type="number" id="graph-xmin" value="-10" oninput="fnApp.updateGraphPreview()"></label>
+                    <label style="flex:1; font-size:12px; color:#5f6368">X最大 <input type="number" id="graph-xmax" value="10" oninput="fnApp.updateGraphPreview()"></label>
+                </div>
+                <button onclick="fnApp.graphView.crop=null; fnApp.graphView.points=[]; fnApp.updateGraphPreview();" style="padding:6px 12px; border-radius:6px; border:1px solid #ddd; cursor:pointer; background:#fff; font-size:12px;">リセット</button>
+            </div>
+            <div style="flex:1.5">
+                <canvas id="graph-preview-canvas" width="500" height="350" style="background:#f9f9f9; border:1px solid #ddd; border-radius:8px; width:100%; touch-action:none;"></canvas>
+            </div>
+        </div>
+        <div class="modal-btns">
+            <button class="cancel-btn" onclick="fnApp.hideModal()">キャンセル</button>
+            <button class="confirm-btn active" style="opacity:1; pointer-events:auto;" onclick="fnApp.prepareInsert('graph')">挿入</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-table" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" style="width:400px;" onclick="event.stopPropagation()">
+        <h3>表を挿入</h3>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <label style="flex:1; font-size:12px; color:#5f6368">行数<input type="number" id="table-rows" value="3" min="1"></label>
+            <label style="flex:1; font-size:12px; color:#5f6368">列数<input type="number" id="table-cols" value="3" min="1"></label>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <label style="flex:1; font-size:12px; color:#5f6368">全体の幅 (cm)<input type="number" id="table-w" value="10" min="1"></label>
+            <label style="flex:1; font-size:12px; color:#5f6368">全体の高さ (cm)<input type="number" id="table-h" value="5" min="1"></label>
+        </div>
+        <div class="modal-btns">
+            <button class="cancel-btn" onclick="fnApp.hideModal()">キャンセル</button>
+            <button class="confirm-btn active" style="opacity:1; pointer-events:auto;" onclick="fnApp.prepareInsert('table')">挿入</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-exact-shape" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" style="width:400px;" onclick="event.stopPropagation()">
+        <h3>数値で図形・直線を作成 (A4基準)</h3>
+        <select id="exact-shape-type" onchange="fnApp.updateExactShapeFields()" style="margin-bottom:15px;">
+            <option value="line">直線 (長さと角度)</option><option value="rect">四角形 (幅と高さ)</option><option value="circle">円 (半径)</option><option value="triangle">三角形 (幅と高さ)</option>
+        </select>
+        <div id="exact-shape-fields"></div>
+        <div class="modal-btns">
+            <button class="cancel-btn" onclick="fnApp.hideModal()">キャンセル</button>
+            <button class="confirm-btn active" style="opacity:1; pointer-events:auto;" onclick="fnApp.prepareInsert('exact-shape')">挿入</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-shape-adv" class="hidden modal-container" onclick="fnApp.hideModal()">
+    <div class="modal" style="width:750px; max-width:95vw;" onclick="event.stopPropagation()">
+        <h3>高度な設定 (cm単位・幾何学変形)</h3>
+        <div style="display:flex; gap:20px; flex-wrap: wrap;">
+            <div style="flex:1; min-width:280px; text-align:center;">
+                <canvas id="adv-preview-canvas" width="280" height="280" style="background:#f1f3f4; border:1px solid #ddd; border-radius:8px; touch-action:none;"></canvas>
+            </div>
+            <div style="flex:1; min-width:280px;" id="adv-controls"></div>
+        </div>
+        <div class="modal-btns">
+            <button class="cancel-btn" onclick="fnApp.hideModal()">キャンセル</button>
+            <button class="confirm-btn active" style="opacity:1; pointer-events:auto;" onclick="fnApp.applyAdvancedShapeSettings()">適用</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const COVERS =['#ffffff','#fff9c4','#f8bbd0','#c8e6c9','#b2ebf2','#333333'];
+const PALETTE =['#202124','#ea4335','#1a73e8','#fbbc04','#34a853','#a142f4','#ffffff','#00acc1','#5f6368','#f28b82','#81c995','#78d9ec'];
+const DRAW_TOOLS =['pen', 'brush', 'highlighter', 'shape', 'eraser-partial', 'eraser-stroke'];
+const CM_RATIO = 59.055;
+
+const fnApp = {
+    db: null, currentNote: null, currentFolderId: null, currentFolderName: 'すべてのメモ', zoom: 1.0, activeTool: 'pen',
+    allowTouchDraw: false, isSnap: false, isDrawing: false, currentStroke: null, undoStack:[], redoStack:[],
+    tools: { pen:{color:'#202124', size:3}, brush:{color:'#202124', size:8}, highlighter:{color:'#fbbc04', size:20}, 'eraser-partial':{size:30}, 'eraser-stroke':{size:20}, text:{color:'#202124', size:24}, shape:{color:'#1a73e8', size:3, type:'rect'}, pan:{} },
+    activeTouches: new Map(), isPanning: false, pX:0, pY:0, sX:0, sY:0, iDist: 0, iZoom: 1, iCx: 0, iCy: 0, iScrollX: 0, iScrollY: 0,
+    lasso: { active:false, isMoving:false, isResizing:false, isEditingShape:false, resizeDir:'', editIndex:-1, points:[], selectedStrokes:[], bbox:null, dx:0, dy:0, pageIdx:0, dragX:0, dragY:0 },
+    space: { active:false, startY:0, currentY:0, targetStrokes:[] }, textInput: { active:false, pageIdx:0, x:0, y:0 },
+    insertData: { active:false, type:'', startX:0, startY:0, currX:0, currY:0 }, 
+    graphView: { cx: 0, cy: 0, scale: 30, points:[], crop:null }, isGraphDragging: false, graphDragStart: {x:0, y:0}, graphMode: 'pan',
+    advShape: null, advPreviewTransform: null, selectedBgColor: '#ffffff', smartLineTimer: null, isSmartLine: false, imageCache: {},
+
+    simplifyPoints(points, epsilon) {
+        if (points.length <= 2) return points;
+        let dmax = 0; let index = 0; const end = points.length - 1;
+        for (let i = 1; i < end; i++) {
+            const d = this.pointLineDistance(points[i], points[0], points[end]);
+            if (d > dmax) { index = i; dmax = d; }
+        }
+        if (dmax > epsilon) {
+            const rec1 = this.simplifyPoints(points.slice(0, index + 1), epsilon);
+            const rec2 = this.simplifyPoints(points.slice(index, end + 1), epsilon);
+            return rec1.slice(0, rec1.length - 1).concat(rec2);
+        } else return [points[0], points[end]];
+    },
+    pointLineDistance(p, p1, p2) {
+        const num = Math.abs((p2.y - p1.y) * p.x - (p2.x - p1.x) * p.y + p2.x * p1.y - p2.y * p1.x);
+        const den = Math.hypot(p2.y - p1.y, p2.x - p1.x);
+        return den === 0 ? Math.hypot(p.x - p1.x, p.y - p1.y) : num / den;
+    },
+    distToSegmentSquared(p, v, w) {
+        const l2 = (w.x - v.x) ** 2 + (w.y - v.y) ** 2;
+        if (l2 === 0) return (p.x - v.x) ** 2 + (p.y - v.y) ** 2;
+        let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+        t = Math.max(0, Math.min(1, t));
+        const proj = { x: v.x + t * (w.x - v.x), y: v.y + t * (w.y - v.y) };
+        return (p.x - proj.x) ** 2 + (p.y - proj.y) ** 2;
+    },
+    distToSegment(p, v, w) { return Math.sqrt(this.distToSegmentSquared(p, v, w)); },
+    getAngle(p1, p2, p3) {
+        const a = Math.hypot(p2.x-p3.x, p2.y-p3.y);
+        const b = Math.hypot(p1.x-p3.x, p1.y-p3.y);
+        const c = Math.hypot(p1.x-p2.x, p1.y-p2.y);
+        let val = (b*b + c*c - a*a)/(2*b*c);
+        if(val > 1) val = 1; if(val < -1) val = -1;
+        return Math.acos(val) * 180 / Math.PI;
+    },
+    getStrokeBBox(s) {
+        if(['image','text','graph','table'].includes(s.type)) return {minX: s.x, minY: s.y, maxX: s.x+s.w, maxY: s.y+s.h};
+        if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) return { minX: Math.min(...s.pts.map(p=>p.x)), minY: Math.min(...s.pts.map(p=>p.y)), maxX: Math.max(...s.pts.map(p=>p.x)), maxY: Math.max(...s.pts.map(p=>p.y)) };
+        if(s.type === 'shape') return { minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2), maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2) };
+        let minX=9999, minY=9999, maxX=-9999, maxY=-9999;
+        s.points.forEach(p => { minX=Math.min(minX,p.x); minY=Math.min(minY,p.y); maxX=Math.max(maxX,p.x); maxY=Math.max(maxY,p.y); });
+        return {minX, minY, maxX, maxY};
+    },
+
+    async init() {
+        lucide.createIcons(); this.buildSubPalette();
+        await this.initDB(); this.renderDashboard();
+        this.setupWindowEvents(); this.setupTooltips(); 
+        this.initGraphPreview(); this.updateToolUI(); this.updateExactShapeFields();
+        document.addEventListener('click', e => {
+            const menu = document.getElementById('settings-menu');
+            if (menu && !menu.classList.contains('hidden') && !e.target.closest('#settings-menu') && !e.target.closest('.icon-btn[data-desc="メニュー"]')) menu.classList.add('hidden');
+        });
+    },
+
+    async initDB() {
+        return new Promise((resolve) => {
+            const req = indexedDB.open("ForenoteGodFinalV25", 1);
+            req.onupgradeneeded = (e) => { 
+                const db = e.target.result; 
+                db.createObjectStore("notes", {keyPath:"id"}); db.createObjectStore("folders", {keyPath:"id"}); 
+            };
+            req.onsuccess = (e) => { this.db = e.target.result; resolve(); };
+        });
+    },
+
+    async getFolderPath(folderId) {
+        const tx = this.db.transaction("folders", "readonly");
+        const folders = await new Promise(r => tx.objectStore("folders").getAll().onsuccess = e => r(e.target.result));
+        const path =[]; let curr = folderId;
+        while(curr) {
+            const f = folders.find(x => x.id === curr);
+            if(f) { path.unshift(f); curr = f.parentId; } else break;
+        }
+        return path;
+    },
+
+    async renderDashboard() {
+        const grid = document.getElementById('dash-grid'); grid.innerHTML = "";
+        const bread = document.getElementById('breadcrumb');
+        
+        const path = await this.getFolderPath(this.currentFolderId);
+        let breadHTML = `<span onclick="fnApp.openFolder(null, 'すべてのメモ')" ondragover="event.preventDefault()" ondrop="fnApp.handleDropToFolder(event, null)">すべてのメモ</span>`;
+        path.forEach(f => {
+            breadHTML += ` <i data-lucide="chevron-right" style="width:18px; margin:0 6px"></i> 
+                           <span onclick="fnApp.openFolder('${f.id}', '${f.name}')" ondragover="event.preventDefault()" ondrop="fnApp.handleDropToFolder(event, '${f.id}')" style="${f.id === this.currentFolderId ? 'color:#202124; font-weight:bold;' : ''}">${f.name}</span>`;
+        });
+        if (this.currentFolderId) {
+            breadHTML += ` <i data-lucide="edit-3" style="width:18px; margin-left:8px; cursor:pointer; color:#1a73e8;" onclick="fnApp.renameItem('folder', '${this.currentFolderId}', '${this.currentFolderName}')"></i>`;
+        }
+        bread.innerHTML = breadHTML;
+
+        const txF = this.db.transaction("folders","readonly"); 
+        const folders = await new Promise(r => txF.objectStore("folders").getAll().onsuccess = e => r(e.target.result));
+        const txN = this.db.transaction("notes","readonly"); 
+        const notes = await new Promise(r => txN.objectStore("notes").getAll().onsuccess = e => r(e.target.result));
+        
+        folders.filter(f => f.parentId === this.currentFolderId).forEach(f => {
+            const div = document.createElement('div'); div.className = 'item-card'; div.draggable = true;
+            div.ondragstart = e => { e.stopPropagation(); e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'folder', id: f.id })); };
+            div.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; };
+            div.ondragenter = e => { e.currentTarget.style.transform = 'scale(1.05)'; };
+            div.ondragleave = e => { e.currentTarget.style.transform = 'scale(1)'; };
+            div.ondrop = e => { e.preventDefault(); e.stopPropagation(); e.currentTarget.style.transform = 'scale(1)'; fnApp.handleDropToFolder(e, f.id); };
+            div.onclick = () => this.openFolder(f.id, f.name);
+            div.innerHTML = `<div class="delete-btn" style="right:40px; color:#1a73e8;" onclick="event.stopPropagation(); fnApp.renameItem('folder','${f.id}','${f.name}')"><i data-lucide="edit-3" style="width:16px"></i></div>
+                             <div class="delete-btn" onclick="event.stopPropagation(); fnApp.deleteItem('folders','${f.id}')"><i data-lucide="trash-2" style="width:16px"></i></div>
+                             <div class="folder-icon" style="background:${f.color}15; border-color:${f.color};">
+                               <div class="folder-tab" style="background:${f.color}15; border-color:${f.color};"></div>
+                               <div style="position:absolute; bottom:0; left:0; right:0; height:60%; background:${f.color}; opacity:0.1;"></div>
+                             </div>
+                             <div class="card-title">${f.name}</div>`;
+            grid.appendChild(div);
+        });
+
+        notes.filter(n => n.folderId === this.currentFolderId).forEach(n => {
+            const div = document.createElement('div'); div.className = 'item-card'; div.draggable = true;
+            div.ondragstart = e => { e.stopPropagation(); e.dataTransfer.setData('text/plain', JSON.stringify({ type: 'note', id: n.id })); };
+            div.onclick = () => this.openNote(n);
+            const style = this.getBgStyle(n.bgColor||'#fff', n.bgPattern||'dot');
+            div.innerHTML = `<div class="notebook-card"><div class="card-cover" style="${style}"></div><div class="card-info"><div class="card-title">${n.title}</div>
+                             <div class="delete-btn" style="right:40px; color:#1a73e8;" onclick="event.stopPropagation(); fnApp.renameItem('note','${n.id}','${n.title}')"><i data-lucide="edit-3" style="width:16px"></i></div>
+                             <div class="delete-btn" onclick="event.stopPropagation(); fnApp.deleteItem('notes','${n.id}')"><i data-lucide="trash-2" style="width:16px"></i></div></div></div>`;
+            grid.appendChild(div);
+        });
+        lucide.createIcons();
+    },
+
+    async handleDropToFolder(e, targetFolderId) {
+        try {
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            if (data.id === targetFolderId) return; 
+            const storeName = data.type === 'folder' ? 'folders' : 'notes';
+            const tx = this.db.transaction(storeName, "readwrite");
+            const store = tx.objectStore(storeName);
+            const req = store.get(data.id);
+            req.onsuccess = () => {
+                const item = req.result;
+                if (item) {
+                    if (data.type === 'folder') item.parentId = targetFolderId;
+                    else item.folderId = targetFolderId;
+                    store.put(item);
+                }
+            };
+            tx.oncomplete = () => this.renderDashboard();
+        } catch (err) { console.error(err); }
+    },
+
+    async renameItem(type, id, oldName) {
+        const newName = prompt("新しい名前を入力:", oldName);
+        if(!newName || newName === oldName) return;
+        const storeName = type === 'folder' ? 'folders' : 'notes';
+        const tx = this.db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+        const req = store.get(id);
+        req.onsuccess = () => {
+            const item = req.result;
+            if(item) {
+                if(type === 'folder') { item.name = newName; if(id === this.currentFolderId) this.currentFolderName = newName; }
+                else item.title = newName;
+                store.put(item);
+            }
+        };
+        tx.oncomplete = () => this.renderDashboard();
+    },
+
+    async renameCurrentFromEditor() {
+        const newName = prompt("ノートの名前を変更:", this.currentNote.title);
+        if(!newName || newName === this.currentNote.title) return;
+        this.currentNote.title = newName;
+        document.getElementById('editor-note-title').innerText = newName;
+        this.saveNote();
+    },
+
+    openFolder(id, name) { this.currentFolderId = id; this.currentFolderName = name; this.renderDashboard(); },
+    openModal(type) {
+        this.modalType = type; this.selectedBgColor = '#ffffff'; 
+        document.getElementById('modal-overlay').classList.remove('hidden');
+        document.getElementById('modal-title').innerText = type === 'folder' ? '新しいフォルダ' : '新しいノート';
+        document.getElementById('modal-input').value = ""; 
+        document.getElementById('pattern-section').style.display = type === 'folder' ? 'none' : 'block';
+        this.renderModalColors(); this.updateModalUI();
+    },
+    renderModalColors() {
+        const sel = document.getElementById('modal-bg-colors'); sel.innerHTML = "";
+        COVERS.forEach(c => { 
+            const d = document.createElement('div'); d.className = `color-opt ${c === this.selectedBgColor ? 'selected' : ''}`; d.style.background = c; 
+            d.onclick = () => { this.selectedBgColor = c; this.renderModalColors(); }; sel.appendChild(d); 
+        });
+    },
+    hideModal() { document.querySelectorAll('.modal-container').forEach(m => m.classList.add('hidden')); },
+    updateModalUI() { 
+        const val = document.getElementById('modal-input').value; document.getElementById('char-count').innerText = `${val.length}/32`; 
+        document.getElementById('modal-create-btn').classList.toggle('active', val.length > 0); 
+    },
+    async handleModalCreate() {
+        const name = document.getElementById('modal-input').value; if(!name) return;
+        const id = (this.modalType === 'folder' ? 'f' : 'n') + Date.now();
+        const data = this.modalType === 'folder' ? {id, name, parentId: this.currentFolderId, color: this.selectedBgColor} : {id, title: name, bgColor: this.selectedBgColor, bgPattern: document.getElementById('modal-pattern-sel').value, folderId: this.currentFolderId, lastModified: Date.now(), pages: [{strokes:[]}]};
+        await new Promise((resolve) => { const tx = this.db.transaction(this.modalType === 'folder' ? "folders" : "notes", "readwrite"); tx.objectStore(this.modalType === 'folder' ? "folders" : "notes").put(data); tx.oncomplete = resolve; });
+        this.hideModal(); if(this.modalType === 'folder') this.openFolder(id, name); else this.openNote(data); 
+    },
+    async deleteItem(st, id) { if(confirm("削除しますか？")) { const tx = this.db.transaction(st, "readwrite"); tx.objectStore(st).delete(id); tx.oncomplete = () => this.renderDashboard(); } },
+
+    async openNote(note) {
+        this.currentNote = note; this.undoStack =[]; this.redoStack =[]; this.pushUndo();
+        document.getElementById('dashboard').classList.add('hidden'); document.getElementById('editor').classList.remove('hidden');
+        document.getElementById('editor-note-title').innerText = note.title;
+        const sel = document.getElementById('editor-bg-colors'); sel.innerHTML = "";
+        COVERS.forEach(c => { 
+            const d = document.createElement('div'); d.className = `color-swatch ${c === note.bgColor ? 'selected' : ''}`; d.style.background = c; 
+            d.onclick = () => { this.changeBgColor(c, d); }; sel.appendChild(d); 
+        });
+        document.getElementById('editor-pattern-sel').value = note.bgPattern || 'dot';
+        await this.preloadImages(); this.renderAllPages();
+    },
+    closeEditor() { 
+        if(this.textInput.active) this.commitText(); this.commitLassoMove(); this.saveNote(); 
+        document.getElementById('editor').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden'); this.renderDashboard(); 
+    },
+    async preloadImages() { 
+        this.imageCache = {}; const promises =[];
+        this.currentNote.pages.forEach(p => p.strokes.forEach(s => {
+            if(s.type === 'image' && !this.imageCache[s.src]) { promises.push(new Promise(res => { const img = new Image(); img.onload = () => { this.imageCache[s.src] = img; res(); }; img.src = s.src; })); }
+        })); 
+        await Promise.all(promises); 
+    },
+    getBgStyle(color, pattern) {
+        let bgImage = 'none'; let bgSize = '25px 25px';
+        if (pattern === 'dot') bgImage = `radial-gradient(rgba(0,0,0,0.15) 1.5px, transparent 1.5px)`;
+        else if (pattern === 'line') { bgImage = `linear-gradient(transparent 95%, rgba(0,0,0,0.1) 95%)`; bgSize = '100% 40px'; }
+        else if (pattern === 'grid') bgImage = `linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)`;
+        return `background-color: ${color}; background-image: ${bgImage}; background-size: ${bgSize};`;
+    },
+    changeBgColor(c, el) { this.currentNote.bgColor = c; document.querySelectorAll('#editor-bg-colors .color-swatch').forEach(b => b.classList.remove('selected')); el.classList.add('selected'); this.applyBgToPages(); this.saveNote(); },
+    changeBgPattern(p) { this.currentNote.bgPattern = p; this.applyBgToPages(); this.saveNote(); },
+    applyBgToPages() { 
+        const style = this.getBgStyle(this.currentNote.bgColor || '#fff', this.currentNote.bgPattern || 'dot'); 
+        document.querySelectorAll('.page-container').forEach(el => el.style.cssText = style + `width:1240px; height:1754px; box-shadow: 0 1px 10px rgba(0,0,0,0.1);`); 
+    },
+
+    toggleSettingsMenu(e) { if(e) e.stopPropagation(); const m = document.getElementById('settings-menu'); m.classList.toggle('hidden'); if (!m.classList.contains('hidden')) lucide.createIcons(); },
+    openBgSettingsModal() { this.toggleSettingsMenu(); document.getElementById('modal-bg-settings').classList.remove('hidden'); },
+    async copyAllToClipboard() {
+        this.toggleSettingsMenu();
+        try {
+            const c = document.createElement('canvas'); c.width = 1240; 
+            const pages = document.querySelectorAll('.main-canvas'); c.height = 1754 * pages.length; 
+            const ctx = c.getContext('2d'); ctx.fillStyle = this.currentNote.bgColor || '#fff'; ctx.fillRect(0, 0, c.width, c.height); 
+            const pat = this.currentNote.bgPattern || 'dot'; ctx.fillStyle = 'rgba(0,0,0,0.1)';
+            for (let i = 0; i < pages.length; i++) {
+                const offsetY = i * 1754;
+                if(pat === 'dot') { for(let y=0; y<1754; y+=25) for(let x=0; x<1240; x+=25) { ctx.beginPath(); ctx.arc(x, offsetY+y, 1.5, 0, Math.PI*2); ctx.fill(); } } 
+                else if(pat === 'line') { for(let y=40; y<1754; y+=40) ctx.fillRect(0, offsetY+y, 1240, 1); } 
+                else if(pat === 'grid') { for(let y=0; y<1754; y+=25) ctx.fillRect(0, offsetY+y, 1240, 1); for(let x=0; x<1240; x+=25) ctx.fillRect(x, offsetY, 1, 1754); }
+                ctx.drawImage(pages[i], 0, offsetY); 
+            }
+            c.toBlob(async blob => { try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); alert("コピー完了！"); } catch (err) { alert("コピー失敗"); } });
+        } catch(e) { alert("エラーが発生しました"); }
+    },
+    exportToPDF() { this.toggleSettingsMenu(); window.print(); },
+
+    renderAllPages() {
+        const stack = document.getElementById('canvas-stack'); stack.innerHTML = "";
+        this.currentNote.pages.forEach((p, i) => {
+            const container = document.createElement('div'); container.className = 'page-container';
+            container.innerHTML = `<canvas class="main-canvas" width="1240" height="1754"></canvas><canvas class="temp-canvas" width="1240" height="1754"></canvas><div class="page-actions" style="pointer-events:auto; z-index:20;"><div class="page-action-btn" onclick="fnApp.exportPage(${i})"><i data-lucide="download"></i></div><div class="page-action-btn del" onclick="fnApp.deletePage(${i})"><i data-lucide="trash-2"></i></div></div>`;
+            stack.appendChild(container); this.initCanvasEvents(container, i); this.drawPage(i);
+        });
+
+        const ui = document.createElement('div'); ui.id = 'lasso-ui'; stack.appendChild(ui);
+        
+        ui.onpointerdown = e => {
+            if (e.target.id === 'lasso-ui') {
+                this.lasso.isMoving = true; this.lasso.dragX = e.clientX; this.lasso.dragY = e.clientY;
+                e.target.setPointerCapture(e.pointerId); e.stopPropagation();
+            }
+        };
+        ui.onpointermove = e => {
+            if (this.lasso.isMoving && e.target.id === 'lasso-ui') {
+                this.lasso.dx += (e.clientX - this.lasso.dragX) / this.zoom; this.lasso.dy += (e.clientY - this.lasso.dragY) / this.zoom;
+                this.lasso.dragX = e.clientX; this.lasso.dragY = e.clientY;
+                this.drawPage(this.lasso.pageIdx); this.updateLassoUI(); e.stopPropagation();
+            }
+        };
+        ui.onpointerup = e => {
+            if (this.lasso.isMoving && e.target.id === 'lasso-ui') {
+                this.lasso.isMoving = false; e.target.releasePointerCapture(e.pointerId);
+                this.saveNote(); this.pushUndo(); e.stopPropagation();
+            }
+        };
+        
+        this.applyBgToPages(); lucide.createIcons(); this.setupTooltips(); this.updateWrapperSize(); this.updateLassoUI();
+    },
+
+    addPage() { this.currentNote.pages.push({strokes:[]}); this.pushUndo(); this.renderAllPages(); this.saveNote(); setTimeout(() => document.getElementById('workspace').scrollTo({top:99999, behavior:'smooth'}), 100); },
+    deletePage(idx) { if(this.currentNote.pages.length <= 1) return alert("最後のページは削除できません"); if(confirm("ページを削除しますか？")) { this.currentNote.pages.splice(idx, 1); this.pushUndo(); this.renderAllPages(); this.saveNote(); } },
+
+    drawPage(idx, spaceDy=0) {
+        const page = this.currentNote.pages[idx]; 
+        const mCtx = document.querySelectorAll('.main-canvas')[idx]?.getContext('2d'); const tCtx = document.querySelectorAll('.temp-canvas')[idx]?.getContext('2d');
+        if(!mCtx) return; 
+        mCtx.clearRect(0,0,1240,1754); tCtx.clearRect(0,0,1240,1754);
+        
+        page.strokes.forEach(s => {
+            const isLasso = this.lasso.active && this.lasso.pageIdx === idx && this.lasso.selectedStrokes.includes(s);
+            const isSpace = this.space.active && this.space.targetStrokes.includes(s);
+            const ctx = isLasso ? tCtx : mCtx; const dx = isLasso ? this.lasso.dx : 0; const dy = isLasso ? this.lasso.dy : (isSpace ? spaceDy : 0);
+            
+            if(s.type === 'image') { const img = this.imageCache[s.src]; if(img) ctx.drawImage(img, s.x+dx, s.y+dy, s.w, s.h); } 
+            else if(s.type === 'text') { ctx.font = `${s.size}px sans-serif`; ctx.fillStyle = s.color; ctx.textBaseline = 'top'; s.text.split('\n').forEach((line, i) => ctx.fillText(line, s.x + dx, s.y + dy + (i * s.size * 1.2))); }
+            else if(s.type === 'shape') {
+                ctx.strokeStyle = s.color; ctx.lineWidth = s.size; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.beginPath();
+                if(s.shapeType==='rect') { 
+                    if(s.pts) { ctx.moveTo(s.pts[0].x+dx, s.pts[0].y+dy); ctx.lineTo(s.pts[1].x+dx, s.pts[1].y+dy); ctx.lineTo(s.pts[2].x+dx, s.pts[2].y+dy); ctx.lineTo(s.pts[3].x+dx, s.pts[3].y+dy); ctx.closePath(); }
+                    else { ctx.rect(s.x1+dx, s.y1+dy, s.x2-s.x1, s.y2-s.y1); }
+                } 
+                else if(s.shapeType==='circle') { const rx=Math.abs(s.x2-s.x1)/2, ry=Math.abs(s.y2-s.y1)/2; ctx.ellipse((s.x1+s.x2)/2+dx, (s.y1+s.y2)/2+dy, rx, ry, 0, 0, Math.PI*2); } 
+                else if(s.shapeType==='triangle') { 
+                    if(s.pts) { ctx.moveTo(s.pts[0].x+dx, s.pts[0].y+dy); ctx.lineTo(s.pts[1].x+dx, s.pts[1].y+dy); ctx.lineTo(s.pts[2].x+dx, s.pts[2].y+dy); } 
+                    else { ctx.moveTo((s.x1+s.x2)/2+dx, s.y1+dy); ctx.lineTo(s.x2+dx, s.y2+dy); ctx.lineTo(s.x1+dx, s.y2+dy); }
+                    ctx.closePath(); 
+                } else { ctx.moveTo(s.x1+dx, s.y1+dy); ctx.lineTo(s.x2+dx, s.y2+dy); } 
+                ctx.stroke();
+            } 
+            else if (s.type === 'graph' || s.type === 'table') { this.renderSpecial(ctx, s, dx, dy); }
+            else { this.renderStroke(ctx, s, dx, dy); }
+        });
+
+        if(this.lasso.active && this.lasso.pageIdx === idx && this.lasso.bbox) {
+            tCtx.strokeStyle='#1a73e8'; tCtx.lineWidth=2; tCtx.setLineDash([5,5]);
+            tCtx.strokeRect(this.lasso.bbox.minX+this.lasso.dx, this.lasso.bbox.minY+this.lasso.dy, this.lasso.bbox.maxX-this.lasso.bbox.minX, this.lasso.bbox.maxY-this.lasso.bbox.minY);
+            tCtx.setLineDash([]);
+        }
+    },
+
+    renderStroke(ctx, s, dx, dy) {
+        if(!s.points || !s.points.length) return; 
+        ctx.save(); ctx.lineCap='round'; ctx.lineJoin='round'; ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = s.color; ctx.globalAlpha = s.tool==='highlighter' ? 0.4 : 1;
+        
+        if (s.tool === 'brush') { 
+            for(let i=1; i<s.points.length; i++) { 
+                const p0 = s.points[i-1]; const p1 = s.points[i]; ctx.lineWidth = s.size * ((p1.p||0.5)*1.5 + 0.1); 
+                ctx.beginPath(); ctx.moveTo(p0.x+dx, p0.y+dy); ctx.lineTo(p1.x+dx, p1.y+dy); ctx.stroke(); 
+            } 
+        } else { 
+            ctx.lineWidth = s.size; ctx.beginPath(); ctx.moveTo(s.points[0].x+dx, s.points[0].y+dy); 
+            if (s.points.length > 2 && !s.isPoly) {
+                for (let i = 1; i < s.points.length - 1; i++) {
+                    const xc = (s.points[i].x + s.points[i+1].x) / 2 + dx; const yc = (s.points[i].y + s.points[i+1].y) / 2 + dy;
+                    ctx.quadraticCurveTo(s.points[i].x+dx, s.points[i].y+dy, xc, yc);
+                }
+                ctx.lineTo(s.points[s.points.length-1].x+dx, s.points[s.points.length-1].y+dy);
+            } else {
+                for(let i=1; i<s.points.length; i++) { ctx.lineTo(s.points[i].x+dx, s.points[i].y+dy); }
+            }
+            ctx.stroke(); 
+        }
+        ctx.restore();
+    },
+
+    drawGraphData(ctx, options) {
+        const {x, y, w, h, func, view, color, lineWidth} = options;
+        ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip(); ctx.fillStyle = '#ffffff'; ctx.fillRect(x, y, w, h);
+        const stepPix = view.scale; const ox = x + w/2 - view.cx * stepPix; const oy = y + h/2 + view.cy * stepPix;
+        let idealUnit = 50 / stepPix; let exponent = Math.floor(Math.log10(idealUnit)); let fraction = idealUnit / Math.pow(10, exponent);
+        let niceFraction; if (fraction <= 1.5) niceFraction = 1; else if (fraction <= 3.5) niceFraction = 2; else if (fraction <= 7.5) niceFraction = 5; else niceFraction = 10;
+        const tickStep = niceFraction * Math.pow(10, exponent); const tickPix = tickStep * stepPix;
+        ctx.font = "12px Arial"; ctx.fillStyle = "#555";
+        let startX = Math.floor((x - ox) / tickPix) * tickStep; let endX = Math.ceil((x + w - ox) / tickPix) * tickStep;
+        ctx.textAlign = "center"; ctx.textBaseline = "top";
+        for(let i = startX; i <= endX; i+=tickStep) {
+            let px = ox + i * stepPix;
+            if(px >= x && px <= x + w) {
+                ctx.beginPath(); ctx.strokeStyle = Math.abs(i) < 1e-10 ? "#000" : "#e0e0e0"; ctx.lineWidth = Math.abs(i) < 1e-10 ? 1.5 : 1;
+                ctx.moveTo(px, y); ctx.lineTo(px, y + h); ctx.stroke();
+                if (Math.abs(i) > 1e-10) { let label = parseFloat(i.toPrecision(10)).toString(); ctx.fillText(label, px, Math.max(y + 2, Math.min(oy + 4, y + h - 16))); }
+            }
+        }
+        let startY = Math.floor((oy - (y + h)) / tickPix) * tickStep; let endY = Math.ceil((oy - y) / tickPix) * tickStep;
+        ctx.textAlign = "right"; ctx.textBaseline = "middle";
+        for(let i = startY; i <= endY; i+=tickStep) {
+            let py = oy - i * stepPix;
+            if(py >= y && py <= y + h) {
+                ctx.beginPath(); ctx.strokeStyle = Math.abs(i) < 1e-10 ? "#000" : "#e0e0e0"; ctx.lineWidth = Math.abs(i) < 1e-10 ? 1.5 : 1;
+                ctx.moveTo(x, py); ctx.lineTo(x + w, py); ctx.stroke();
+                if (Math.abs(i) > 1e-10) { let label = parseFloat(i.toPrecision(10)).toString(); ctx.fillText(label, Math.max(x + 18, Math.min(ox - 4, x + w - 2)), py); }
+            }
+        }
+        ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText("0", Math.max(x + 2, Math.min(ox + 4, x + w - 12)), Math.max(y + 2, Math.min(oy + 4, y + h - 16)));
+
+        try {
+            let parsed = func.replace(/\^/g, '**').replace(/(sin|cos|tan|log|exp|sqrt|abs|PI|E)/g, 'Math.$1'); 
+            let f = new Function('x', 'return ' + parsed);
+            ctx.strokeStyle = color; ctx.lineWidth = lineWidth; ctx.beginPath(); let first = true;
+            for(let px = x; px <= x + w; px += 2) {
+                let valX = (px - ox) / stepPix; let valY = f(valX);
+                if(isNaN(valY) || !isFinite(valY)){ first = true; continue; }
+                let py = oy - valY * stepPix;
+                if(py < y || py > y + h) { first = true; continue; }
+                if(first) { ctx.moveTo(px, py); first = false; } else { ctx.lineTo(px, py); }
+            }
+            ctx.stroke();
+        } catch(e){}
+        
+        if (view.points && view.points.length > 0) {
+            view.points.forEach(pt => {
+                let px = ox + pt.x * stepPix; let py = oy - pt.y * stepPix;
+                if(px >= x && px <= x + w && py >= y && py <= y + h) {
+                    ctx.fillStyle = '#ea4335'; ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#202124'; ctx.font = 'bold 12px Arial'; ctx.fillText(`(${pt.x.toFixed(2)}, ${pt.y.toFixed(2)})`, px + 8, py - 8);
+                }
+            });
+        }
+        if (view.crop) {
+            ctx.fillStyle = 'rgba(26, 115, 232, 0.1)'; ctx.fillRect(view.crop.x, view.crop.y, view.crop.w, view.crop.h);
+            ctx.strokeStyle = '#1a73e8'; ctx.lineWidth = 1; ctx.setLineDash([5, 5]); ctx.strokeRect(view.crop.x, view.crop.y, view.crop.w, view.crop.h); ctx.setLineDash([]);
+        }
+        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1; ctx.strokeRect(x, y, w, h); ctx.restore();
+    },
+
+    renderSpecial(ctx, s, dx, dy) {
+        if(s.type==='graph') { this.drawGraphData(ctx, { x: s.x+dx, y: s.y+dy, w: s.w, h: s.h, func: s.func, view: s.view, color: s.color, lineWidth: s.size }); } 
+        else { 
+            ctx.strokeStyle = s.color; ctx.lineWidth = s.size; ctx.beginPath(); ctx.rect(s.x+dx, s.y+dy, s.w, s.h); 
+            for(let i=1;i<s.cols;i++){ ctx.moveTo(s.x+dx+s.w*(i/s.cols), s.y+dy); ctx.lineTo(s.x+dx+s.w*(i/s.cols), s.y+dy+s.h); } 
+            for(let i=1;i<s.rows;i++){ ctx.moveTo(s.x+dx, s.y+dy+s.h*(i/s.rows)); ctx.lineTo(s.x+dx+s.w, s.y+dy+s.h*(i/s.rows)); } ctx.stroke(); 
+        }
+    },
+
+    applyPhysicalEraser(pageIdx) {
+        const page = this.currentNote.pages[pageIdx]; const r = this.currentStroke.size / 2; 
+        let ePts =[];
+        for(let i=0; i<this.currentStroke.points.length-1; i++){
+            let p1 = this.currentStroke.points[i]; let p2 = this.currentStroke.points[i+1]; let dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+            let steps = Math.max(1, Math.ceil(dist / (r/2)));
+            for(let j=0; j<steps; j++){ ePts.push({x: p1.x + (p2.x-p1.x)*j/steps, y: p1.y + (p2.y-p1.y)*j/steps}); }
+        }
+        if(this.currentStroke.points.length > 0) ePts.push(this.currentStroke.points[this.currentStroke.points.length-1]);
+
+        let newS =[]; let mod = false;
+        page.strokes.forEach(s => {
+            if(['image','text','graph','table'].includes(s.type)) { newS.push(s); return; }
+            if(s.tool==='eraser-partial') return; 
+
+            let sPoints =[]; let isPoly = false;
+            if(s.type === 'shape') {
+                isPoly = true; let hitBox = false;
+                let box = {x1:Math.min(s.x1,s.x2)-s.size, y1:Math.min(s.y1,s.y2)-s.size, x2:Math.max(s.x1,s.x2)+s.size, y2:Math.max(s.y1,s.y2)+s.size};
+                for(let ep of ePts) { if(ep.x >= box.x1 && ep.x <= box.x2 && ep.y >= box.y1 && ep.y <= box.y2) { hitBox = true; break; } }
+                if(!hitBox) { newS.push(s); return; } 
+                
+                const addLine = (x1, y1, x2, y2) => {
+                    let dist = Math.hypot(x2-x1, y2-y1); let steps = Math.max(1, Math.ceil(dist / 2));
+                    for(let i=0; i<=steps; i++) sPoints.push({x: x1+(x2-x1)*i/steps, y: y1+(y2-y1)*i/steps, p: 0.5});
+                };
+                if(s.shapeType === 'rect') { const p = s.pts ||[{x:s.x1,y:s.y1},{x:s.x2,y:s.y1},{x:s.x2,y:s.y2},{x:s.x1,y:s.y2}]; addLine(p[0].x, p[0].y, p[1].x, p[1].y); addLine(p[1].x, p[1].y, p[2].x, p[2].y); addLine(p[2].x, p[2].y, p[3].x, p[3].y); addLine(p[3].x, p[3].y, p[0].x, p[0].y); } 
+                else if (s.shapeType === 'triangle') { const p = s.pts ||[{x:(s.x1+s.x2)/2, y:s.y1}, {x:s.x2, y:s.y2}, {x:s.x1, y:s.y2}]; addLine(p[0].x, p[0].y, p[1].x, p[1].y); addLine(p[1].x, p[1].y, p[2].x, p[2].y); addLine(p[2].x, p[2].y, p[0].x, p[0].y); } 
+                else if (s.shapeType === 'line') { addLine(s.x1, s.y1, s.x2, s.y2); } 
+                else if (s.shapeType === 'circle') {
+                    isPoly = false; const rx = Math.abs(s.x2-s.x1)/2; const ry = Math.abs(s.y2-s.y1)/2; const cx = (s.x1+s.x2)/2; const cy = (s.y1+s.y2)/2;
+                    let circum = Math.PI * Math.max(rx, ry) * 2; let steps = Math.max(1, Math.ceil(circum / 2));
+                    for(let i=0; i<=steps; i++) { let th = (i/steps)*Math.PI*2; sPoints.push({x: cx + rx*Math.cos(th), y: cy + ry*Math.sin(th), p:0.5}); }
+                }
+                s = { tool: 'pen', color: s.color, size: s.size, points: sPoints, isPoly: isPoly };
+            } else {
+                isPoly = s.isPoly || false;
+                for(let i=0; i<s.points.length-1; i++){
+                    let p1 = s.points[i]; let p2 = s.points[i+1]; let dist = Math.hypot(p2.x-p1.x, p2.y-p1.y);
+                    let steps = Math.max(1, Math.ceil(dist / 2));
+                    for(let j=0; j<steps; j++){ sPoints.push({x: p1.x + (p2.x-p1.x)*j/steps, y: p1.y + (p2.y-p1.y)*j/steps, p: p1.p !== undefined ? p1.p + (p2.p - p1.p)*j/steps : 0.5}); }
+                }
+                if(s.points.length > 0) sPoints.push(s.points[s.points.length-1]);
+            }
+            
+            let curSeg =[]; let strokeModified = false;
+            sPoints.forEach(pt => { 
+                let hit = false;
+                for(let ep of ePts) { if(Math.hypot(pt.x-ep.x, pt.y-ep.y) < r) { hit = true; break; } }
+                if(hit) { 
+                    if(curSeg.length > 1) newS.push({...s, points: isPoly ? curSeg : this.simplifyPoints(curSeg, 1.5)}); 
+                    curSeg=[]; strokeModified = true; mod=true; 
+                } else { curSeg.push(pt); } 
+            });
+            if(curSeg.length > 1) { if(strokeModified) newS.push({...s, points: isPoly ? curSeg : this.simplifyPoints(curSeg, 1.5)}); else newS.push(s); } 
+            else if (!strokeModified) { newS.push(s); }
+        });
+        if(mod) { page.strokes = newS; this.drawPage(pageIdx); }
+    },
+
+    initCanvasEvents(container, idx) {
+        const mCan = container.querySelector('.main-canvas'); const mCtx = mCan.getContext('2d', {desynchronized:true}); 
+        const tCan = container.querySelector('.temp-canvas'); const tCtx = tCan.getContext('2d', {desynchronized:true});
+
+        container.addEventListener('pointerdown', e => {
+            document.getElementById('lasso-menu')?.classList.add('hidden'); 
+            if(this.activeTouches.size >= 2 || this.isPanning) return;
+            if(e.pointerType === 'touch' && !this.allowTouchDraw && DRAW_TOOLS.includes(this.activeTool)) return;
+            
+            const pt = this.getCoords(e, mCan); pt.p = e.pressure||0.5;
+
+            if(this.activeTool==='pan') {
+                if(this.lasso.active && this.lasso.pageIdx===idx && this.lasso.bbox) {
+                    const b = this.lasso.bbox;
+                    if(pt.x>=b.minX-10 && pt.x<=b.maxX+10 && pt.y>=b.minY-10 && pt.y<=b.maxY+10) { 
+                        this.lasso.isMoving=true; this.lasso.dragX=e.clientX; this.lasso.dragY=e.clientY; return; 
+                    }
+                }
+                this.commitLassoMove(); 
+                const tar = this.findObjectAt(pt, idx); 
+                if(tar){ 
+                    this.selectObject(tar, idx); 
+                    this.lasso.isMoving=true; this.lasso.dragX=e.clientX; this.lasso.dragY=e.clientY;
+                    return; 
+                }
+                return; 
+            }
+            
+            this.commitLassoMove(); 
+            if(this.activeTool==='text'){ this.handleTextClick(pt, idx); return; }
+            if(this.textInput.active) this.commitText();
+            
+            if(['place-graph','place-table','place-shape'].includes(this.activeTool)){ 
+                this.insertData.startX=pt.x; this.insertData.startY=pt.y; return; 
+            }
+            
+            if(this.activeTool==='insert-space'){ 
+                this.isDrawing=true; this.space.active=true; this.space.startY=pt.y; 
+                this.space.targetStrokes=this.currentNote.pages[idx].strokes.filter(s => {
+                    if (['image','text','graph','table'].includes(s.type)) return s.y > pt.y;
+                    if (s.type === 'shape') {
+                        if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) return Math.min(...s.pts.map(p=>p.y)) > pt.y;
+                        return Math.min(s.y1, s.y2) > pt.y;
+                    }
+                    return Math.min(...s.points.map(p=>p.y)) > pt.y;
+                });
+                document.getElementById('space-line')?.classList.remove('hidden');
+                const sl = document.getElementById('space-line');
+                if(sl) sl.style.top=(idx*1794+pt.y*this.zoom)+'px';
+                return; 
+            }
+
+            if(this.activeTool==='eraser-stroke'){ this.isDrawing=true; this.eraseStrokeAt(pt.x, pt.y, idx); return; }
+            this.isDrawing=true; 
+            if(this.activeTool==='shape') { this.currentStroke={type:'shape', shapeType:this.tools.shape.type, color:this.tools.shape.color, size:this.tools.shape.size, x1:pt.x, y1:pt.y, x2:pt.x, y2:pt.y}; } 
+            else { this.currentStroke={tool:this.activeTool, color:this.tools[this.activeTool]?.color, size:this.tools[this.activeTool]?.size, points:[pt]}; }
+            
+            if(this.activeTool==='lasso') this.lasso.pageIdx=idx;
+            
+            if(this.activeTool==='pen'||this.activeTool==='highlighter'){
+                clearTimeout(this.smartLineTimer); this.smartLineTimer=setTimeout(()=>this.triggerSmartLine(idx), 1000);
+            }
+        });
+
+        container.addEventListener('pointermove', e => {
+            if(this.isPanning || this.activeTouches.size >= 2) return;
+            const pt = this.getCoords(e, mCan); pt.p = e.pressure||0.5;
+            
+            if(['place-graph','place-table','place-shape'].includes(this.activeTool)){ 
+                this.isDrawing = true; this.insertData.currX=pt.x; this.insertData.currY=pt.y; 
+                tCtx.clearRect(0,0,1240,1754); tCtx.strokeStyle='#ea4335'; tCtx.lineWidth=2; tCtx.setLineDash([5,5]); 
+                let w = this.insertData.w; let h = this.insertData.h;
+                if (this.activeTool === 'place-shape') {
+                    if (this.insertData.shapeType === 'line') { w = this.insertData.len; h = 2; }
+                    else if (this.insertData.shapeType === 'circle') { w = this.insertData.radius * 2; h = w; }
+                }
+                tCtx.strokeRect(pt.x - w/2, pt.y - h/2, w, h); tCtx.setLineDash([]); return; 
+            }
+
+            if(!this.isDrawing) return; 
+
+            if(this.space.active){ 
+                this.space.currentY=pt.y; this.drawPage(idx, pt.y-this.space.startY); 
+                const sl = document.getElementById('space-line');
+                if(sl) sl.style.top=(idx*1794+pt.y*this.zoom)+'px'; return; 
+            }
+
+            if(this.activeTool==='eraser-stroke'){ this.eraseStrokeAt(pt.x,pt.y,idx); return; }
+
+            if(this.activeTool==='eraser-partial'){ 
+                const lastPt = this.currentStroke.points[this.currentStroke.points.length - 1] || pt;
+                mCtx.save(); mCtx.lineCap='round'; mCtx.lineJoin='round'; mCtx.lineWidth=this.currentStroke.size; mCtx.globalCompositeOperation='destination-out'; 
+                mCtx.beginPath(); mCtx.moveTo(lastPt.x, lastPt.y); mCtx.lineTo(pt.x, pt.y); mCtx.stroke(); mCtx.restore(); 
+                this.currentStroke.points.push(pt); return; 
+            }
+
+            if(this.activeTool==='shape'){ 
+                this.currentStroke.x2=pt.x; this.currentStroke.y2=pt.y; 
+                tCtx.clearRect(0,0,1240,1754); tCtx.strokeStyle=this.currentStroke.color; tCtx.lineWidth=this.currentStroke.size; tCtx.lineCap='round'; tCtx.lineJoin='round'; tCtx.beginPath(); 
+                if(this.currentStroke.shapeType==='rect') { tCtx.rect(this.currentStroke.x1, this.currentStroke.y1, pt.x-this.currentStroke.x1, pt.y-this.currentStroke.y1); } 
+                else if(this.currentStroke.shapeType==='circle') { const rx=Math.abs(pt.x-this.currentStroke.x1)/2,ry=Math.abs(pt.y-this.currentStroke.y1)/2; tCtx.ellipse((this.currentStroke.x1+pt.x)/2,(this.currentStroke.y1+pt.y)/2,rx,ry,0,0,Math.PI*2); } 
+                else if(this.currentStroke.shapeType==='triangle') { tCtx.moveTo((this.currentStroke.x1+pt.x)/2,this.currentStroke.y1); tCtx.lineTo(pt.x,pt.y); tCtx.lineTo(this.currentStroke.x1,pt.y); tCtx.closePath(); } 
+                else { tCtx.moveTo(this.currentStroke.x1,this.currentStroke.y1); tCtx.lineTo(pt.x,pt.y); } 
+                tCtx.stroke(); return; 
+            }
+
+            if(this.isSmartLine){ 
+                this.currentStroke.points[1]=pt; tCtx.clearRect(0,0,1240,1754); this.renderStroke(tCtx,this.currentStroke,0,0); return; 
+            }
+
+            const lastPt = this.currentStroke.points[this.currentStroke.points.length - 1]; this.currentStroke.points.push(pt);
+            
+            if(['pen','brush','highlighter'].includes(this.activeTool)){ 
+                if(this.activeTool==='highlighter'){
+                    tCtx.clearRect(0,0,1240,1754); this.renderStroke(tCtx,this.currentStroke,0,0);
+                } else {
+                    mCtx.save(); mCtx.lineCap='round'; mCtx.lineJoin='round'; mCtx.strokeStyle=this.currentStroke.color; 
+                    mCtx.lineWidth = this.activeTool==='brush' ? this.currentStroke.size*((pt.p||0.5)*1.5+0.1) : this.currentStroke.size; 
+                    mCtx.beginPath(); mCtx.moveTo(lastPt.x, lastPt.y); mCtx.lineTo(pt.x, pt.y); mCtx.stroke(); mCtx.restore();
+                } 
+            } else if(this.activeTool==='lasso'){ 
+                tCtx.clearRect(0,0,1240,1754); tCtx.save(); tCtx.strokeStyle='#1a73e8'; tCtx.setLineDash([5,5]); tCtx.lineWidth=2; tCtx.beginPath(); 
+                tCtx.moveTo(this.currentStroke.points[0].x, this.currentStroke.points[0].y); 
+                for(let p of this.currentStroke.points) tCtx.lineTo(p.x, p.y); 
+                tCtx.stroke(); tCtx.restore();
+            }
+            if(Math.hypot(pt.x-this.currentStroke.points[0].x, pt.y-this.currentStroke.points[0].y)>20) clearTimeout(this.smartLineTimer);
+        });
+
+        container.addEventListener('pointerup', e => {
+            clearTimeout(this.smartLineTimer); 
+            if(!this.isDrawing) return; this.isDrawing=false;
+            
+            if(['place-graph','place-table','place-shape'].includes(this.activeTool)){ 
+                const pt = this.getCoords(e, mCan); let s = null;
+                if (this.activeTool === 'place-graph') {
+                    let funcStr = this.insertData.func.replace(/\^/g, '**').replace(/^y\s*=\s*/, '');
+                    s = {type:'graph', func:funcStr, view:{...this.insertData.view}, x: pt.x - this.insertData.w/2, y: pt.y - this.insertData.h/2, w: this.insertData.w, h: this.insertData.h, color:this.tools.pen.color, size:2}; 
+                } else if (this.activeTool === 'place-table') {
+                    s = {type:'table', rows:this.insertData.rows, cols:this.insertData.cols, x: pt.x - this.insertData.w/2, y: pt.y - this.insertData.h/2, w: this.insertData.w, h: this.insertData.h, color:this.tools.pen.color, size:1}; 
+                } else if (this.activeTool === 'place-shape') {
+                    let type = this.insertData.shapeType; s = {type: 'shape', shapeType: type, color: this.tools.shape.color, size: this.tools.shape.size};
+                    if (type === 'line') {
+                        const len = this.insertData.len; const rad = this.insertData.deg * (Math.PI / 180);
+                        s.x1 = pt.x - (len*Math.cos(rad))/2; s.y1 = pt.y - (len*Math.sin(rad))/2;
+                        s.x2 = pt.x + (len*Math.cos(rad))/2; s.y2 = pt.y + (len*Math.sin(rad))/2;
+                    } else if (type === 'circle') {
+                        const r = this.insertData.radius; s.x1 = pt.x - r; s.y1 = pt.y - r; s.x2 = pt.x + r; s.y2 = pt.y + r;
+                    } else if (type === 'triangle') {
+                        const w = this.insertData.w; const h = this.insertData.h;
+                        s.pts =[{x: pt.x, y: pt.y - h/2}, {x: pt.x + w/2, y: pt.y + h/2}, {x: pt.x - w/2, y: pt.y + h/2}];
+                        s.x1 = pt.x - w/2; s.y1 = pt.y - h/2; s.x2 = pt.x + w/2; s.y2 = pt.y + h/2;
+                    } else {
+                        const w = this.insertData.w; const h = this.insertData.h;
+                        s.x1 = pt.x - w/2; s.y1 = pt.y - h/2; s.x2 = pt.x + w/2; s.y2 = pt.y + h/2;
+                        s.pts =[{x: s.x1, y: s.y1}, {x: s.x2, y: s.y1}, {x: s.x2, y: s.y2}, {x: s.x1, y: s.y2}];
+                    }
+                }
+                this.currentNote.pages[idx].strokes.push(s); this.setTool('pen'); tCtx.clearRect(0,0,1240,1754); this.drawPage(idx); this.saveNote(); this.pushUndo(); return; 
+            }
+            
+            if(this.space.active) {
+                const dy=this.space.currentY-this.space.startY; 
+                this.space.targetStrokes.forEach(s => {
+                    if(['image','text','graph','table'].includes(s.type)) s.y+=dy; 
+                    else if (s.type==='shape') { if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) { s.pts.forEach(p => p.y += dy); } s.y1+=dy; s.y2+=dy; } 
+                    else s.points.forEach(p=>p.y+=dy);
+                }); 
+                document.getElementById('space-line')?.classList.add('hidden'); this.space.active=false; tCtx.clearRect(0,0,1240,1754); this.drawPage(idx); this.saveNote(); this.pushUndo(); return;
+            }
+            else if(this.activeTool==='lasso') { tCtx.clearRect(0,0,1240,1754); this.processLasso(idx); return; }
+            else if(this.activeTool==='eraser-partial') { this.applyPhysicalEraser(idx); }
+            else if(['pen','brush','highlighter','shape'].includes(this.activeTool)) {
+                if(this.activeTool === 'shape' && Math.abs(this.currentStroke.x2 - this.currentStroke.x1) < 2 && Math.abs(this.currentStroke.y2 - this.currentStroke.y1) < 2) {
+                } else {
+                    if(this.activeTool === 'shape' && this.currentStroke.shapeType === 'triangle') {
+                        this.currentStroke.pts =[{x: (this.currentStroke.x1+this.currentStroke.x2)/2, y: this.currentStroke.y1}, {x: this.currentStroke.x2, y: this.currentStroke.y2}, {x: this.currentStroke.x1, y: this.currentStroke.y2}];
+                    }
+                    if(this.activeTool === 'shape' && this.currentStroke.shapeType === 'rect') {
+                        this.currentStroke.pts =[{x: this.currentStroke.x1, y: this.currentStroke.y1}, {x: this.currentStroke.x2, y: this.currentStroke.y1}, {x: this.currentStroke.x2, y: this.currentStroke.y2}, {x: this.currentStroke.x1, y: this.currentStroke.y2}];
+                    }
+                    if(['pen', 'highlighter'].includes(this.activeTool) && this.currentStroke.points.length > 2 && !this.isSmartLine) {
+                        this.currentStroke.points = this.simplifyPoints(this.currentStroke.points, 1.5);
+                    }
+                    this.currentNote.pages[idx].strokes.push(this.currentStroke);
+                }
+            }
+            
+            this.isSmartLine=false; tCtx.clearRect(0,0,1240,1754); this.drawPage(idx); this.saveNote(); this.pushUndo(); this.currentStroke=null;
+        });
+    },
+
+    eraseStrokeAt(x, y, idx) {
+        const p = this.currentNote.pages[idx]; const initialLen = p.strokes.length; const r = this.tools['eraser-stroke'].size; const pt = {x, y};
+        p.strokes = p.strokes.filter(s => {
+            if(['image','text','graph','table'].includes(s.type)) { return !(x >= s.x && x <= s.x+s.w && y >= s.y && y <= s.y+s.h); }
+            if(s.type === 'shape') { const b = this.getStrokeBBox(s); return !(x >= b.minX-r && x <= b.maxX+r && y >= b.minY-r && y <= b.maxY+r); }
+            for(let i=0; i<s.points.length-1; i++) if(this.distToSegment(pt, s.points[i], s.points[i+1]) <= r) return false;
+            if(s.points.length === 1 && Math.hypot(s.points[0].x - x, s.points[0].y - y) <= r) return false;
+            return true;
+        });
+        if(p.strokes.length !== initialLen) this.drawPage(idx); 
+    },
+
+    triggerSmartLine(idx) {
+        if(!this.isDrawing) return; this.isSmartLine = true; 
+        const p1 = this.currentStroke.points[0]; const pLast = this.currentStroke.points[this.currentStroke.points.length-1];
+        this.currentStroke.points =[p1, pLast]; this.drawPage(idx);
+    },
+
+    getCoords(e, c) { 
+        const r=c.getBoundingClientRect(); let x=(e.clientX-r.left)*(1240/r.width), y=(e.clientY-r.top)*(1754/r.height); 
+        if(this.isSnap &&['shape','text','insert-exact-shape'].includes(this.activeTool)) { x=Math.round(x/25)*25; y=Math.round(y/25)*25; } 
+        return {x,y}; 
+    },
+    
+    inPoly(pt, vs) { 
+        let ins=false; 
+        for(let i=0,j=vs.length-1; i<vs.length; j=i++){ 
+            if(((vs[i].y>pt.y)!=(vs[j].y>pt.y))&&(pt.x<(vs[j].x-vs[i].x)*(pt.y-vs[i].y)/(vs[j].y-vs[i].y)+vs[i].x)) ins=!ins; 
+        } 
+        return ins; 
+    },
+    
+    findObjectAt(pt, idx) { 
+        const p = this.currentNote.pages[idx]; 
+        for(let i=p.strokes.length-1; i>=0; i--){ 
+            const s=p.strokes[i]; const b = this.getStrokeBBox(s);
+            if(pt.x>=b.minX-10 && pt.x<=b.maxX+10 && pt.y>=b.minY-10 && pt.y<=b.maxY+10) return s;
+        } 
+        return null; 
+    },
+    
+    selectObject(s, idx) { 
+        this.lasso.selectedStrokes=[s]; this.lasso.active=true; this.lasso.pageIdx=idx; 
+        this.lasso.bbox=this.getStrokeBBox(s); this.lasso.dx=0; this.lasso.dy=0; this.updateLassoUI(); this.drawPage(idx); 
+    },
+
+    processLasso(idx) { 
+        const p=this.currentNote.pages[idx]; const lassoPoints = this.currentStroke.points; 
+        let selNorm = p.strokes.filter(s => {
+            if(s.tool === 'eraser-partial') return false;
+            const b = this.getStrokeBBox(s);
+            if(['image','text','graph','table'].includes(s.type)) return[{x:b.minX,y:b.minY},{x:b.maxX,y:b.minY},{x:b.minX,y:b.maxY},{x:b.maxX,y:b.maxY}].some(c => this.inPoly(c, lassoPoints));
+            if(s.shapeType==='triangle' || s.shapeType==='rect') return s.pts.some(c => this.inPoly(c, lassoPoints));
+            if(s.type==='shape') return[{x:b.minX,y:b.minY},{x:b.maxX,y:b.minY},{x:b.minX,y:b.maxY},{x:b.maxX,y:b.maxY}].some(c => this.inPoly(c, lassoPoints));
+            for(let i=0; i<s.points.length-1; i++){
+                if(this.inPoly(s.points[i], lassoPoints)) return true;
+                if(this.inPoly({x: (s.points[i].x + s.points[i+1].x)/2, y: (s.points[i].y + s.points[i+1].y)/2}, lassoPoints)) return true;
+            }
+            if(s.points.length > 0 && this.inPoly(s.points[s.points.length-1], lassoPoints)) return true;
+            return false;
+        }); 
+        
+        this.lasso.selectedStrokes =[...selNorm];
+        if(this.lasso.selectedStrokes.length) {
+            let x1=9999, y1=9999, x2=-9999, y2=-9999;
+            this.lasso.selectedStrokes.forEach(s => {
+                const b = this.getStrokeBBox(s);
+                x1=Math.min(x1, b.minX); y1=Math.min(y1, b.minY); x2=Math.max(x2, b.maxX); y2=Math.max(y2, b.maxY);
+            });
+            this.lasso.bbox = {minX: x1, minY: y1, maxX: x2, maxY: y2};
+            this.lasso.active=true; this.lasso.pageIdx=idx; this.lasso.dx=0; this.lasso.dy=0;
+            document.getElementById('lasso-ui')?.classList.remove('hidden');
+        } else {
+            this.lasso.active=false; document.getElementById('lasso-ui')?.classList.add('hidden');
+        }
+        this.updateLassoUI(); this.drawPage(idx);
+    },
+
+    updateLassoUI() {
+        const ui=document.getElementById('lasso-ui'); 
+        if(!ui) return;
+        if(!this.lasso.active) { ui.style.display='none'; return; } 
+        ui.style.display='block'; 
+        
+        const b=this.lasso.bbox; const offY=this.lasso.pageIdx*1794;
+        let isSpecialShape = false;
+        if (this.lasso.selectedStrokes.length === 1 && this.lasso.selectedStrokes[0].type === 'shape' && ['triangle','line','rect'].includes(this.lasso.selectedStrokes[0].shapeType)) {
+            isSpecialShape = true;
+            if(this.lasso.selectedStrokes[0].shapeType === 'rect' && !this.lasso.selectedStrokes[0].pts) {
+                let s = this.lasso.selectedStrokes[0];
+                s.pts =[{x: s.x1, y: s.y1}, {x: s.x2, y: s.y1}, {x: s.x2, y: s.y2}, {x: s.x1, y: s.y2}];
+            }
+        }
+
+        let menuHTML = '';
+        if (this.lasso.selectedStrokes.length === 1 && (this.lasso.selectedStrokes[0].type === 'shape' || this.lasso.selectedStrokes[0].type === 'image')) {
+            menuHTML += `<div onclick="fnApp.openAdvancedShapeSettings(event)"><i data-lucide="ruler"></i> 高度な設定(cm等)</div>`;
+        }
+        menuHTML += `<div onclick="fnApp.duplicateLasso(event)"><i data-lucide="copy"></i> コピー</div><div onclick="fnApp.deleteLasso(event)" style="color:#ea4335"><i data-lucide="trash-2"></i> 削除</div>`;
+
+        const padding = 10;
+        ui.style.border = isSpecialShape ? '1px dashed #aecbfa' : '2px solid #aecbfa'; 
+        ui.style.background = isSpecialShape ? 'transparent' : 'rgba(26, 115, 232, 0.05)'; 
+        ui.style.pointerEvents = 'auto'; 
+        
+        ui.style.left = (b.minX + this.lasso.dx - padding) + 'px'; 
+        ui.style.top = (offY + b.minY + this.lasso.dy - padding) + 'px'; 
+        ui.style.width = (b.maxX - b.minX + padding * 2) + 'px'; 
+        ui.style.height = (b.maxY - b.minY + padding * 2) + 'px';
+
+        if (isSpecialShape) {
+            const s = this.lasso.selectedStrokes[0];
+            let pts =[]; if(s.shapeType==='triangle' || s.shapeType==='rect') pts = s.pts; else pts=[{x:s.x1,y:s.y1},{x:s.x2,y:s.y2}];
+            let dotsHTML = '';
+            pts.forEach((pt, i) => { 
+                const px = pt.x - b.minX + padding - 8; 
+                const py = pt.y - b.minY + padding - 8;
+                dotsHTML += `<div class="shape-edit-dot" data-idx="${i}" style="left:${px}px; top:${py}px;" onpointerdown="event.stopPropagation()"></div>`; 
+            });
+            ui.innerHTML = dotsHTML + `<div class="lasso-menu-btn" style="right:0; top:-35px; left:auto;" onclick="fnApp.toggleLassoMenu(event)" onpointerdown="event.stopPropagation()">･･･</div><div id="lasso-menu" class="hidden">${menuHTML}</div>`;
+            ui.querySelectorAll('.shape-edit-dot').forEach(el=>{
+                el.addEventListener('pointerdown', e => { 
+                    e.stopPropagation(); el.setPointerCapture(e.pointerId); 
+                    this.lasso.isEditingShape=true; this.lasso.editIndex=parseInt(el.dataset.idx); 
+                });
+            });
+        } else {
+            ui.innerHTML = `<div class="lasso-dot top-left lasso-resize-handle" data-dir="tl"></div><div class="lasso-dot top-right lasso-resize-handle" data-dir="tr"></div><div class="lasso-dot bottom-left lasso-resize-handle" data-dir="bl"></div><div class="lasso-dot bottom-right lasso-resize-handle" data-dir="br"></div><div class="lasso-menu-btn" style="right:0; top:-35px; left:auto;" onclick="fnApp.toggleLassoMenu(event)" onpointerdown="event.stopPropagation()">･･･</div><div id="lasso-menu" class="hidden">${menuHTML}</div>`;
+            ui.querySelectorAll('.lasso-resize-handle').forEach(el=>{ el.addEventListener('pointerdown', e => { fnApp.startLassoResize(e, el.dataset.dir); }); });
+        }
+        lucide.createIcons();
+    },
+
+    commitLassoMove() { 
+        if(!this.lasso.active) return; 
+        if(this.isSnap && this.lasso.dx !== 0) { const grid = (this.currentNote.bgPattern==='line')?40:25; this.lasso.dx = Math.round(this.lasso.dx/grid)*grid; this.lasso.dy = Math.round(this.lasso.dy/grid)*grid; }
+        this.lasso.selectedStrokes.forEach(s => {
+            if(['image','text','graph','table'].includes(s.type)) { s.x+=this.lasso.dx; s.y+=this.lasso.dy; } 
+            else if (s.type === 'shape') { 
+                if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) s.pts.forEach(p=>{p.x+=this.lasso.dx; p.y+=this.lasso.dy;});
+                s.x1+=this.lasso.dx; s.x2+=this.lasso.dx; s.y1+=this.lasso.dy; s.y2+=this.lasso.dy; 
+            }
+            else s.points.forEach(pt => { pt.x+=this.lasso.dx; pt.y+=this.lasso.dy; }); 
+        });
+        this.lasso.active=false; document.getElementById('lasso-ui')?.classList.add('hidden'); this.renderAllPages();
+    },
+
+    startLassoResize(e, dir){ 
+        e.stopPropagation(); e.target.setPointerCapture(e.pointerId); 
+        this.lasso.isResizing = true; this.lasso.resizeDir = dir; this.lasso.origBbox = {...this.lasso.bbox}; 
+        this.lasso.origStrokes = JSON.parse(JSON.stringify(this.lasso.selectedStrokes)); 
+        this.lasso.origStrokes.forEach(s=>{if(s.type==='text') s.origSize = s.size;});
+        const mCan = document.querySelectorAll('.main-canvas')[this.lasso.pageIdx];
+        this.lasso.startPt = this.getCoords(e, mCan);
+    },
+    
+    handleLassoResize(e){ 
+        const mCan = document.querySelectorAll('.main-canvas')[this.lasso.pageIdx];
+        const pt = this.getCoords(e, mCan);
+        const b = this.lasso.origBbox; const origW = b.maxX - b.minX; const origH = b.maxY - b.minY;
+        if(origW <= 0 || origH <= 0) return; 
+        
+        let scale = 1; let ox = b.minX, oy = b.minY;
+        if(this.lasso.resizeDir === 'br') { ox = b.minX; oy = b.minY; scale = (pt.x - this.lasso.dx - ox) / origW; } 
+        else if(this.lasso.resizeDir === 'tl') { ox = b.maxX; oy = b.maxY; scale = (ox - (pt.x - this.lasso.dx)) / origW; } 
+        else if(this.lasso.resizeDir === 'tr') { ox = b.minX; oy = b.maxY; scale = ((pt.x - this.lasso.dx) - ox) / origW; } 
+        else if(this.lasso.resizeDir === 'bl') { ox = b.maxX; oy = b.minY; scale = (ox - (pt.x - this.lasso.dx)) / origW; }
+
+        scale = Math.max(0.1, scale);
+        
+        this.lasso.selectedStrokes.forEach((s, i) => {
+            const orig = this.lasso.origStrokes[i];
+            if(['image','text','graph','table'].includes(s.type)){ 
+                s.x = ox + (orig.x - ox)*scale; 
+                s.y = oy + (orig.y - oy)*scale; 
+                s.w = orig.w * scale; 
+                s.h = orig.h * scale; 
+                if(s.type==='text') s.size = orig.origSize * scale; 
+            } else if(s.type==='shape'){ 
+                if((s.shapeType==='triangle' || s.shapeType==='rect') && orig.pts) {
+                    s.pts = orig.pts.map(p => ({ x: ox + (p.x - ox)*scale, y: oy + (p.y - oy)*scale }));
+                }
+                s.x1 = ox + (orig.x1 - ox)*scale; 
+                s.x2 = ox + (orig.x2 - ox)*scale; 
+                s.y1 = oy + (orig.y1 - oy)*scale; 
+                s.y2 = oy + (orig.y2 - oy)*scale; 
+            } else { 
+                s.points = orig.points.map(p => ({ x: ox + (p.x - ox)*scale, y: oy + (p.y - oy)*scale }));
+            }
+        }); 
+
+        this.lasso.bbox.minX = ox + (b.minX - ox)*scale; this.lasso.bbox.maxX = ox + (b.maxX - ox)*scale; 
+        this.lasso.bbox.minY = oy + (b.minY - oy)*scale; this.lasso.bbox.maxY = oy + (b.maxY - oy)*scale; 
+        
+        let nx=Math.min(this.lasso.bbox.minX, this.lasso.bbox.maxX), nxx=Math.max(this.lasso.bbox.minX, this.lasso.bbox.maxX);
+        let ny=Math.min(this.lasso.bbox.minY, this.lasso.bbox.maxY), nyy=Math.max(this.lasso.bbox.minY, this.lasso.bbox.maxY);
+        this.lasso.bbox={minX:nx, maxX:nxx, minY:ny, maxY:nyy};
+        this.updateLassoUI(); this.drawPage(this.lasso.pageIdx); 
+    },
+
+    handleShapeEdit(e){ 
+        const pt = this.getCoords(e, document.querySelectorAll('.main-canvas')[this.lasso.pageIdx]); 
+        const s = this.lasso.selectedStrokes[0];
+        let tx = pt.x - this.lasso.dx; let ty = pt.y - this.lasso.dy;
+
+        if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) {
+            for(let i=0; i<s.pts.length; i++) {
+                if(i === this.lasso.editIndex) continue;
+                if(Math.abs(tx - s.pts[i].x) < 15) tx = s.pts[i].x;
+                if(Math.abs(ty - s.pts[i].y) < 15) ty = s.pts[i].y;
+            }
+            s.pts[this.lasso.editIndex] = {x: tx, y: ty};
+        } else {
+            if(this.lasso.editIndex===0){ s.x1=tx; s.y1=ty; } else { s.x2=tx; s.y2=ty; } 
+        }
+
+        this.lasso.bbox = this.getStrokeBBox(s);
+        this.updateLassoUI(); this.drawPage(this.lasso.pageIdx); 
+    },
+
+    updateWrapperSize() { 
+        if(!this.currentNote) return;
+        const h=this.currentNote.pages.length*1794; 
+        document.getElementById('scroll-wrapper').style.width=(1240*this.zoom)+'px'; document.getElementById('scroll-wrapper').style.height=(h*this.zoom)+'px'; 
+        document.getElementById('canvas-stack').style.transform=`scale(${this.zoom})`; 
+        if(this.textInput.active) { document.getElementById('text-input-box').style.transform = `scale(${this.zoom})`; document.getElementById('text-input-box').style.transformOrigin = `top left`; }
+    },
+    
+    setTool(t) { 
+        if(this.lasso.active && t !== 'pan' && t !== 'lasso') this.commitLassoMove(); 
+        if(this.textInput.active) this.commitText(); 
+
+        this.activeTool=t; 
+        document.querySelectorAll('.icon-btn').forEach(b=>b.classList.remove('active')); 
+        const activeBtn = document.querySelector(`.icon-btn[data-tool="${t}"]`);
+        if(activeBtn) activeBtn.classList.add('active'); 
+
+        const subToolbar = document.getElementById('sub-toolbar');
+        const requiresSub =['pen','brush','highlighter','text','shape','eraser-partial','eraser-stroke'].includes(t);
+        
+        if (requiresSub) {
+            subToolbar.classList.remove('hidden'); document.getElementById('sub-shape').classList.toggle('hidden', t!=='shape'); 
+            document.getElementById('sub-color').style.display =['eraser-partial', 'eraser-stroke'].includes(t) ? 'none' : 'flex';
+            document.getElementById('sub-size').style.display = t === 'eraser-stroke' ? 'none' : 'flex';
+            if(['pen','brush','highlighter','text','shape'].includes(t)) this.buildSubPalette(); 
+            this.updateToolUI();
+        } else subToolbar.classList.add('hidden');
+    },
+    
+    setSize(s) { this.tools[this.activeTool].size=parseInt(s); this.updateToolUI(); },
+    setShapeType(t) { this.tools.shape.type=t; document.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active')); document.querySelector(`.shape-btn[data-shape="${t}"]`)?.classList.add('active'); },
+    buildSubPalette() { 
+        const p=document.getElementById('sub-palette'); p.innerHTML = "";
+        PALETTE.forEach(c=>{
+            const d=document.createElement('div'); d.className=`color-swatch ${this.tools[this.activeTool].color===c?'selected':''}`; d.style.background=c; 
+            d.onclick=()=>{ this.tools[this.activeTool].color=c; this.buildSubPalette(); }; p.appendChild(d);
+        }); 
+    },
+    updateToolUI() { const t=this.tools[this.activeTool]; if(t && t.size) document.getElementById('sub-size-slider').value=t.size; },
+
+    initGraphPreview() { 
+        const c=document.getElementById('graph-preview-canvas'); 
+        c.addEventListener('wheel', e=>{ e.preventDefault(); this.graphView.scale*=e.deltaY>0?0.9:1.1; this.updateGraphPreview(); }); 
+        c.addEventListener('pointerdown', e=>{ 
+            const rect = c.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+            if (this.graphMode === 'point') {
+                const stepPix = this.graphView.scale; const ox = c.width/2 - this.graphView.cx * stepPix; const graphX = (x - ox) / stepPix;
+                try {
+                    let parsed = document.getElementById('graph-func').value.replace(/\^/g, '**').replace(/(sin|cos|tan|log|exp|sqrt|abs|PI|E)/g, 'Math.$1');
+                    let f = new Function('x', 'return ' + parsed); let graphY = f(graphX);
+                    if (!isNaN(graphY) && isFinite(graphY)) { if(!this.graphView.points) this.graphView.points =[]; this.graphView.points.push({x: graphX, y: graphY}); }
+                } catch(err){}
+                this.updateGraphPreview();
+            } else if (this.graphMode === 'crop') {
+                this.isGraphDragging = true; this.graphDragStart = {x, y}; this.graphView.crop = {x, y, w:0, h:0};
+            } else { this.isGraphDragging = true; this.graphDragStart = {x: e.clientX, y: e.clientY}; }
+            c.setPointerCapture(e.pointerId); 
+        }); 
+        c.addEventListener('pointermove', e=>{ 
+            if(this.isGraphDragging){ 
+                const rect = c.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+                if (this.graphMode === 'crop') {
+                    this.graphView.crop.w = x - this.graphDragStart.x; this.graphView.crop.h = y - this.graphDragStart.y; this.updateGraphPreview();
+                } else {
+                    this.graphView.cx -= (e.clientX - this.graphDragStart.x) / this.graphView.scale; this.graphView.cy += (e.clientY - this.graphDragStart.y) / this.graphView.scale; 
+                    this.graphDragStart = {x: e.clientX, y: e.clientY}; this.updateGraphPreview(); 
+                }
+            } 
+        }); 
+        c.addEventListener('pointerup', e => { 
+            this.isGraphDragging = false; c.releasePointerCapture(e.pointerId); 
+            if (this.graphMode === 'crop' && this.graphView.crop) {
+                let cr = this.graphView.crop;
+                if (cr.w < 0) { cr.x += cr.w; cr.w = Math.abs(cr.w); }
+                if (cr.h < 0) { cr.y += cr.h; cr.h = Math.abs(cr.h); }
+                if (cr.w < 10 || cr.h < 10) this.graphView.crop = null;
+                this.updateGraphPreview();
+            }
+        }); 
+    },
+    updateGraphPreview() { 
+        const c=document.getElementById('graph-preview-canvas'); 
+        if(!c)return; c.width = c.clientWidth; c.height = c.clientHeight;
+        const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); 
+        this.drawGraphData(ctx, {x:0, y:0, w:c.width, h:c.height, func:document.getElementById('graph-func').value, view:this.graphView, color:'#1a73e8', lineWidth:2});
+    },
+    openCustomModal(t) { 
+        document.querySelectorAll('.modal-container').forEach(m => m.classList.add('hidden'));
+        document.getElementById('modal-'+t)?.classList.remove('hidden'); 
+        if(t==='graph') { this.graphView={cx:0, cy:0, scale:30, points:[], crop:null}; setTimeout(() => this.updateGraphPreview(), 50); }
+    },
+    openExactShapeModal() {
+        document.querySelectorAll('.modal-container').forEach(m => m.classList.add('hidden'));
+        document.getElementById('modal-exact-shape').classList.remove('hidden');
+        this.updateExactShapeFields();
+    },
+    updateExactShapeFields() {
+        const type = document.getElementById('exact-shape-type').value;
+        const container = document.getElementById('exact-shape-fields');
+        if (type === 'line') { container.innerHTML = `<div style="display:flex; gap:10px; margin-top:10px;"><label style="flex:1; font-size:12px; color:#5f6368">長さ (cm)<br><input type="number" id="exact-len" value="5"></label><label style="flex:1; font-size:12px; color:#5f6368">角度 (度)<br><input type="number" id="exact-deg" value="0"></label></div>`; } 
+        else if (type === 'circle') { container.innerHTML = `<div style="display:flex; gap:10px; margin-top:10px;"><label style="flex:1; font-size:12px; color:#5f6368">半径 (cm)<br><input type="number" id="exact-radius" value="3"></label></div>`; } 
+        else { container.innerHTML = `<div style="display:flex; gap:10px; margin-top:10px;"><label style="flex:1; font-size:12px; color:#5f6368">幅 (cm)<br><input type="number" id="exact-w" value="5"></label><label style="flex:1; font-size:12px; color:#5f6368">高さ (cm)<br><input type="number" id="exact-h" value="5"></label></div>`; }
+    },
+    prepareInsert(t) { 
+        this.setTool('place-'+t); 
+        if(t==='graph') {
+            let w = 500, h = 350; let view = JSON.parse(JSON.stringify(this.graphView));
+            if (this.graphView.crop) {
+                w = this.graphView.crop.w; h = this.graphView.crop.h;
+                view.cx += (this.graphView.crop.x + w/2 - 250) / view.scale; 
+                view.cy -= (this.graphView.crop.y + h/2 - 175) / view.scale; 
+                view.crop = null;
+            }
+            this.insertData={func:document.getElementById('graph-func').value, view:view, w, h}; 
+        }
+        else if (t==='table') {
+            this.insertData={ rows:parseInt(document.getElementById('table-rows').value), cols:parseInt(document.getElementById('table-cols').value), w: parseFloat(document.getElementById('table-w').value) * CM_RATIO, h: parseFloat(document.getElementById('table-h').value) * CM_RATIO }; 
+        }
+        else if (t==='exact-shape') {
+            this.insertData.shapeType = document.getElementById('exact-shape-type').value;
+            if(this.insertData.shapeType === 'line') { this.insertData.len = parseFloat(document.getElementById('exact-len').value) * CM_RATIO; this.insertData.deg = parseFloat(document.getElementById('exact-deg').value); } 
+            else if (this.insertData.shapeType === 'circle') { this.insertData.radius = parseFloat(document.getElementById('exact-radius').value) * CM_RATIO; } 
+            else { this.insertData.w = parseFloat(document.getElementById('exact-w').value) * CM_RATIO; this.insertData.h = parseFloat(document.getElementById('exact-h').value) * CM_RATIO; }
+        }
+        this.hideModal(); 
+    },
+
+    openAdvancedShapeSettings(e) {
+        e.stopPropagation(); document.getElementById('lasso-menu').classList.add('hidden'); document.getElementById('modal-shape-adv').classList.remove('hidden');
+        const s = this.lasso.selectedStrokes[0]; this.advShape = JSON.parse(JSON.stringify(s));
+        const controls = document.getElementById('adv-controls'); controls.innerHTML = '';
+
+        let b = this.getStrokeBBox(this.advShape); let w = (b.maxX - b.minX) / CM_RATIO; let h = (b.maxY - b.minY) / CM_RATIO;
+
+        if (s.shapeType === 'triangle' && s.pts) {
+            const len1 = Math.hypot(s.pts[1].x - s.pts[0].x, s.pts[1].y - s.pts[0].y) / CM_RATIO;
+            const len2 = Math.hypot(s.pts[2].x - s.pts[1].x, s.pts[2].y - s.pts[1].y) / CM_RATIO;
+            const len3 = Math.hypot(s.pts[0].x - s.pts[2].x, s.pts[0].y - s.pts[2].y) / CM_RATIO;
+            controls.innerHTML = `
+                <div style="background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px;">
+                    <p style="font-size:12px; font-weight:bold; margin-bottom:10px; color:#1a73e8;">▼ 幾何学パラメータで作図</p>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                        <label style="font-size:11px; color:#5f6368;">辺A (底辺) cm<input type="number" id="tri-a" value="${len1.toFixed(2)}" step="0.1"></label>
+                        <label style="font-size:11px; color:#5f6368;">角A (上角) °<input type="number" id="tri-A"></label>
+                        <label style="font-size:11px; color:#5f6368;">辺B (右辺) cm<input type="number" id="tri-b" value="${len2.toFixed(2)}" step="0.1"></label>
+                        <label style="font-size:11px; color:#5f6368;">角B (左角) °<input type="number" id="tri-B"></label>
+                        <label style="font-size:11px; color:#5f6368;">辺C (左辺) cm<input type="number" id="tri-c" value="${len3.toFixed(2)}" step="0.1"></label>
+                        <label style="font-size:11px; color:#5f6368;">角C (右角) °<input type="number" id="tri-C"></label>
+                    </div>
+                    <button onclick="fnApp.solveTriangle()" style="margin-top:10px; width:100%; padding:8px; background:#1a73e8; color:#fff; border:none; border-radius:4px; font-weight:bold; font-size:12px; cursor:pointer;">再計算して適用 (最低3要素)</button>
+                </div>
+                <div id="adv-tri-info" style="font-size:13px; color:#1a73e8; background:#e8f0fe; padding:10px; border-radius:6px; font-weight:bold;"></div>
+                <p style="font-size:11px; color:#5f6368; margin-top:10px;">👈 左のプレビューで頂点をドラッグして変形することも可能です</p>
+            `;
+        } else if (s.shapeType === 'line') {
+            const len = Math.hypot(s.x2-s.x1, s.y2-s.y1) / CM_RATIO; const deg = Math.atan2(s.y2-s.y1, s.x2-s.x1) * 180 / Math.PI;
+            controls.innerHTML = `<label style="font-size:12px; color:#5f6368; font-weight:bold;">長さ (cm)<input type="number" id="adv-w" value="${len.toFixed(2)}" step="0.1" oninput="fnApp.applyAdvLine()"></label><label style="font-size:12px; color:#5f6368; font-weight:bold;">角度 (°)<input type="number" id="adv-h" value="${Math.round(deg)}" step="1" oninput="fnApp.applyAdvLine()"></label>`;
+        } else {
+            controls.innerHTML = `<label style="font-size:12px; color:#5f6368; font-weight:bold;">全体の幅 (cm)<input type="number" id="adv-w" value="${w.toFixed(2)}" step="0.1" oninput="fnApp.applyAdvScale()"></label><label style="font-size:12px; color:#5f6368; font-weight:bold;">全体の高さ (cm)<input type="number" id="adv-h" value="${h.toFixed(2)}" step="0.1" oninput="fnApp.applyAdvScale()"></label>
+            <p style="font-size:11px; color:#5f6368; margin-top:10px;">👈 四角形はプレビューで頂点をドラッグして<br>台形や平行四辺形に自由変形できます</p>`;
+        }
+
+        this.initAdvPreviewEvents(); this.updateAdvPreview();
+    },
+
+    updateAdvPreview() {
+        const c = document.getElementById('adv-preview-canvas'); if (!c) return; const ctx = c.getContext('2d'); ctx.clearRect(0, 0, c.width, c.height);
+        const s = this.advShape; let b = this.getStrokeBBox(s);
+        let cx = (b.minX + b.maxX) / 2; let cy = (b.minY + b.maxY) / 2; let w = b.maxX - b.minX; let h = b.maxY - b.minY;
+        let scale = Math.min(200 / (w||1), 200 / (h||1)); if (scale > 2) scale = 2; this.advPreviewTransform = { cx, cy, scale };
+
+        ctx.save(); ctx.translate(140, 140); ctx.scale(scale, scale); ctx.translate(-cx, -cy);
+
+        if (s.type === 'image') { const img = this.imageCache[s.src]; if(img) ctx.drawImage(img, s.x, s.y, s.w, s.h); } 
+        else if (s.type === 'shape') {
+            ctx.strokeStyle = s.color; ctx.lineWidth = s.size; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath();
+            if (s.shapeType === 'rect') { 
+                if(s.pts) { ctx.moveTo(s.pts[0].x, s.pts[0].y); ctx.lineTo(s.pts[1].x, s.pts[1].y); ctx.lineTo(s.pts[2].x, s.pts[2].y); ctx.lineTo(s.pts[3].x, s.pts[3].y); ctx.closePath(); }
+                else ctx.rect(s.x1, s.y1, s.x2-s.x1, s.y2-s.y1); 
+            } 
+            else if (s.shapeType === 'circle') { const rx=Math.abs(s.x2-s.x1)/2, ry=Math.abs(s.y2-s.y1)/2; ctx.ellipse((s.x1+s.x2)/2, (s.y1+s.y2)/2, rx, ry, 0, 0, Math.PI*2); } 
+            else if (s.shapeType === 'triangle' && s.pts) { ctx.moveTo(s.pts[0].x, s.pts[0].y); ctx.lineTo(s.pts[1].x, s.pts[1].y); ctx.lineTo(s.pts[2].x, s.pts[2].y); ctx.closePath(); } 
+            else if (s.shapeType === 'line') { ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2); }
+            ctx.stroke();
+        }
+        ctx.restore();
+        
+        if ((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) {
+            s.pts.forEach((p, i) => {
+                const px = 140 + (p.x - cx) * scale; const py = 140 + (p.y - cy) * scale;
+                ctx.fillStyle = '#ea4335'; ctx.beginPath(); ctx.arc(px, py, 6, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+            });
+            if(s.shapeType === 'triangle') {
+                const ang0 = this.getAngle(s.pts[0], s.pts[1], s.pts[2]); const ang1 = this.getAngle(s.pts[1], s.pts[2], s.pts[0]); const ang2 = this.getAngle(s.pts[2], s.pts[0], s.pts[1]);
+                const info = document.getElementById('adv-tri-info'); if (info) info.innerHTML = `角A: ${ang0.toFixed(0)}°, 角B: ${ang1.toFixed(0)}°, 角C: ${ang2.toFixed(0)}°`;
+            }
+        }
+    },
+
+    initAdvPreviewEvents() {
+        const c = document.getElementById('adv-preview-canvas'); let draggingIdx = -1;
+        c.onpointerdown = e => {
+            if(this.advShape.shapeType !== 'triangle' && this.advShape.shapeType !== 'rect') return;
+            const rect = c.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+            const t = this.advPreviewTransform;
+            this.advShape.pts.forEach((p, i) => { const px = 140 + (p.x - t.cx) * t.scale; const py = 140 + (p.y - t.cy) * t.scale; if (Math.hypot(x - px, y - py) < 15) { draggingIdx = i; c.setPointerCapture(e.pointerId); } });
+        };
+        c.onpointermove = e => {
+            if(draggingIdx === -1) return;
+            const rect = c.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const t = this.advPreviewTransform;
+            let targetX = t.cx + (x - 140) / t.scale; let targetY = t.cy + (y - 140) / t.scale;
+            const snapDist = 15 / t.scale;
+            this.advShape.pts.forEach((p, i) => { if(i === draggingIdx) return; if(Math.abs(targetX - p.x) < snapDist) targetX = p.x; if(Math.abs(targetY - p.y) < snapDist) targetY = p.y; });
+            this.advShape.pts[draggingIdx] = {x: targetX, y: targetY};
+            
+            if(this.advShape.shapeType === 'triangle') {
+                const len1 = Math.hypot(this.advShape.pts[1].x - this.advShape.pts[0].x, this.advShape.pts[1].y - this.advShape.pts[0].y) / CM_RATIO;
+                const len2 = Math.hypot(this.advShape.pts[2].x - this.advShape.pts[1].x, this.advShape.pts[2].y - this.advShape.pts[1].y) / CM_RATIO;
+                const len3 = Math.hypot(this.advShape.pts[0].x - this.advShape.pts[2].x, this.advShape.pts[0].y - this.advShape.pts[2].y) / CM_RATIO;
+                const inA = document.getElementById('tri-a'); if(inA) inA.value = len1.toFixed(2);
+                const inB = document.getElementById('tri-b'); if(inB) inB.value = len2.toFixed(2);
+                const inC = document.getElementById('tri-c'); if(inC) inC.value = len3.toFixed(2);
+            } else {
+                let b = this.getStrokeBBox(this.advShape);
+                const inW = document.getElementById('adv-w'); if(inW) inW.value = ((b.maxX - b.minX) / CM_RATIO).toFixed(2);
+                const inH = document.getElementById('adv-h'); if(inH) inH.value = ((b.maxY - b.minY) / CM_RATIO).toFixed(2);
+            }
+            this.updateAdvPreview();
+        };
+        c.onpointerup = e => { draggingIdx = -1; };
+    },
+
+    solveTriangle() {
+        let a = parseFloat(document.getElementById('tri-a').value); let b = parseFloat(document.getElementById('tri-b').value); let c = parseFloat(document.getElementById('tri-c').value);
+        let A = parseFloat(document.getElementById('tri-A').value); let B = parseFloat(document.getElementById('tri-B').value); let C = parseFloat(document.getElementById('tri-C').value);
+        const d2r = Math.PI/180;
+        
+        if(!isNaN(A) && !isNaN(B) && isNaN(C)) C = 180 - A - B;
+        if(!isNaN(B) && !isNaN(C) && isNaN(A)) A = 180 - B - C;
+        if(!isNaN(C) && !isNaN(A) && isNaN(B)) B = 180 - C - A;
+
+        if(!isNaN(a) && !isNaN(b) && !isNaN(c)) { } 
+        else if(!isNaN(a) && !isNaN(b) && !isNaN(C)) { c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(C*d2r)); }
+        else if(!isNaN(b) && !isNaN(c) && !isNaN(A)) { a = Math.sqrt(b*b + c*c - 2*b*c*Math.cos(A*d2r)); }
+        else if(!isNaN(c) && !isNaN(a) && !isNaN(B)) { b = Math.sqrt(c*c + a*a - 2*c*a*Math.cos(B*d2r)); }
+        else if(!isNaN(a) && !isNaN(A) && !isNaN(B) && !isNaN(C)) { b = a * Math.sin(B*d2r) / Math.sin(A*d2r); c = a * Math.sin(C*d2r) / Math.sin(A*d2r); }
+        else if(!isNaN(b) && !isNaN(A) && !isNaN(B) && !isNaN(C)) { a = b * Math.sin(A*d2r) / Math.sin(B*d2r); c = b * Math.sin(C*d2r) / Math.sin(B*d2r); }
+        else if(!isNaN(c) && !isNaN(A) && !isNaN(B) && !isNaN(C)) { a = c * Math.sin(A*d2r) / Math.sin(C*d2r); b = c * Math.sin(B*d2r) / Math.sin(C*d2r); }
+        else { alert("入力が不足しています。最低3つの要素を入力してください。"); return; }
+
+        if(a+b<=c || b+c<=a || c+a<=b || isNaN(a) || isNaN(b) || isNaN(c)) { alert("この数値では三角形が成立しません。"); return; }
+
+        let calcB = Math.acos((c*c + a*a - b*b)/(2*c*a));
+        let p0 = {x: c * Math.cos(calcB) * CM_RATIO, y: -c * Math.sin(calcB) * CM_RATIO}; 
+        let p1 = {x: a * CM_RATIO, y: 0}; let p2 = {x: 0, y: 0}; 
+
+        const cx = (p0.x + p1.x + p2.x)/3; const cy = (p0.y + p1.y + p2.y)/3;
+        const ob = this.getStrokeBBox(this.advShape); const ocx = (ob.minX + ob.maxX)/2; const ocy = (ob.minY + ob.maxY)/2;
+        
+        this.advShape.pts =[{x: ocx + (p0.x - cx), y: ocy + (p0.y - cy)}, {x: ocx + (p1.x - cx), y: ocy + (p1.y - cy)}, {x: ocx + (p2.x - cx), y: ocy + (p2.y - cy)}];
+        this.updateAdvPreview();
+    },
+
+    applyAdvScale() {
+        const wStr = document.getElementById('adv-w').value; const hStr = document.getElementById('adv-h').value;
+        if(wStr==='' || hStr==='') return;
+        const nw = parseFloat(wStr) * CM_RATIO; const nh = parseFloat(hStr) * CM_RATIO;
+        if(isNaN(nw) || isNaN(nh) || nw <= 0 || nh <= 0) return;
+        
+        let b = this.getStrokeBBox(this.advShape); let ow = b.maxX - b.minX; let oh = b.maxY - b.minY;
+        let sx = ow === 0 ? 1 : nw / ow; let sy = oh === 0 ? 1 : nh / oh;
+        
+        if((this.advShape.shapeType === 'triangle' || this.advShape.shapeType === 'rect') && this.advShape.pts) {
+            this.advShape.pts.forEach(p => { p.x = b.minX + (p.x - b.minX) * sx; p.y = b.minY + (p.y - b.minY) * sy; });
+        } else if(this.advShape.shapeType === 'circle') { this.advShape.x2 = this.advShape.x1 + nw; this.advShape.y2 = this.advShape.y1 + nh; } 
+        else if(this.advShape.type === 'image') { this.advShape.w = nw; this.advShape.h = nh; }
+        this.updateAdvPreview();
+    },
+
+    applyAdvLine() {
+        const wStr = document.getElementById('adv-w').value; const hStr = document.getElementById('adv-h').value;
+        if(wStr==='' || hStr==='') return;
+        const len = parseFloat(wStr) * CM_RATIO; const deg = parseFloat(hStr) * Math.PI / 180;
+        if(isNaN(len) || isNaN(deg)) return;
+        
+        this.advShape.x2 = this.advShape.x1 + len * Math.cos(deg); this.advShape.y2 = this.advShape.y1 + len * Math.sin(deg);
+        this.updateAdvPreview();
+    },
+
+    applyAdvancedShapeSettings() {
+        const s = this.lasso.selectedStrokes[0]; Object.assign(s, this.advShape);
+        this.hideModal(); this.lasso.bbox = this.getStrokeBBox(s); this.updateLassoUI(); this.renderAllPages(); this.saveNote(); this.pushUndo();
+    },
+
+    setupWindowEvents() {
+        const ws = document.getElementById('workspace');
+        ws.addEventListener('wheel', e => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault(); const rect = ws.getBoundingClientRect(); const cx = e.clientX - rect.left; const cy = e.clientY - rect.top;
+                let zoomDelta = e.deltaY > 0 ? 0.9 : 1.1; let newZoom = this.zoom * zoomDelta; newZoom = Math.min(Math.max(0.3, newZoom), 5);
+                const wx = (ws.scrollLeft + cx) / this.zoom; const wy = (ws.scrollTop + cy) / this.zoom;
+                this.zoom = newZoom; this.updateWrapperSize(); document.getElementById('zoom-indicator').innerText=`${Math.round(this.zoom * 100)}%`;
+                ws.scrollLeft = (wx * this.zoom) - cx; ws.scrollTop = (wy * this.zoom) - cy;
+            }
+        }, {passive: false});
+        
+        ws.addEventListener('pointerdown', e => { 
+            this.activeTouches.set(e.pointerId, e); 
+            if(this.activeTouches.size === 1 && (this.activeTool === 'pan' || (!this.allowTouchDraw && e.pointerType === 'touch' && DRAW_TOOLS.includes(this.activeTool)))) { this.isPanning = true; this.pX = e.clientX; this.pY = e.clientY; this.sX = ws.scrollLeft; this.sY = ws.scrollTop; }
+            if(this.activeTouches.size === 2){ 
+                this.isPanning = false; this.isDrawing = false; document.querySelectorAll('.temp-canvas').forEach(c => c.getContext('2d').clearRect(0,0,1240,1754));
+                const pts = Array.from(this.activeTouches.values()); this.iDist = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY); this.iZoom = this.zoom; this.iCx = (pts[0].clientX + pts[1].clientX) / 2; this.iCy = (pts[0].clientY + pts[1].clientY) / 2; this.iScrollX = ws.scrollLeft; this.iScrollY = ws.scrollTop;
+            } 
+        });
+
+        window.addEventListener('pointermove', e => { 
+            if(this.activeTouches.has(e.pointerId)) this.activeTouches.set(e.pointerId, e);
+            if(this.isPanning && this.activeTouches.size === 1) { ws.scrollLeft = this.sX - (e.clientX - this.pX); ws.scrollTop = this.sY - (e.clientY - this.pY); return; }
+            if(this.activeTouches.size === 2){ 
+                const pts = Array.from(this.activeTouches.values()); const cx = (pts[0].clientX + pts[1].clientX) / 2; const cy = (pts[0].clientY + pts[1].clientY) / 2;
+                const d = Math.hypot(pts[0].clientX - pts[1].clientX, pts[0].clientY - pts[1].clientY); let newZoom = this.iZoom * (d / this.iDist); newZoom = Math.min(Math.max(0.3, newZoom), 5);
+                this.zoom = newZoom; this.updateWrapperSize(); document.getElementById('zoom-indicator').innerText=`${Math.round(this.zoom * 100)}%`;
+                const wx = (this.iScrollX + this.iCx) / this.iZoom; const wy = (this.iScrollY + this.iCy) / this.iZoom; ws.scrollLeft = (wx * this.zoom) - cx; ws.scrollTop = (wy * this.zoom) - cy;
+            } 
+            if(this.lasso.isResizing) this.handleLassoResize(e); if(this.lasso.isEditingShape) this.handleShapeEdit(e); 
+        });
+
+        const endTouch = e => {
+            this.activeTouches.delete(e.pointerId); if(this.activeTouches.size === 0) this.isPanning = false;
+            if(this.lasso.isResizing) { this.lasso.isResizing = false; this.saveNote(); this.pushUndo(); }
+            if(this.lasso.isEditingShape) { this.lasso.isEditingShape = false; const s = this.lasso.selectedStrokes[0]; this.lasso.bbox = this.getStrokeBBox(s); this.updateLassoUI(); this.saveNote(); this.pushUndo(); }
+        };
+
+        window.addEventListener('pointerup', endTouch); window.addEventListener('pointercancel', endTouch);
+        document.addEventListener('keydown', e => { if((e.key === 'Backspace' || e.key === 'Delete') && this.lasso.active && !this.textInput.active) this.deleteLasso(); });
+    },
+    
+    setupTooltips() { document.querySelectorAll('[data-desc]').forEach(el => { el.addEventListener('mouseenter', e => { const t=document.getElementById('tooltip'); t.innerText=el.dataset.desc; t.style.left=e.clientX+'px'; t.style.top=(e.clientY+20)+'px'; t.style.opacity=1; }); el.addEventListener('mouseleave', () => document.getElementById('tooltip').style.opacity=0); }); },
+    toggleTouchDraw(){ this.allowTouchDraw=!this.allowTouchDraw; document.getElementById('touch-draw-btn').classList.toggle('active', this.allowTouchDraw); },
+    toggleSnap(){ this.isSnap=!this.isSnap; document.getElementById('snap-btn').classList.toggle('active', this.isSnap); },
+    
+    pushUndo(){ if(this.undoStack.length>20)this.undoStack.shift(); this.undoStack.push(JSON.stringify(this.currentNote.pages)); },
+    undo(){ if(this.undoStack.length>1){ this.redoStack.push(this.undoStack.pop()); this.currentNote.pages=JSON.parse(this.undoStack[this.undoStack.length-1]); this.renderAllPages(); } },
+    redo(){ if(this.redoStack.length){ const s=this.redoStack.pop(); this.undoStack.push(s); this.currentNote.pages=JSON.parse(s); this.renderAllPages(); } },
+    saveNote(){ if(this.currentNote){ this.currentNote.lastModified=Date.now(); const tx=this.db.transaction("notes","readwrite"); tx.objectStore("notes").put(this.currentNote); } },
+    
+    exportPage(i){ 
+        const c=document.createElement('canvas'); c.width=1240; c.height=1754; const ctx=c.getContext('2d'); 
+        ctx.fillStyle=this.currentNote.bgColor||'#fff'; ctx.fillRect(0,0,1240,1754); 
+        const pat = this.currentNote.bgPattern || 'dot'; ctx.fillStyle = 'rgba(0,0,0,0.1)';
+        if(pat === 'dot') { for(let y=0; y<1754; y+=25) for(let x=0; x<1240; x+=25) { ctx.beginPath(); ctx.arc(x,y,1.5,0,Math.PI*2); ctx.fill(); } } 
+        else if(pat === 'line') { for(let y=40; y<1754; y+=40) ctx.fillRect(0, y, 1240, 1); } 
+        else if(pat === 'grid') { for(let y=0; y<1754; y+=25) ctx.fillRect(0, y, 1240, 1); for(let x=0; x<1240; x+=25) ctx.fillRect(x, 0, 1, 1754); }
+        ctx.drawImage(document.querySelectorAll('.main-canvas')[i],0,0); 
+        const l=document.createElement('a'); l.download='page.png'; l.href=c.toDataURL(); l.click(); 
+    },
+    
+    handleImageInsert(e){ 
+        const f=e.target.files[0]; const r=new FileReader(); 
+        r.onload=ev=>{ const img=new Image(); img.onload=()=>{ this.imageCache[ev.target.result]=img; const ws = document.getElementById('workspace'); const pageIdx = Math.min(this.currentNote.pages.length - 1, Math.max(0, Math.floor(ws.scrollTop / (1754 * this.zoom)))); let w = img.width, h = img.height; if(w > 500) { h = h * (500/w); w = 500; } this.currentNote.pages[pageIdx].strokes.push({type:'image',src:ev.target.result,x:100,y:100,w:w,h:h}); this.renderAllPages(); this.pushUndo(); this.saveNote(); }; img.src=ev.target.result; }; r.readAsDataURL(f); 
+    },
+    
+    commitText(){ const el=document.getElementById('text-input-box'); if(!el.classList.contains('hidden')){ this.currentNote.pages[this.textInput.pageIdx].strokes.push({type:'text',text:el.innerText,x:this.textInput.x,y:this.textInput.y,w:200,h:40,color:this.tools.text.color,size:this.tools.text.size}); el.classList.add('hidden'); this.renderAllPages(); } },
+    handleTextClick(pt,idx){ this.textInput={pageIdx:idx,x:pt.x,y:pt.y}; const el=document.getElementById('text-input-box'); el.style.left=(pt.x*this.zoom)+'px'; el.style.top=(idx*1794+pt.y*this.zoom)+'px'; el.style.color = this.tools.text.color; el.style.fontSize = (this.tools.text.size * this.zoom) + 'px'; el.innerHTML = ""; el.classList.remove('hidden'); setTimeout(() => el.focus(), 50); },
+    toggleLassoMenu(e){ e.stopPropagation(); document.getElementById('lasso-menu').classList.toggle('hidden'); },
+    duplicateLasso(e){ 
+        if(e) e.stopPropagation(); const copies = JSON.parse(JSON.stringify(this.lasso.selectedStrokes));
+        copies.forEach(s => {
+            if(['image','text','graph','table'].includes(s.type)) { s.x+=40; s.y+=40; }
+            else if(s.type === 'shape') { if((s.shapeType === 'triangle' || s.shapeType === 'rect') && s.pts) s.pts.forEach(p=>{p.x+=40; p.y+=40;}); s.x1+=40; s.x2+=40; s.y1+=40; s.y2+=40; }
+            else { s.points.forEach(p => { p.x+=40; p.y+=40; }); }
+        });
+        this.currentNote.pages[this.lasso.pageIdx].strokes.push(...copies); this.commitLassoMove();
+    },
+    deleteLasso(e){ if(e) e.stopPropagation(); this.currentNote.pages[this.lasso.pageIdx].strokes=this.currentNote.pages[this.lasso.pageIdx].strokes.filter(s=>!this.lasso.selectedStrokes.includes(s)); this.lasso.active=false; document.getElementById('lasso-ui')?.classList.add('hidden'); this.renderAllPages(); }
+};
+
+fnApp.init();
+</script>
+</body>
+</html>
