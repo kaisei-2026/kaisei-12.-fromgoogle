@@ -2,63 +2,70 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite Code Editor - VFS Edition</title>
+    <title>Elite IDE - Local Access & Multi-Lang</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
-    <!-- アイコン用のフォント読み込み -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --sidebar-bg: #181818; --folder-bg: #212121; --active-bg: #37373d; --text: #cccccc; }
+        :root { --sidebar-bg: #181818; --header-bg: #333; --active-blue: #0078d4; --text-muted: #888; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; color: #000; }
         
-        /* Header */
-        header { height: 45px; background: #333; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; }
-        .toolbar { display: flex; gap: 10px; align-items: center; }
-        .btn { background: #444; color: white; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        /* Header & Navbar */
+        header { height: 45px; background: var(--header-bg); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; }
+        .toolbar { display: flex; gap: 8px; align-items: center; }
+        .btn { background: #444; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; font-weight: 600; }
         .btn:hover { background: #555; }
-        .btn-save { background: #0078d4; font-weight: bold; }
-        .btn-save:hover { background: #0086ed; }
+        .btn-primary { background: var(--active-blue); }
+        .lang-select { background: #222; color: #ccc; border: 1px solid #444; padding: 4px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; outline: none; }
 
         #main { flex: 1; display: flex; overflow: hidden; }
 
         /* Sidebar Explorer */
-        #sidebar { width: 240px; background: var(--sidebar-bg); color: var(--text); display: flex; flex-direction: column; border-right: 1px solid #000; }
-        .sidebar-header { padding: 12px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
-        .sidebar-icons { display: flex; gap: 8px; font-size: 14px; }
-        .sidebar-icons i { cursor: pointer; color: #666; transition: 0.2s; }
+        #sidebar { width: 260px; background: var(--sidebar-bg); color: #ccc; display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; color: var(--text-muted); }
+        .sidebar-icons { display: flex; gap: 10px; font-size: 13px; }
+        .sidebar-icons i { cursor: pointer; transition: 0.2s; }
         .sidebar-icons i:hover { color: #fff; }
 
-        #file-tree { flex: 1; overflow-y: auto; padding: 10px 0; font-size: 13px; }
-        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; position: relative; }
+        #file-tree { flex: 1; overflow-y: auto; padding: 10px 0; font-size: 13px; user-select: none; }
+        .tree-item { padding: 5px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
         .tree-item:hover { background: #2a2d2e; }
-        .tree-item.active { background: var(--active-bg); color: #fff; }
-        .tree-folder { font-weight: bold; color: #dcb67a; }
+        .tree-item.active { background: #37373d; color: #fff; border-left-color: var(--active-blue); }
+        .tree-folder { color: #dcb67a; font-weight: bold; }
         .indent { margin-left: 15px; border-left: 1px solid #333; }
 
         /* Editor Area */
         #editor-pane { flex: 1; display: flex; flex-direction: column; }
         #ace-editor { flex: 1; font-size: 16px; }
-        .tabs { height: 35px; background: #252526; display: flex; overflow-x: auto; }
-        .tab { background: var(--active-bg); color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; border-right: 1px solid #1e1e1e; min-width: 100px; justify-content: space-between; }
+        .tabs { height: 35px; background: #252526; display: flex; overflow-x: auto; border-bottom: 1px solid #111; }
+        .tab { background: #2d2d2d; color: #999; padding: 0 15px; display: flex; align-items: center; font-size: 11px; border-right: 1px solid #1e1e1e; min-width: 120px; white-space: nowrap; }
+        .tab.active { background: #1e1e1e; color: #fff; border-top: 1px solid var(--active-blue); }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="font-weight:bold;">ELITE PRO IDE</div>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <span style="letter-spacing:1px; font-weight:900;">ELITE IDE PRO</span>
+        <select class="lang-select" id="lang-toggle" onchange="switchLang(this.value)">
+            <option value="jp">日本語</option>
+            <option value="en">English</option>
+        </select>
+    </div>
     <div class="toolbar">
-        <button class="btn" onclick="openLivePreview()"><i class="fas fa-external-link-alt"></i> Preview</button>
-        <button class="btn btn-save" onclick="saveToStorage()"><i class="fas fa-save"></i> SAVE ALL</button>
+        <button class="btn" id="btn-open-folder" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> <span>フォルダを開く</span></button>
+        <button class="btn btn-primary" id="btn-save" onclick="saveActiveFile()"><i class="fas fa-save"></i> <span>保存</span></button>
+        <button class="btn" id="btn-preview" onclick="openLivePreview()"><i class="fas fa-play"></i> <span>プレビュー</span></button>
     </div>
 </header>
 
 <div id="main">
     <div id="sidebar">
         <div class="sidebar-header">
-            <span>Explorer</span>
+            <span id="label-explorer">エクスプローラー</span>
             <div class="sidebar-icons">
-                <i class="fas fa-file-plus" title="New File" onclick="promptCreate('file')"></i>
-                <i class="fas fa-folder-plus" title="New Folder" onclick="promptCreate('folder')"></i>
+                <i class="fas fa-file-circle-plus" onclick="createNewItem('file')"></i>
+                <i class="fas fa-folder-plus" onclick="createNewItem('folder')"></i>
             </div>
         </div>
         <div id="file-tree"></div>
@@ -71,126 +78,159 @@
 </div>
 
 <script>
-    // --- 仮想ファイルシステムデータ ---
-    let vfs = JSON.parse(localStorage.getItem('elite_vfs')) || {
-        'root': {
-            name: 'Project',
-            type: 'folder',
-            isOpen: true,
-            children: {
-                'index.html': { name: 'index.html', type: 'file', content: '<h1>Hello IDE</h1>', mode: 'ace/mode/html' },
-                'style.css': { name: 'style.css', type: 'file', content: 'body { background: white; }', mode: 'ace/mode/css' }
-            }
+    // --- 言語データ ---
+    const i18n = {
+        jp: {
+            openFolder: "フォルダを開く",
+            save: "保存",
+            preview: "プレビュー",
+            explorer: "エクスプローラー",
+            newFilePrompt: "新しいファイル名を入力:",
+            newFolderPrompt: "新しいフォルダ名を入力:",
+            saveSuccess: "保存しました！",
+            accessDenied: "フォルダへのアクセスが拒否されました。"
+        },
+        en: {
+            openFolder: "Open Folder",
+            save: "Save",
+            preview: "Preview",
+            explorer: "Explorer",
+            newFilePrompt: "Enter file name:",
+            newFolderPrompt: "Enter folder name:",
+            saveSuccess: "Saved successfully!",
+            accessDenied: "Folder access denied."
         }
     };
 
-    let activeFileId = 'index.html';
+    let currentLang = 'jp';
+
+    // --- ファイルシステム管理 ---
+    let vfs = { name: 'Root', type: 'folder', children: {}, isOpen: true };
+    let activeFileId = null;
+    let directoryHandle = null; // 本物のフォルダハンドル
+
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
-    editor.setOptions({ enableBasicAutocompletion: true, enableLiveAutocompletion: true });
+    editor.setOptions({ useSoftTabs: true, tabSize: 2 });
 
-    // --- ツリーの描画 ---
+    // --- フォルダを開く（File System Access API） ---
+    async function openLocalFolder() {
+        try {
+            directoryHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            vfs = { name: directoryHandle.name, type: 'folder', children: {}, isOpen: true, handle: directoryHandle };
+            await scanDirectory(directoryHandle, vfs.children);
+            renderTree();
+        } catch (err) {
+            console.error(err);
+            alert(i18n[currentLang].accessDenied);
+        }
+    }
+
+    async function scanDirectory(handle, childrenObj) {
+        for await (const entry of handle.values()) {
+            if (entry.kind === 'file') {
+                childrenObj[entry.name] = { name: entry.name, type: 'file', handle: entry, content: null };
+            } else if (entry.kind === 'directory') {
+                const newFolder = { name: entry.name, type: 'folder', children: {}, isOpen: false, handle: entry };
+                childrenObj[entry.name] = newFolder;
+                // 再帰的にスキャンする場合はここで行うが、重くなるのでクリック時に開く仕様が一般的
+            }
+        }
+    }
+
+    // --- 木構造の描画 ---
     function renderTree() {
         const treeEl = document.getElementById('file-tree');
         treeEl.innerHTML = '';
-        drawNode(vfs.root, treeEl, '');
+        drawNode(vfs, treeEl, vfs.name);
     }
 
     function drawNode(node, parentEl, path) {
+        const el = document.createElement('div');
+        el.className = `tree-item ${activeFileId === path ? 'active' : ''}`;
+        
         if (node.type === 'folder') {
-            const el = document.createElement('div');
-            el.className = 'tree-item tree-folder';
             el.innerHTML = `<i class="fas ${node.isOpen ? 'fa-chevron-down' : 'fa-chevron-right'}"></i> <i class="fas fa-folder"></i> ${node.name}`;
-            el.onclick = (e) => { e.stopPropagation(); node.isOpen = !node.isOpen; renderTree(); };
-            parentEl.appendChild(el);
-
-            if (node.isOpen) {
-                const container = document.createElement('div');
-                container.className = 'indent';
-                Object.keys(node.children).forEach(key => {
-                    drawNode(node.children[key], container, key);
-                });
-                parentEl.appendChild(container);
-            }
+            el.onclick = async (e) => {
+                e.stopPropagation();
+                node.isOpen = !node.isOpen;
+                if (node.isOpen && Object.keys(node.children).length === 0) {
+                    await scanDirectory(node.handle, node.children);
+                }
+                renderTree();
+            };
         } else {
-            const el = document.createElement('div');
-            el.className = `tree-item ${activeFileId === path ? 'active' : ''}`;
             el.innerHTML = `<i class="fas fa-file-code"></i> ${node.name}`;
             el.onclick = (e) => { e.stopPropagation(); openFile(path, node); };
-            parentEl.appendChild(el);
+        }
+        parentEl.appendChild(el);
+
+        if (node.type === 'folder' && node.isOpen) {
+            const container = document.createElement('div');
+            container.className = 'indent';
+            Object.keys(node.children).sort().forEach(key => {
+                drawNode(node.children[key], container, path + '/' + key);
+            });
+            parentEl.appendChild(container);
         }
     }
 
-    // --- ファイル操作 ---
-    function openFile(id, node) {
-        // 現在のファイルを保存
-        const oldFile = findFileById(vfs.root, activeFileId);
-        if(oldFile) oldFile.content = editor.getValue();
-
+    // --- ファイルを開く & 保存 ---
+    async function openFile(id, node) {
+        if (node.content === null) {
+            const file = await node.handle.getFile();
+            node.content = await file.text();
+        }
         activeFileId = id;
-        editor.getSession().setMode(node.mode || getMode(id));
         editor.setValue(node.content, -1);
+        editor.getSession().setMode(getAceMode(node.name));
         
-        // タブの更新
-        document.getElementById('tabs-container').innerHTML = `<div class="tab">${node.name} <i class="fas fa-times"></i></div>`;
+        document.getElementById('tabs-container').innerHTML = `<div class="tab active">${node.name}</div>`;
         renderTree();
     }
 
-    function findFileById(root, id) {
-        return root.children[id]; // シンプル化のため直下のみ対応（拡張可能）
-    }
-
-    function promptCreate(type) {
-        const name = prompt(`${type === 'file' ? 'ファイル名' : 'フォルダ名'}を入力してください:`);
-        if (!name) return;
-        
-        if (type === 'file') {
-            vfs.root.children[name] = {
-                name: name,
-                type: 'file',
-                content: '',
-                mode: getMode(name)
-            };
-            openFile(name, vfs.root.children[name]);
-        } else {
-            vfs.root.children[name] = { name: name, type: 'folder', isOpen: true, children: {} };
+    async function saveActiveFile() {
+        if (!activeFileId) return;
+        const node = findNodeByPath(vfs, activeFileId);
+        if (node && node.handle) {
+            const writable = await node.handle.createWritable();
+            const content = editor.getValue();
+            await writable.write(content);
+            await writable.close();
+            node.content = content;
+            alert(i18n[currentLang].saveSuccess);
         }
-        renderTree();
-        saveToStorage();
     }
 
-    function getMode(name) {
-        if (name.endsWith('.html')) return 'ace/mode/html';
-        if (name.endsWith('.css')) return 'ace/mode/css';
-        if (name.endsWith('.js')) return 'ace/mode/javascript';
+    function findNodeByPath(root, path) {
+        const parts = path.split('/');
+        let curr = root;
+        // 簡易実装：パスを辿る
+        return root.children[parts[parts.length-1]] || root;
+    }
+
+    // --- 言語切り替え ---
+    function switchLang(lang) {
+        currentLang = lang;
+        document.getElementById('btn-open-folder').querySelector('span').innerText = i18n[lang].openFolder;
+        document.getElementById('btn-save').querySelector('span').innerText = i18n[lang].save;
+        document.getElementById('btn-preview').querySelector('span').innerText = i18n[lang].preview;
+        document.getElementById('label-explorer').innerText = i18n[lang].explorer;
+    }
+
+    function getAceMode(filename) {
+        if (filename.endsWith('.html')) return 'ace/mode/html';
+        if (filename.endsWith('.css')) return 'ace/mode/css';
+        if (filename.endsWith('.js')) return 'ace/mode/javascript';
         return 'ace/mode/text';
     }
 
-    // --- 保存とプレビュー ---
-    function saveToStorage() {
-        const current = findFileById(vfs.root, activeFileId);
-        if(current) current.content = editor.getValue();
-        
-        localStorage.setItem('elite_vfs', JSON.stringify(vfs));
-        
-        // プレビュー用データの更新
-        const fullCode = `
-            ${vfs.root.children['index.html']?.content || ''}
-            <style>${vfs.root.children['style.css']?.content || ''}</style>
-            <script>${vfs.root.children['main.js']?.content || ''}<\/script>
-        `;
-        localStorage.setItem('elite_live_code', fullCode);
-        alert('Saved!');
-    }
-
     function openLivePreview() {
-        saveToStorage();
         window.open('live-preview.html', 'LivePreview');
     }
 
     // 初期化
     renderTree();
-    openFile('index.html', vfs.root.children['index.html']);
 </script>
 </body>
 </html>
