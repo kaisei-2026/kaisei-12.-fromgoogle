@@ -4,6 +4,25 @@
 
 @layer base {
   body {
-    @apply bg-zinc-50 text-zinc-900 dark:bg-black dark:text-zinc-50 antialiased selection:bg-blue-500 selection:text-white;
+    /* 深い紺色に近い黒 */
+    @apply bg-[#030303] text-zinc-100 antialiased selection:bg-blue-500/30;
+    /* 背景に細かいドットを敷く */
+    background-image: radial-gradient(#ffffff10 1px, transparent 1px);
+    background-size: 32px 32px;
   }
+}
+
+/* スクロールバーもカッコよく */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #030303;
+}
+::-webkit-scrollbar-thumb {
+  background: #222;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
 }
