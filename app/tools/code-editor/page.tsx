@@ -12,7 +12,7 @@ export default function CodeEditorPage() {
         </Link>
       </div>
       <iframe
-        src="/kaisei-12.-fromgoogle/apps/code-editor.html"
+        src="/kaisei-google/apps/code-editor.html"
         style={{ flex: 1, border: 'none', width: '100%' }}
         title="Elite Code Editor"
       />
