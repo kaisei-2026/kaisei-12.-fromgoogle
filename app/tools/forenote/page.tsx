@@ -2,17 +2,18 @@
 import React from "react";
 
 export default function ForenotePage() {
+  // 🌟 URLを新しいリポジトリ名に修正
+  const iframeSrc = "/kaisei-google/apps/forenote.html";
+
   return (
-    // h-screen(画面の高さ) から 64px(ヘッダーの高さ) を引いたぴったりサイズにする
     <div className="flex flex-col h-screen bg-white">
-      {/* ヘッダー分の高さを確保するスペーサー */}
+      {/* ヘッダー(64px)分の隙間を作る */}
       <div className="h-16 shrink-0" /> 
 
-      {/* 本体：余白を一切なくして全画面に広げる */}
+      {/* 本体：画面いっぱいに広げる */}
       <div className="flex-1 w-full overflow-hidden">
         <iframe
-          id="forenote-iframe"
-          src="/kaisei-12.-fromgoogle/apps/forenote.html"
+          src={iframeSrc}
           className="w-full h-full border-none"
           title="Forenote Pro"
         />
