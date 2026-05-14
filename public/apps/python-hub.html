@@ -2,16 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite Python Hub Pro</title>
+    <title>Elite Python Hub Pro v5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --bg: #1e1e1e; --sidebar: #252526; --accent: #3b82f6; --stop: #ef4444; --text: #f3f4f6; --cell-bg: #2d2d2d; }
+        :root { --bg: #1e1e1e; --accent: #3b82f6; --stop: #ef4444; --text: #f3f4f6; --cell-bg: #2d2d2d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; display: flex; flex-direction: column; }
         
-        /* Header */
         header { height: 50px; background: #333; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #000; }
         .mode-tabs { display: flex; gap: 5px; height: 100%; align-items: flex-end; }
         .mode-tab { padding: 10px 20px; background: #2d2d2d; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 6px 6px 0 0; color: #888; transition: 0.2s; border: 1px solid transparent; border-bottom: none; }
@@ -20,30 +19,19 @@
         .header-actions { display: flex; gap: 10px; align-items: center; }
         .status { font-size: 11px; font-weight: bold; padding: 5px 12px; border-radius: 20px; background: #444; color: #aaa; }
         .status.ready { background: #065f46; color: #fff; }
-        .btn-stop-global { background: var(--stop); color: white; border: none; padding: 6px 15px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-stop { background: var(--stop); color: white; border: none; padding: 6px 15px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
-        #main { flex: 1; overflow: hidden; display: flex; position: relative; }
-
-        /* IDE Mode */
+        #main { flex: 1; overflow: hidden; display: flex; }
         #ide-container { flex: 1; display: flex; flex-direction: column; }
-        #ide-toolbar { padding: 10px; background: #252526; display: flex; justify-content: flex-end; gap: 10px; border-bottom: 1px solid #111; }
         #ace-editor { flex: 1; font-size: 16px; font-weight: 700; }
-        #terminal { height: 180px; background: #000; border-top: 2px solid #333; overflow-y: auto; padding: 15px; font-family: 'Consolas', monospace; font-size: 13px; color: #0f0; }
+        #terminal { height: 250px; background: #000; border-top: 2px solid #333; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; color: #0f0; white-space: pre-wrap; line-height: 1.4; }
 
-        /* Jupyter Mode */
         #notebook-container { flex: 1; overflow-y: auto; padding: 30px; display: none; flex-direction: column; gap: 25px; background: #1e1e1e; }
-        .cell { position: relative; background: var(--cell-bg); border-radius: 10px; border: 1px solid #444; transition: 0.2s; }
-        .cell:hover { border-color: #666; }
+        .cell { background: var(--cell-bg); border-radius: 10px; border: 1px solid #444; }
         .cell-input-header { padding: 5px 15px; display: flex; justify-content: space-between; align-items: center; background: #333; border-radius: 9px 9px 0 0; }
-        .cell-editor { height: 120px; font-size: 15px; font-weight: 700; }
-        .cell-output { padding: 15px; background: #161616; font-family: 'Consolas', monospace; font-size: 13px; color: #ddd; min-height: 40px; white-space: pre-wrap; border-radius: 0 0 9px 9px; border-top: 1px solid #333; }
+        .cell-output { padding: 15px; background: #161616; font-family: monospace; font-size: 13px; color: #ddd; min-height: 40px; white-space: pre-wrap; border-radius: 0 0 9px 9px; }
         
-        .run-cell-btn { background: var(--accent); color: white; border: none; padding: 4px 15px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
-        .run-cell-btn:hover { background: #2563eb; }
-        .add-cell-btn { margin: 20px 0 100px; padding: 15px; border: 2px dashed #444; border-radius: 10px; text-align: center; cursor: pointer; color: #888; font-weight: bold; transition: 0.2s; }
-        .add-cell-btn:hover { border-color: var(--accent); color: var(--accent); background: #252526; }
-
-        .btn-run-ide { background: var(--accent); color: white; border: none; padding: 6px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .run-btn { background: var(--accent); color: white; border: none; padding: 6px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .err { color: #f87171; font-weight: bold; }
     </style>
 </head>
@@ -56,35 +44,25 @@
     </div>
     <div class="header-actions">
         <div id="py-status" class="status">Python 準備中...</div>
-        <!-- 停止ボタン：環境をリセットして無限ループなどを止める -->
-        <button class="btn-stop-global" onclick="restartKernel()">
-            <i class="fas fa-power-off"></i> 停止・リセット
+        <!-- 停止ボタン：リロードせずに無限ループを抜ける試み -->
+        <button id="stop-btn" class="btn-stop" onclick="interruptPython()">
+            <i class="fas fa-hand-paper"></i> 実行を停止
         </button>
     </div>
 </header>
 
 <div id="main">
-    <!-- IDE Mode -->
     <div id="ide-container">
-        <div id="ide-toolbar">
-            <button class="btn-run-ide" onclick="runIDE()">▶ コードを実行 (RUN)</button>
+        <div style="padding: 10px; background: #252526; display: flex; justify-content: flex-end;">
+            <button class="run-btn" onclick="runIDE()">▶ コードを実行 (RUN)</button>
         </div>
-        <div id="ace-editor"># 通常のPython実行（すべて一気に動く）
-import math
-print("--- IDE実行開始 ---")
-for i in range(5):
-    print(f"計算結果: {i} の平方根は {math.sqrt(i):.2f}")</div>
+        <div id="ace-editor"># ここにコードを貼り付けてください</div>
         <div id="terminal"></div>
     </div>
 
-    <!-- Notebook Mode -->
     <div id="notebook-container">
-        <div id="cells-wrapper">
-            <!-- セルはJavaScriptで追加されます -->
-        </div>
-        <div class="add-cell-btn" onclick="addCell()">
-            <i class="fas fa-plus"></i> 新しいセルを追加
-        </div>
+        <div id="cells-wrapper"></div>
+        <div style="text-align:center; padding: 20px; color:#666">Notebookモードは現在実験中です。IDEモードをご利用ください。</div>
     </div>
 </div>
 
@@ -94,100 +72,87 @@ for i in range(5):
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/python");
 
-    // --- Pythonエンジンの初期化 ---
     async function initPy() {
         try {
             pyodide = await loadPyodide();
             document.getElementById('py-status').innerText = "Python 3.11 Ready";
             document.getElementById('py-status').classList.add('ready');
-            
-            // 最初のセルを追加
-            addCell("x = 100\nprint(f'上のセルで変数を定義: x = {x}')");
-            addCell("print(f'下のセルで利用可能: x + 50 = {x + 50}')");
+
+            // --- 🌟 魔法の「エラー回避」設定 🌟 ---
+            await pyodide.runPythonAsync(`
+                import sys
+                import builtins
+                import types
+
+                # 1. IPython.display.clear_output の偽物を作る
+                ipython = types.ModuleType("IPython")
+                display = types.ModuleType("display")
+                ipython.display = display
+                
+                def clear_output(wait=False):
+                    # JavaScriptの関数を呼び出してコンソールを消す
+                    import js
+                    js.clearTerminal()
+                
+                display.clear_output = clear_output
+                sys.modules["IPython"] = ipython
+                sys.modules["IPython.display"] = display
+
+                # 2. input() をブラウザのポップアップ(prompt)に繋ぎ変える
+                def custom_input(prompt_text=""):
+                    import js
+                    return js.window.prompt(prompt_text)
+                
+                builtins.input = custom_input
+            `);
         } catch (e) {
-            alert("Pythonの起動に失敗しました: " + e.message);
+            alert("起動失敗: " + e.message);
         }
     }
 
-    // --- モード切り替え ---
-    function switchMode(mode) {
-        const ide = document.getElementById('ide-container');
-        const nb = document.getElementById('notebook-container');
-        const tIde = document.getElementById('tab-ide');
-        const tNb = document.getElementById('tab-nb');
+    // JSからターミナルを消去する関数
+    window.clearTerminal = () => {
+        document.getElementById('terminal').innerText = '';
+    };
 
-        if(mode === 'ide') {
-            ide.style.display = 'flex'; nb.style.display = 'none';
-            tIde.classList.add('active'); tNb.classList.remove('active');
-        } else {
-            ide.style.display = 'none'; nb.style.display = 'flex';
-            tIde.classList.remove('active'); tNb.classList.add('active');
+    // 停止機能
+    function interruptPython() {
+        alert("ループ停止を試みます。\n※完全に固まっている場合はリロードしてください。");
+        // Pyodideの実行を強制終了する唯一の方法に近い処理
+        if(pyodide) {
+            pyodide.runPython("raise KeyboardInterrupt('User Interrupted')");
         }
     }
 
-    // --- IDEモードの実行 ---
     async function runIDE() {
         const term = document.getElementById('terminal');
-        term.innerHTML = "実行中...\n";
+        term.innerText = "実行中...\n";
+        
+        // 標準出力をターミナルに表示
         pyodide.setStdout({ batched: (s) => {
             term.innerText += s + "\n";
             term.scrollTop = term.scrollHeight;
         }});
+
         try {
             await pyodide.runPythonAsync(editor.getValue());
+            term.innerText += "\n--- 実行終了 ---";
         } catch (e) {
-            term.innerHTML += `<div class="err">Error: ${e.message}</div>`;
+            if (e.message.includes("User Interrupted")) {
+                term.innerHTML += `<div class="err">実行がユーザーによって停止されました。</div>`;
+            } else {
+                term.innerHTML += `<div class="err">Error: ${e.message}</div>`;
+            }
         }
     }
 
-    // --- Jupyterモードのセル追加 ---
-    function addCell(initialCode = "") {
-        const id = 'cell-' + Date.now();
-        const wrapper = document.getElementById('cells-wrapper');
-        const cellDiv = document.createElement('div');
-        cellDiv.className = 'cell';
-        cellDiv.id = id;
-        cellDiv.innerHTML = `
-            <div class="cell-input-header">
-                <span style="font-size:10px; color:#666; font-weight:bold;">PYTHON CELL</span>
-                <button class="run-cell-btn" onclick="runCell('${id}')">▶ 実行 (RUN)</button>
-            </div>
-            <div class="cell-editor" id="${id}-ed"></div>
-            <div class="cell-output" id="${id}-out">実行結果がここに表示されます...</div>
-        `;
-        wrapper.appendChild(cellDiv);
-
-        const cellEd = ace.edit(`${id}-ed`);
-        cellEd.setTheme("ace/theme/monokai");
-        cellEd.getSession().setMode("ace/mode/python");
-        cellEd.setValue(initialCode, -1);
-        cellEd.setOptions({ maxLines: 20, minLines: 5, showPrintMargin: false });
-    }
-
-    // --- Jupyterセルの個別実行 ---
-    async function runCell(cellId) {
-        const cellEd = ace.edit(`${cellId}-ed`);
-        const out = document.getElementById(`${cellId}-out`);
-        
-        out.innerText = "実行中...\n";
-        
-        // そのセルの出力をキャッチ
-        pyodide.setStdout({ batched: (s) => {
-            out.innerText = s;
-        }});
-        
-        try {
-            await pyodide.runPythonAsync(cellEd.getValue());
-        } catch (e) {
-            out.innerHTML = `<div class="err">${e.message}</div>`;
-        }
-    }
-
-    // --- 停止・リセット（カーネル再起動） ---
-    function restartKernel() {
-        if(confirm("実行を強制停止し、メモリをリセットしますか？\n（定義した変数などはすべて消えます）")) {
-            location.reload(); // ページをリロードしてPyodideを初期化し直すのが最も確実
-        }
+    function switchMode(mode) {
+        const ide = document.getElementById('ide-container');
+        const nb = document.getElementById('notebook-container');
+        document.getElementById('tab-ide').classList.toggle('active', mode==='ide');
+        document.getElementById('tab-nb').classList.toggle('active', mode==='nb');
+        ide.style.display = (mode==='ide') ? 'flex' : 'none';
+        nb.style.display = (mode==='nb') ? 'flex' : 'none';
     }
 
     initPy();
