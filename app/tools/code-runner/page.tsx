@@ -4,36 +4,30 @@ import React, { useState, useEffect } from "react";
 import { Play, Trash2, Terminal, ArrowLeft, FileCode, Folder, ChevronDown, X, LayoutPanelBottom } from "lucide-react";
 import Link from "next/link";
 
-// 1. ファイルデータの型定義
-type FileItem = { id: string; name: string; content: string };
-
 export default function SublimeRunner() {
-  // 2. ブラウザのみで実行するためのマウント状態管理
   const [mounted, setMounted] = useState(false);
-  const [files, setFiles] = useState<FileItem[]>([
-    { id: '1', name: 'main.js', content: 'console.log("Sublime Runner Ready.");\n\nconst greet = (name) => {\n  console.log("Hello, " + name + "!");\n};\n\ngreet("Developer");' },
-    { id: '2', name: 'test.js', content: 'console.log("Debug started...");' },
+  const [files, setFiles] = useState([
+    { id: '1', name: 'main.js', content: 'console.log("Sublime Runner Ready.");\nconst a = 10;\nconst b = 20;\nconsole.log("Sum is:", a + b);\n\nconsole.log("School Chromebook Environment Debug OK.");' },
+    { id: '2', name: 'test.js', content: 'console.warn("Warning test...");\nconsole.error("Error test...");' },
   ]);
   const [activeFileId, setActiveFileId] = useState('1');
   const [logs, setLogs] = useState<{ type: string; content: string }[]>([]);
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
 
-  // マウント完了時に実行
+  // 初回読み込み（マウント）チェック
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 現在のファイルを取得
+  if (!mounted) return null;
+
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
-  // コードの更新
   const updateContent = (val: string) => {
     setFiles(prev => prev.map(f => f.id === activeFileId ? { ...f, content: val } : f));
   };
 
-  // 3. コードの実行処理（iframeを使用）
   const runCode = () => {
-    if (typeof window === 'undefined') return;
     setIsConsoleOpen(true);
     setLogs([]);
 
@@ -59,11 +53,12 @@ export default function SublimeRunner() {
             error: (...args) => window.parent.postMessage({ type: 'error', content: args.map(String).join(' ') }, '*'),
             warn: (...args) => window.parent.postMessage({ type: 'warn', content: args.map(String).join(' ') }, '*')
           };
+          window.onerror = (m) => customConsole.error(m);
           try {
             const console = customConsole;
             ${activeFile.content}
           } catch (err) {
-            window.parent.postMessage({ type: 'error', content: err.message }, '*');
+            customConsole.error(err.message);
           }
         <\/script>
       `);
@@ -73,90 +68,106 @@ export default function SublimeRunner() {
     setTimeout(() => {
       document.body.removeChild(iframe);
       window.removeEventListener("message", handleMessage);
-    }, 300);
+    }, 500);
   };
 
-  // 4. マウントされるまで何も表示しない（エラー防止の最重要ポイント）
-  if (!mounted) return null;
-
   return (
-    <div className="h-screen flex flex-col bg-white text-black font-sans selection:bg-blue-100">
-      {/* ツールバー */}
-      <div className="h-10 border-b border-zinc-200 flex items-center justify-between px-3 bg-[#f3f3f3]">
-        <div className="flex items-center gap-3">
-          <Link href="/tools" className="hover:bg-zinc-200 p-1 rounded transition-colors text-zinc-500">
-            <ArrowLeft size={16} />
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'sans-serif', overflow: 'hidden' }}>
+      
+      {/* ツールバー (Sublime風グレー) */}
+      <div style={{ height: '40px', borderBottom: '1px solid #ccc', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px', backgroundColor: '#e8e8e8' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <Link href="/tools" style={{ color: '#555', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <ArrowLeft size={18} />
           </Link>
-          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Sublime Text v1.0</span>
+          <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#888', letterSpacing: '0.1em' }}>SUBLIME RUNNER V1</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setIsConsoleOpen(!isConsoleOpen)} className={`p-1 rounded ${isConsoleOpen ? 'text-blue-600 bg-blue-50' : 'text-zinc-400 hover:bg-zinc-200'}`}>
-            <LayoutPanelBottom size={16} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button 
+            onClick={() => setIsConsoleOpen(!isConsoleOpen)} 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: isConsoleOpen ? '#0066ff' : '#999' }}
+          >
+            <LayoutPanelBottom size={20} />
           </button>
-          <div className="w-[1px] h-3 bg-zinc-300 mx-1" />
-          <button onClick={runCode} className="flex items-center gap-1.5 bg-[#444] text-white px-3 py-1 rounded text-[10px] font-bold hover:bg-black transition-all active:scale-95 shadow-sm">
-            <Play size={10} fill="currentColor" /> RUN
+          <div style={{ width: '1px', height: '15px', backgroundColor: '#ccc' }}></div>
+          <button 
+            onClick={runCode} 
+            style={{ backgroundColor: '#444', color: '#fff', border: 'none', padding: '4px 15px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+          >
+            ▶ RUN
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* サイドバー */}
-        <div className="w-48 border-r border-zinc-200 bg-[#f8f8f8] flex flex-col select-none">
-          <div className="p-2 text-[9px] font-bold text-zinc-400 uppercase tracking-widest flex justify-between items-center">
-            Folders
-          </div>
-          <div className="flex-1 overflow-y-auto">
-            <div className="flex items-center gap-2 px-2 py-1 text-black text-xs font-bold">
-              <ChevronDown size={12} /> <Folder size={12} className="text-zinc-400" /> project
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        
+        {/* サイドバー (Sublime風サイドメニュー) */}
+        <div style={{ width: '200px', borderRight: '1px solid #ddd', backgroundColor: '#f5f5f5', display: 'flex', flexDirection: 'column', userSelect: 'none' }}>
+          <div style={{ padding: '10px', fontSize: '10px', fontWeight: 'bold', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Folders</div>
+          <div style={{ flex: 1, overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', fontSize: '12px', fontWeight: 'bold', color: '#333' }}>
+              <ChevronDown size={14} /> <Folder size={14} color="#999" /> project
             </div>
             {files.map(file => (
               <div 
                 key={file.id} 
                 onClick={() => setActiveFileId(file.id)}
-                className={`flex items-center gap-2 ml-6 px-2 py-1 cursor-pointer text-xs transition-colors ${activeFileId === file.id ? 'bg-[#e4e4e4] text-black font-bold' : 'text-zinc-500 hover:bg-[#ececec]'}`}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px 6px 30px', cursor: 'pointer', fontSize: '12px',
+                  backgroundColor: activeFileId === file.id ? '#ddd' : 'transparent',
+                  color: activeFileId === file.id ? '#000' : '#666',
+                  fontWeight: activeFileId === file.id ? 'bold' : 'normal'
+                }}
               >
-                <FileCode size={12} /> {file.name}
+                <FileCode size={14} /> {file.name}
               </div>
             ))}
           </div>
         </div>
 
         {/* メインエディタエリア */}
-        <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-          <div className="h-8 bg-[#e0e0e0] flex items-center border-b border-zinc-200">
-            <div className="h-full px-3 flex items-center gap-2 bg-white border-t-2 border-t-blue-500 text-[10px] text-black font-bold">
-              {activeFile.name} <X size={10} className="text-zinc-400" />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff', overflow: 'hidden' }}>
+          
+          {/* タブ */}
+          <div style={{ height: '32px', backgroundColor: '#dadada', display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc' }}>
+            <div style={{ height: '100%', padding: '0 15px', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#fff', borderRight: '1px solid #ccc', borderTop: '2px solid #0066ff', fontSize: '11px', fontWeight: 'bold', color: '#333' }}>
+              {activeFile.name} <X size={10} color="#999" />
             </div>
           </div>
           
-          <div className="flex-1 relative overflow-hidden">
+          {/* テキストエディタ */}
+          <div style={{ flex: 1, position: 'relative' }}>
             <textarea
               value={activeFile.content}
               onChange={(e) => updateContent(e.target.value)}
-              className="absolute inset-0 w-full h-full p-4 font-mono text-[13px] outline-none text-black leading-relaxed resize-none bg-white"
               spellCheck={false}
-              placeholder="Code here..."
+              style={{ 
+                position: 'absolute', inset: 0, width: '100%', height: '100%', padding: '20px', border: 'none', outline: 'none',
+                fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6', color: '#000', backgroundColor: '#fff', resize: 'none'
+              }}
             />
           </div>
 
-          {/* コンソール */}
+          {/* コンソールエリア (開閉式) */}
           {isConsoleOpen && (
-            <div className="border-t-2 border-zinc-200 h-40 bg-white flex flex-col shrink-0">
-              <div className="h-7 bg-[#f3f3f3] border-b border-zinc-200 px-3 flex items-center justify-between shadow-sm">
-                <span className="text-[9px] font-bold text-zinc-500 tracking-widest flex items-center gap-1.5 uppercase">
-                  <Terminal size={10} /> Console Output
-                </span>
-                <button onClick={() => setLogs([])} className="text-zinc-400 hover:text-black">
-                  <Trash2 size={12} />
+            <div style={{ height: '180px', borderTop: '2px solid #ccc', backgroundColor: '#fff', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ height: '28px', backgroundColor: '#f0f0f0', borderBottom: '1px solid #ddd', padding: '0 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '10px', fontWeight: 'bold', color: '#888', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Terminal size={12} /> CONSOLE OUTPUT
+                </div>
+                <button onClick={() => setLogs([])} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999' }}>
+                  <Trash2 size={14} />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-3 font-mono text-[11px] bg-white text-black space-y-1">
-                {logs.length === 0 && <div className="text-zinc-300 italic">No output...</div>}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px', fontFamily: 'monospace', fontSize: '12px', color: '#000', spaceY: '4px' }}>
+                {logs.length === 0 && <div style={{ color: '#ccc', fontStyle: 'italic' }}>No output yet...</div>}
                 {logs.map((log, i) => (
-                  <div key={i} className={`flex gap-3 ${log.type === 'error' ? 'text-red-600 font-bold' : log.type === 'warn' ? 'text-yellow-600' : 'text-black'}`}>
-                    <span className="opacity-20 w-4 text-right select-none">{i + 1}</span>
-                    <span className="whitespace-pre-wrap">{log.content}</span>
+                  <div key={i} style={{ marginBottom: '4px', color: log.type === 'error' ? '#d00' : log.type === 'warn' ? '#860' : '#000', borderBottom: '1px solid #f0f0f0', paddingBottom: '2px' }}>
+                    <span style={{ color: '#ccc', marginRight: '10px', userSelect: 'none' }}>{i + 1}</span>
+                    <span style={{ fontWeight: log.type !== 'log' ? 'bold' : 'normal' }}>
+                      {log.type === 'error' ? '✖ ' : log.type === 'warn' ? '⚠ ' : '› '}
+                      {log.content}
+                    </span>
                   </div>
                 ))}
               </div>
