@@ -1,38 +1,24 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
-import { 
-  Play, Trash2, Terminal, ArrowLeft, FileCode, Folder, 
-  ChevronDown, X, LayoutPanelBottom, Plus, Search, Settings 
-} from "lucide-react";
 
-// --- エラー回避のための極低層コンポーネント ---
-export default function SublimeRunner() {
-  const [mounted, setMounted] = useState(false);
+// --- ブラウザ専用コンポーネントとして定義 ---
+const SublimeEditor = () => {
   const [activeFileId, setActiveFileId] = useState('1');
   const [isConsoleOpen, setIsConsoleOpen] = useState(true);
   const [logs, setLogs] = useState<{ type: string; content: string }[]>([]);
-  
-  // 仮想ファイルシステム
   const [files, setFiles] = useState([
-    { id: '1', name: 'main.js', content: 'console.log("System Status: OK");\n\nfunction start() {\n  const user = "Chromebook Developer";\n  console.log("Welcome, " + user);\n}\n\nstart();' },
-    { id: '2', name: 'debug.js', content: 'console.warn("Testing high-contrast console...");\nconsole.error("Critical error simulation.");' },
+    { id: '1', name: 'main.js', content: 'console.log("SYSTEM: Sublime Engine Started.");\n\nconst greet = () => {\n  console.log("HELLO FROM CHROMEBOOK!");\n};\n\ngreet();' },
+    { id: '2', name: 'utils.js', content: 'console.warn("This is a warning message.");\nconsole.error("This is an error message.");' },
   ]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // クライアントサイドでのみ描画することを強制
-  if (!mounted) return null;
 
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
   const runCode = () => {
     setIsConsoleOpen(true);
     setLogs([]);
-    const handleMessage = (e: any) => {
+    const handleMessage = (e: MessageEvent) => {
       if (e.data && e.data.type) {
         setLogs(prev => [...prev, { type: e.data.type, content: String(e.data.content) }]);
       }
@@ -62,134 +48,47 @@ export default function SublimeRunner() {
   };
 
   return (
-    <div style={{
-      height: '100vh', width: '100vw', display: 'flex', flexDirection: 'column',
-      backgroundColor: '#ffffff', color: '#000000', fontFamily: 'ui-monospace, monospace',
-      overflow: 'hidden', position: 'fixed', inset: 0
-    }}>
-      
-      {/* 1. Header (Sublime Slate) */}
-      <div style={{
-        height: '45px', backgroundColor: '#212121', display: 'flex', 
-        alignItems: 'center', justifyContent: 'space-between', padding: '0 15px', color: '#ccc'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <Link href="/tools" style={{ color: '#aaa', textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <ArrowLeft size={18} />
-          </Link>
-          <div style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.1em' }}>SUBLIME TEXT - [PROJECT]</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-          <button onClick={() => setIsConsoleOpen(!isConsoleOpen)} style={{ background: 'none', border: 'none', color: isConsoleOpen ? '#579dff' : '#666', cursor: 'pointer' }}>
-            <LayoutPanelBottom size={20} />
-          </button>
-          <div style={{ width: '1px', height: '20px', backgroundColor: '#333' }} />
-          <button onClick={runCode} style={{
-            backgroundColor: '#0078d4', color: 'white', border: 'none', padding: '5px 20px',
-            borderRadius: '4px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.3)'
-          }}>▶ RUN CODE</button>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fff', color: '#000', fontFamily: 'monospace' }}>
+      {/* ツールバー (Sublime Dark) */}
+      <div style={{ height: '40px', backgroundColor: '#252525', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 15px', color: '#fff' }}>
+        <div style={{ fontSize: '11px', fontWeight: 'bold' }}>SUBLIME TEXT - {activeFile.name}</div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button onClick={() => setIsConsoleOpen(!isConsoleOpen)} style={{ background: 'none', border: 'none', color: isConsoleOpen ? '#579dff' : '#666', cursor: 'pointer' }}>CONSOLE</button>
+          <button onClick={runCode} style={{ backgroundColor: '#0078d4', color: '#fff', border: 'none', padding: '2px 15px', borderRadius: '3px', fontSize: '10px', cursor: 'pointer' }}>RUN</button>
         </div>
       </div>
 
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        
-        {/* 2. Activity Bar (Narrow Dark) */}
-        <div style={{ width: '50px', backgroundColor: '#181818', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '15px 0', gap: '25px' }}>
-          <FileCode size={24} color="#579dff" />
-          <Search size={24} color="#555" />
-          <Plus size={24} color="#555" />
-          <div style={{ flex: 1 }} />
-          <Settings size={24} color="#555" />
-        </div>
-
-        {/* 3. Sidebar (Dark Grey) */}
-        <div style={{ width: '220px', backgroundColor: '#1e1e1e', color: '#999', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '15px', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', justifyContent: 'space-between' }}>
-            Explorer <ChevronDown size={14} />
-          </div>
-          <div style={{ padding: '5px 15px', fontSize: '13px', color: '#eee', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Folder size={14} color="#579dff" /> project_src
-          </div>
-          {files.map(file => (
-            <div 
-              key={file.id} 
-              onClick={() => setActiveFileId(file.id)}
-              style={{
-                padding: '8px 15px 8px 35px', fontSize: '13px', cursor: 'pointer',
-                backgroundColor: activeFileId === file.id ? '#333' : 'transparent',
-                color: activeFileId === file.id ? '#fff' : '#888',
-                borderLeft: activeFileId === file.id ? '2px solid #579dff' : 'none'
-              }}
-            >
-              {file.name}
+        {/* サイドバー */}
+        <div style={{ width: '200px', backgroundColor: '#1e1e1e', color: '#888', padding: '10px 0' }}>
+          <div style={{ padding: '5px 15px', fontSize: '10px', fontWeight: 'bold', color: '#555' }}>FOLDERS</div>
+          {files.map(f => (
+            <div key={f.id} onClick={() => setActiveFileId(f.id)} style={{ padding: '8px 20px', cursor: 'pointer', fontSize: '13px', backgroundColor: activeFileId === f.id ? '#333' : 'transparent', color: activeFileId === f.id ? '#fff' : '#888' }}>
+              {f.name}
             </div>
           ))}
         </div>
 
-        {/* 4. Main Editor & Console Area */}
+        {/* エディタ本体 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
-          
-          {/* Tabs */}
-          <div style={{ height: '35px', backgroundColor: '#252525', display: 'flex' }}>
-            <div style={{
-              height: '100%', padding: '0 20px', backgroundColor: '#fff', borderRight: '1px solid #ddd',
-              display: 'flex', alignItems: 'center', gap: '10px', fontSize: '12px', fontWeight: 'bold', color: '#333'
-            }}>
-              {activeFile.name} <X size={12} />
-            </div>
-            <div style={{ flex: 1, backgroundColor: '#252525' }} />
-          </div>
+          <textarea
+            value={activeFile.content}
+            onChange={(e) => setFiles(prev => prev.map(f => f.id === activeFileId ? { ...f, content: e.target.value } : f))}
+            spellCheck={false}
+            style={{ flex: 1, padding: '20px', fontSize: '16px', border: 'none', outline: 'none', color: '#000', backgroundColor: '#fff', resize: 'none', fontWeight: 'bold' }}
+          />
 
-          {/* Code Editor */}
-          <div style={{ flex: 1, position: 'relative', padding: '0', backgroundColor: '#fff' }}>
-            <textarea
-              value={activeFile.content}
-              onChange={(e) => {
-                const val = e.target.value;
-                setFiles(prev => prev.map(f => f.id === activeFileId ? { ...f, content: val } : f));
-              }}
-              spellCheck={false}
-              style={{
-                position: 'absolute', inset: 0, width: '100%', height: '100%', padding: '25px',
-                border: 'none', outline: 'none', fontSize: '15px', lineHeight: '1.6',
-                fontFamily: '"Fira Code", monospace', color: '#000', backgroundColor: '#fff',
-                resize: 'none'
-              }}
-            />
-          </div>
-
-          {/* 5. Console (High Contrast) */}
+          {/* コンソール */}
           {isConsoleOpen && (
-            <div style={{
-              height: '220px', borderTop: '4px solid #ddd', backgroundColor: '#fff',
-              display: 'flex', flexDirection: 'column', boxShadow: '0 -10px 30px rgba(0,0,0,0.05)'
-            }}>
-              <div style={{
-                height: '35px', backgroundColor: '#f8f8f8', borderBottom: '1px solid #ddd',
-                padding: '0 15px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
-              }}>
-                <div style={{ fontSize: '11px', fontWeight: 'black', color: '#000', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Terminal size={14} /> CONSOLE OUTPUT
-                </div>
-                <button onClick={() => setLogs([])} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#999' }}>
-                  <Trash2 size={16} />
-                </button>
+            <div style={{ height: '200px', borderTop: '2px solid #ddd', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ backgroundColor: '#f0f0f0', padding: '5px 15px', fontSize: '10px', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between' }}>
+                <span>OUTPUT CONSOLE</span>
+                <button onClick={() => setLogs([])} style={{ border: 'none', background: 'none', cursor: 'pointer' }}>CLEAR</button>
               </div>
-              <div style={{
-                flex: 1, overflowY: 'auto', padding: '15px', fontFamily: 'monospace',
-                fontSize: '13px', lineHeight: '1.5', color: '#000', backgroundColor: '#fff'
-              }}>
-                {logs.length === 0 && <div style={{ color: '#ddd' }}>// Waiting for execution...</div>}
+              <div style={{ flex: 1, overflowY: 'auto', padding: '10px', backgroundColor: '#fff', color: '#000' }}>
                 {logs.map((log, i) => (
-                  <div key={i} style={{
-                    marginBottom: '6px', padding: '4px 8px', borderRadius: '4px',
-                    backgroundColor: log.type === 'error' ? '#fff0f0' : log.type === 'warn' ? '#fff9e6' : '#f4f4f4',
-                    borderLeft: `4px solid ${log.type === 'error' ? '#ff4d4d' : log.type === 'warn' ? '#ffcc00' : '#333'}`,
-                    color: '#000', fontWeight: 'bold'
-                  }}>
-                    <span style={{ opacity: 0.3, marginRight: '10px' }}>{i + 1}</span>
-                    {log.content}
+                  <div key={i} style={{ padding: '3px 0', borderBottom: '1px solid #f9f9f9', color: log.type === 'error' ? 'red' : log.type === 'warn' ? '#b8860b' : '#000', fontWeight: 'bold' }}>
+                    <span style={{ color: '#ccc', marginRight: '10px' }}>{i + 1}</span> {log.content}
                   </div>
                 ))}
               </div>
@@ -199,4 +98,14 @@ export default function SublimeRunner() {
       </div>
     </div>
   );
+};
+
+// --- ここが最重要：サーバーでの書き出しを完全に禁止する設定 ---
+const NoSSRWrapper = dynamic(() => Promise.resolve(SublimeEditor), {
+  ssr: false, // サーバーサイドレンダリングをOFF
+  loading: () => <div style={{ backgroundColor: '#fff', minHeight: '100vh', padding: '20px', color: '#000' }}>Loading Editor...</div>
+});
+
+export default function Page() {
+  return <NoSSRWrapper />;
 }
