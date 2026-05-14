@@ -5,20 +5,23 @@ export default function BlogPage() {
   const posts = getSortedPostsData();
 
   return (
-    <div className="min-h-screen pt-32 pb-12 px-6 max-w-3xl mx-auto">
-      <h1 className="text-4xl font-bold tracking-tight mb-12">Digital Garden</h1>
-      <div className="space-y-8">
+    <div className="min-h-screen pt-40 pb-20 px-6 max-w-4xl mx-auto">
+      <h1 className="text-5xl font-black text-white italic tracking-tighter mb-20">BLOG</h1>
+      
+      <div className="grid gap-12">
         {posts.map(({ slug, date, title }) => (
-          <Link href={`/blog/${slug}`} key={slug} className="group block">
-            <article className="border-b border-zinc-800 pb-8 transition-colors group-hover:border-zinc-600">
-              <time className="text-sm text-zinc-500 mb-2 block">{date}</time>
-              <h2 className="text-2xl font-semibold text-zinc-200 group-hover:text-blue-400 transition-colors">
+          <Link href={`/blog/${slug}`} key={slug} className="group">
+            <article className="relative pl-8 border-l-2 border-zinc-800 group-hover:border-blue-500 transition-all">
+              <time className="text-sm font-mono text-blue-500 mb-2 block tracking-widest">{date}</time>
+              <h2 className="text-3xl font-bold text-zinc-200 group-hover:text-white transition-colors leading-tight">
                 {title}
               </h2>
+              <div className="mt-4 text-zinc-500 group-hover:text-zinc-400 transition-colors">
+                Read more →
+              </div>
             </article>
           </Link>
         ))}
-        {posts.length === 0 && <p className="text-zinc-500">No posts yet. Add .md files to /content folder.</p>}
       </div>
     </div>
   );
