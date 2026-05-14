@@ -40,7 +40,9 @@ export default function ForenotePage() {
       >
         <iframe
           id="forenote-iframe"
-          src="/apps/forenote.html"
+          /* 変更前: src="/apps/forenote.html" */
+          /* 変更後 ↓ リポジトリ名を頭につけます */
+          src="/kaisei-12.-fromgoogle/apps/forenote.html"
           className="w-full h-full border-none bg-white"
           title="Forenote Pro"
           allow="fullscreen"
