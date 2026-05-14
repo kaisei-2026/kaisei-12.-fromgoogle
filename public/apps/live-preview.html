@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Preview Window</title>
+    <style>
+        body { margin: 0; padding: 0; }
+    </style>
+</head>
+<body>
+    <div id="target"></div>
+    <script>
+        function update() {
+            const code = localStorage.getItem('elite_live_code');
+            if (code) {
+                // iframeを使って安全に描写
+                const container = document.getElementById('target');
+                container.innerHTML = '';
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100vw';
+                iframe.style.height = '100vh';
+                iframe.style.border = 'none';
+                container.appendChild(iframe);
+                
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(code);
+                doc.close();
+            }
+        }
+
+        // LocalStorageの変化を監視（エディタで打つたびに実行される）
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'elite_live_code') update();
+        });
+
+        // 初回読み込み
+        update();
+    </script>
+</body>
+</html>
