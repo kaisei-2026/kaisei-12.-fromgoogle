@@ -48,7 +48,7 @@ export default function Home() {
           <div className="h-[2px] w-8 bg-blue-600"></div>
           <span className="text-blue-600 font-black tracking-widest text-sm uppercase">About Me</span>
         </div>
-        <h2 className="text-5xl font-[1000] text-zinc-950 tracking-tighter italic">プロフィール.</h2>
+        <h2 className="text-5xl font-[1000] text-zinc-950 tracking-tighter italic">開発者プロフィール.</h2>
       </div>
 
       {/* 3. 3 PILLARS SECTION: 陸上・AI・開発環境の紹介 */}
@@ -58,17 +58,17 @@ export default function Home() {
             { 
               icon: <Activity className="text-blue-500" />, 
               title: "TRACK & FIELD", 
-              desc: "陸上部。100m/200m。スピードを追求するための理論と実践。" 
+              desc: "陸上部。100m/200m。" 
             },
             { 
               icon: <Brain className="text-purple-500" />, 
               title: "AI & TECHNOLOGY", 
-              desc: "機械学習とAI技術。自作プログラムを活用したデータ分析。" 
+              desc: "機械学習とAI技術。" 
             },
             { 
               icon: <Code2 className="text-emerald-500" />, 
               title: "TOOLS FOR CHROMEBOOK", 
-              desc: "Chromebook環境で使える最大限を実現します。独自IDEの開発など。" 
+              desc: "Chromebook環境で使える最大限を実現。(NPO法人プログラマー)" 
             }
           ].map((item, i) => (
             <motion.div 
