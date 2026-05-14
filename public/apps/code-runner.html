@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Sublime Runner Elite</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Consolas', 'Monaco', sans-serif; background: #fff; color: #000; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        
+        /* Header */
+        header { height: 40px; background: #212121; color: #ccc; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; font-weight: bold; }
+        .btn-run { background: #0078d4; color: white; border: none; padding: 5px 20px; border-radius: 3px; cursor: pointer; font-weight: bold; }
+        .btn-console { background: none; border: 1px solid #444; color: #888; padding: 4px 10px; border-radius: 3px; cursor: pointer; margin-right: 10px; }
+        .btn-console.active { color: #579dff; border-color: #579dff; }
+
+        /* Main Layout */
+        main { flex: 1; display: flex; overflow: hidden; }
+        
+        /* Sidebar */
+        #sidebar { width: 200px; background: #181818; color: #888; display: flex; flex-direction: column; padding: 10px 0; }
+        .file-item { padding: 8px 20px; cursor: pointer; font-size: 13px; }
+        .file-item.active { background: #333; color: #fff; border-left: 2px solid #579dff; }
+        .file-item:hover:not(.active) { background: #252525; }
+
+        /* Editor Area */
+        #editor-container { flex: 1; display: flex; flex-direction: column; background: #fff; position: relative; }
+        .tabs { height: 35px; background: #2d2d2d; display: flex; }
+        .tab { background: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; font-weight: bold; border-right: 1px solid #ddd; }
+        #editor { flex: 1; border: none; outline: none; padding: 25px; font-size: 18px; font-weight: 900; line-height: 1.5; resize: none; color: #000; width: 100%; height: 100%; }
+
+        /* Console */
+        #console { height: 200px; border-top: 4px solid #eee; background: #fff; display: flex; flex-direction: column; }
+        .console-header { background: #f0f0f0; padding: 5px 15px; font-size: 10px; font-weight: bold; display: flex; justify-content: space-between; border-bottom: 1px solid #ddd; }
+        #log-area { flex: 1; overflow-y: auto; padding: 10px; font-size: 14px; }
+        .log-line { margin-bottom: 4px; padding: 3px 8px; border-radius: 3px; border-left: 4px solid #333; font-weight: bold; background: #f9f9f9; }
+        .log-error { border-left-color: #ff4d4d; color: #d00; background: #fff0f0; }
+        .log-warn { border-left-color: #ffcc00; color: #860; background: #fff9e6; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>SUBLIME RUNNER v4</div>
+    <div>
+        <button id="toggle-console" class="btn-console active">CONSOLE</button>
+        <button id="run-btn" class="btn-run">▶ RUN CODE</button>
+    </div>
+</header>
+
+<main>
+    <div id="sidebar">
+        <div style="padding: 5px 15px; font-size: 10px; color: #444; margin-bottom: 5px;">FOLDERS</div>
+        <div class="file-item active" id="file-main">main.js</div>
+    </div>
+    
+    <div id="editor-container">
+        <div class="tabs"><div class="tab">main.js</div></div>
+        <textarea id="editor" spellcheck="false">console.log("Sublime Engine Ready.");
+const a = 10;
+const b = 20;
+console.log("合計:", a + b);</textarea>
+
+        <div id="console">
+            <div class="console-header">
+                <span>CONSOLE OUTPUT</span>
+                <span style="cursor:pointer;" onclick="document.getElementById('log-area').innerHTML=''">CLEAR</span>
+            </div>
+            <div id="log-area"></div>
+        </div>
+    </div>
+</main>
+
+<script>
+    const editor = document.getElementById('editor');
+    const logArea = document.getElementById('log-area');
+    const consoleEl = document.getElementById('console');
+    const toggleBtn = document.getElementById('toggle-console');
+
+    // コンソール開閉
+    toggleBtn.onclick = () => {
+        consoleEl.classList.toggle('hidden');
+        toggleBtn.classList.toggle('active');
+    };
+
+    // ログ出力
+    function addLog(content, type = 'log') {
+        const line = document.createElement('div');
+        line.className = 'log-line log-' + type;
+        line.innerHTML = `<span style="opacity:0.2; margin-right:10px;">${logArea.children.length + 1}</span>${content}`;
+        logArea.appendChild(line);
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    // コード実行
+    document.getElementById('run-btn').onclick = () => {
+        logArea.innerHTML = '';
+        consoleEl.classList.remove('hidden');
+        toggleBtn.classList.add('active');
+
+        const code = editor.value;
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        window.onmessage = (e) => {
+            if(e.data.type) addLog(e.data.content, e.data.type);
+        };
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <script>
+                const customConsole = {
+                    log: (...args) => window.parent.postMessage({type:'log', content: args.map(String).join(' ')}, '*'),
+                    error: (...args) => window.parent.postMessage({type:'error', content: args.map(String).join(' ')}, '*'),
+                    warn: (...args) => window.parent.postMessage({type:'warn', content: args.map(String).join(' ')}, '*')
+                };
+                try {
+                    const console = customConsole;
+                    ${code}
+                } catch(err) {
+                    customConsole.error(err.message);
+                }
+            <\/script>
+        `);
+        doc.close();
+
+        setTimeout(() => document.body.removeChild(iframe), 500);
+    };
+</script>
+
+</body>
+</html>
