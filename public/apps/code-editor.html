@@ -2,198 +2,188 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite IDE Pro - Double Click Rename</title>
+    <title>Elite IDE - Python & Live</title>
+    <!-- ライブラリ読み込み -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --sidebar-bg: #252526; --header-bg: #2d2d2d; --active-blue: #007acc; --border: #333; }
+        :root { --sidebar-bg: #1e1e1e; --header-bg: #2d2d2d; --active-blue: #007acc; --border: #333; --console-bg: #000; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #1e1e1e; color: #fff; }
+        
+        /* Header */
         header { height: 40px; background: var(--header-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; border-bottom: 1px solid #111; }
-        .toolbar { display: flex; gap: 8px; align-items: center; }
+        .toolbar { display: flex; gap: 5px; }
         .btn { background: #3c3c3c; color: #ccc; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold; }
-        .btn:hover { background: #4c4c4c; color: #fff; }
-        .btn-primary { background: var(--active-blue); color: white; }
-        .btn-help { color: #e2c08d; border: 1px solid #e2c08d; background: transparent; padding: 2px 10px; border-radius: 20px; font-size: 10px; }
+        .btn:hover { background: #505050; color: #fff; }
+        .btn-run { background: #28a745; color: white; }
+        .btn-run:hover { background: #218838; }
 
         #main { flex: 1; display: flex; overflow: hidden; }
-        #sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid #000; }
-        .sidebar-header { padding: 10px 15px; border-bottom: 1px solid #333; }
-        .add-file-btn { width: 100%; background: #3c3c3c; color: #fff; border: 1px solid #555; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
-        .add-file-btn:hover { background: var(--active-blue); }
 
-        #file-tree { flex: 1; overflow-y: auto; font-size: 13px; color: #aaa; }
-        .tree-item { padding: 6px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; user-select: none; }
-        .tree-item:hover { background: #2a2d2e; }
-        .tree-item.active { background: #37373d; color: #fff; border-left-color: var(--active-blue); }
+        /* Sidebar */
+        #sidebar { width: 240px; background: #252526; display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .sidebar-header { padding: 10px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; display: flex; justify-content: space-between; }
+        #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
+        .tree-item { padding: 5px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .tree-item.active { background: #37373d; color: #fff; }
 
-        #editor-pane { flex: 1; display: flex; flex-direction: column; background: #1e1e1e; }
-        .tabs { height: 35px; background: #252526; display: flex; border-bottom: 1px solid #111; }
-        .tab { background: #1e1e1e; color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; border-right: 1px solid #111; border-top: 1px solid var(--active-blue); }
-        #ace-editor { flex: 1; font-size: 15px; font-weight: 700; }
-
-        #help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
-        .help-content { background: white; color: #333; width: 450px; border-radius: 20px; padding: 30px; position: relative; }
+        /* Editor & Console Area */
+        #content-area { flex: 1; display: flex; flex-direction: column; }
+        #ace-editor { flex: 1; font-size: 16px; }
+        
+        /* Console (ここが重要！) */
+        #console { height: 180px; background: var(--console-bg); border-top: 2px solid var(--border); display: flex; flex-direction: column; }
+        .console-header { height: 30px; background: #252526; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 10px; font-weight: bold; color: #888; }
+        #log-output { flex: 1; overflow-y: auto; padding: 10px; font-family: 'Consolas', monospace; font-size: 13px; color: #0f0; line-height: 1.4; white-space: pre-wrap; }
+        .log-error { color: #ff5555; }
+        .log-info { color: #55aaff; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-weight:900; color:var(--active-blue); letter-spacing:1px;">ELITE IDE</span>
-        <button class="btn btn-help" onclick="toggleHelp(true)">使い方 ?</button>
+        <span style="font-weight:900; color:var(--active-blue);">ELITE PRO IDE</span>
     </div>
     <div class="toolbar">
-        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> フォルダを選択</button>
-        <button class="btn btn-primary" onclick="saveFile()"><i class="fas fa-save"></i> 保存</button>
-        <button class="btn" style="background:#e2c08d; color:#000" onclick="openLivePreview()"><i class="fas fa-play"></i> LIVE</button>
+        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> OPEN FOLDER</button>
+        <button class="btn btn-run" id="run-btn" onclick="executeCode()"><i class="fas fa-play"></i> RUN</button>
+        <button class="btn" style="background:#007acc; color:white;" onclick="openLivePreview()"><i class="fas fa-globe"></i> LIVE</button>
     </div>
 </header>
 
 <div id="main">
     <div id="sidebar">
-        <div class="sidebar-header">
-            <button class="add-file-btn" onclick="createNewFile()">+ 新規ファイル作成</button>
-            <div style="font-size:9px; color:#555; font-weight:bold; letter-spacing:1px;">EXPLORER (ダブルクリックでリネーム)</div>
+        <div class="sidebar-header">Explorer
+            <i class="fas fa-file-plus" onclick="createNewFile()" style="cursor:pointer"></i>
         </div>
         <div id="file-tree"></div>
     </div>
-    <div id="editor-pane">
-        <div class="tabs" id="tabs-container"></div>
+    <div id="content-area">
         <div id="ace-editor"></div>
-    </div>
-</div>
-
-<!-- 使い方モーダル -->
-<div id="help-modal">
-    <div class="help-content">
-        <h2 style="color:var(--active-blue); margin-bottom:15px;">リネーム機能追加！</h2>
-        <p style="font-size:14px; line-height:1.6; margin-bottom:20px;">
-            サイドバーのファイル名を<b>ダブルクリック</b>すると、名前を変更できます。実際のChromebook内のファイル名も同期して変わります。
-        </p>
-        <button class="btn btn-primary" style="width:100%; padding:12px;" onclick="toggleHelp(false)">了解</button>
+        <div id="console">
+            <div class="console-header">
+                <span>TERMINAL / OUTPUT</span>
+                <span style="cursor:pointer" onclick="clearConsole()">CLEAR</span>
+            </div>
+            <div id="log-output">Python / JS Engine Ready...</div>
+        </div>
     </div>
 </div>
 
 <script>
-    let files = {}; 
-    let activeFileId = null;
-    let rootHandle = null; 
+    let files = {'main.py': { content: 'print("Hello Python!")\nfor i in range(5):\n    print(f"Count: {i}")', type:'file' }};
+    let activeFileId = 'main.py';
+    let pyodide = null;
 
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
+    const logOutput = document.getElementById('log-output');
 
-    function toggleHelp(show) {
-        document.getElementById('help-modal').style.display = show ? 'flex' : 'none';
+    // --- コンソール出力関数 ---
+    function printToConsole(text, className = '') {
+        const div = document.createElement('div');
+        div.className = className;
+        div.textContent = text;
+        logOutput.appendChild(div);
+        logOutput.scrollTop = logOutput.scrollHeight;
     }
 
-    async function openLocalFolder() {
-        try {
-            rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
-            files = {}; 
-            for await (const entry of rootHandle.values()) {
-                if (entry.kind === 'file') {
-                    const file = await entry.getFile();
-                    const content = await file.text();
-                    files[entry.name] = { handle: entry, name: entry.name, content: content };
-                }
-            }
-            renderTree();
-        } catch (e) { alert("フォルダのアクセスが許可されませんでした。"); }
+    function clearConsole() { logOutput.innerHTML = ''; }
+
+    // --- Pythonエンジンの準備 ---
+    async function initPython() {
+        printToConsole("Loading Python Engine...", "log-info");
+        pyodide = await loadPyodide();
+        printToConsole("Python Engine Loaded!", "log-info");
     }
+    initPython();
 
-    async function createNewFile() {
-        if (!rootHandle) return alert("フォルダを選択してください。");
-        const name = prompt("作成するファイル名を入力:");
-        if (!name) return;
-        try {
-            const handle = await rootHandle.getFileHandle(name, { create: true });
-            files[name] = { handle: handle, name: name, content: "" };
-            renderTree();
-            openFile(name);
-        } catch (e) { alert("作成エラー: " + e.message); }
-    }
-
-    // --- 🌟 ダブルクリックでリネームする機能 ---
-    async function renameFile(oldName) {
-        const newName = prompt("新しい名前を入力:", oldName);
-        if (!newName || newName === oldName) return;
-
-        const fileData = files[oldName];
-        if (fileData && fileData.handle) {
+    // --- コード実行 (JS & Python両対応) ---
+    async function executeCode() {
+        const code = editor.getValue();
+        clearConsole();
+        
+        if (activeFileId.endsWith('.py')) {
+            // Python実行
+            if (!pyodide) { alert("Python is still loading..."); return; }
             try {
-                // ディスク上の名前を変更 (File System Access API の move)
-                await fileData.handle.move(newName);
-                
-                // メモリ上のデータを更新
-                files[newName] = { ...fileData, name: newName };
-                delete files[oldName];
-
-                // 現在開いているファイルならIDを更新
-                if (activeFileId === oldName) {
-                    activeFileId = newName;
-                    document.getElementById('tabs-container').innerHTML = `<div class="tab">${newName}</div>`;
-                }
-                
-                renderTree();
-                alert("名前を変更しました。");
-            } catch (e) {
-                alert("リネームエラー: フォルダの書き込み権限が必要です。\n" + e.message);
+                // Pythonの出力をJSのコンソールにリダイレクトする設定
+                pyodide.setStdout({ batched: (msg) => printToConsole(msg) });
+                pyodide.setStderr({ batched: (msg) => printToConsole(msg, "log-error") });
+                await pyodide.runPythonAsync(code);
+            } catch (err) {
+                printToConsole(err.message, "log-error");
+            }
+        } else {
+            // JavaScript実行
+            try {
+                const originalLog = console.log;
+                console.log = (...args) => printToConsole(args.join(' '));
+                eval(code);
+                console.log = originalLog;
+            } catch (err) {
+                printToConsole(err.message, "log-error");
             }
         }
     }
 
+    // --- ファイルツリー表示 ---
     function renderTree() {
         const tree = document.getElementById('file-tree');
         tree.innerHTML = '';
-        Object.keys(files).sort().forEach(id => {
+        Object.keys(files).forEach(name => {
             const item = document.createElement('div');
-            item.className = `tree-item ${activeFileId === id ? 'active' : ''}`;
-            const icon = id.endsWith('.html') ? 'fa-html5' : id.endsWith('.css') ? 'fa-css3-alt' : 'fa-file-code';
-            item.innerHTML = `<i class="fab ${icon}"></i> ${id}`;
-            
-            // 1クリックで開く
-            item.onclick = () => openFile(id);
-            // 🌟 2クリック(ダブルクリック)でリネーム
-            item.ondblclick = (e) => {
-                e.stopPropagation();
-                renameFile(id);
+            item.className = `tree-item ${activeFileId === name ? 'active' : ''}`;
+            item.innerHTML = `<i class="fas ${name.endsWith('.py') ? 'fa-brands fa-python' : 'fa-file-code'}"></i> ${name}`;
+            item.onclick = () => {
+                files[activeFileId].content = editor.getValue();
+                activeFileId = name;
+                editor.setValue(files[name].content, -1);
+                editor.getSession().setMode(name.endsWith('.py') ? 'ace/mode/python' : 'ace/mode/html');
+                renderTree();
             };
-            
             tree.appendChild(item);
         });
     }
 
-    function openFile(id) {
-        if (activeFileId && files[activeFileId]) files[activeFileId].content = editor.getValue();
-        activeFileId = id;
-        editor.setValue(files[id].content, -1);
-        const mode = id.endsWith('.html') ? "ace/mode/html" : id.endsWith('.css') ? "ace/mode/css" : "ace/mode/javascript";
-        editor.getSession().setMode(mode);
-        document.getElementById('tabs-container').innerHTML = `<div class="tab">${id}</div>`;
-        renderTree();
+    async function openLocalFolder() {
+        try {
+            const handle = await window.showDirectoryPicker();
+            files = {};
+            for await (const entry of handle.values()) {
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    files[entry.name] = { content: await file.text(), type: 'file' };
+                }
+            }
+            activeFileId = Object.keys(files)[0];
+            editor.setValue(files[activeFileId].content, -1);
+            renderTree();
+        } catch(e) {}
     }
 
-    async function saveFile() {
-        if (!activeFileId) return;
-        const fileData = files[activeFileId];
-        const currentContent = editor.getValue();
-        if (fileData.handle) {
-            try {
-                const writable = await fileData.handle.createWritable();
-                await writable.write(currentContent);
-                await writable.close();
-                fileData.content = currentContent;
-                alert("保存完了！");
-            } catch (e) { alert("書き込み許可が必要です。"); }
+    function createNewFile() {
+        const name = prompt("Filename (e.g. script.py):");
+        if(name) {
+            files[name] = { content: '', type: 'file' };
+            activeFileId = name;
+            renderTree();
+            editor.setValue('', -1);
         }
     }
 
     function openLivePreview() {
-        if (!activeFileId) return;
-        localStorage.setItem('elite_live_code', editor.getValue());
+        const html = activeFileId.endsWith('.html') ? editor.getValue() : "<h1>Please select an HTML file</h1>";
+        localStorage.setItem('elite_live_code', html);
         window.open('live-preview.html', 'LivePreview');
     }
+
+    renderTree();
+    editor.getSession().setMode('ace/mode/python');
+    editor.setValue(files[activeFileId].content, -1);
 </script>
 </body>
 </html>
