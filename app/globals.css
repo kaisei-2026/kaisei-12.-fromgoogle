@@ -4,26 +4,16 @@
 
 @layer base {
   body {
-    /* 明るいエンジニアリング・ホワイト */
-    @apply bg-zinc-50 text-zinc-900 antialiased selection:bg-blue-200;
-    background-image: radial-gradient(#00000008 1px, transparent 1px);
+    /* 真っ白ではなく、目に優しい最高級の紙のような白 */
+    @apply bg-[#ffffff] text-zinc-950 antialiased selection:bg-blue-100;
+    /* 背景の薄いドット（さらに薄くして邪魔にならないように） */
+    background-image: radial-gradient(#00000005 1px, transparent 1px);
     background-size: 24px 24px;
   }
 }
 
-/* Sublime風のスクロールバー */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: #f4f4f5;
-}
-::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 5px;
-  border: 2px solid #f4f4f5;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+/* テキストエリアのタイピングを滑らかに */
+textarea {
+  line-height: 1.6;
+  tab-size: 2;
 }
