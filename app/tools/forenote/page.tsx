@@ -23,7 +23,7 @@ export default function ForenotePage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 w-full max-w-7xl mx-auto rounded-3xl overflow-hidden border border-white/10 bg-white">
         <iframe
           id="forenote-iframe"
-          src="/kaisei-12.-fromgoogle/apps/forenote.html"
+          src="/kaisei-google/apps/forenote.html"
           className="w-full h-full border-none"
           title="Forenote Pro"
           allow="fullscreen"
