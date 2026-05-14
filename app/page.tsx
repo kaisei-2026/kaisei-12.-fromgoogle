@@ -23,13 +23,13 @@ export default function Home() {
           className="relative z-10 text-center max-w-4xl"
         >
           <div className="bg-white/20 backdrop-blur-2xl p-10 md:p-16 rounded-[3rem] border border-white/30 shadow-2xl">
-            <span className="text-white text-xs font-black tracking-[0.5em] uppercase mb-4 block">Personal Portfolio & Tools</span>
+            <span className="text-white text-xs font-black tracking-[0.5em] uppercase mb-4 block">KAISEI Tools</span>
             <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-none mb-8">
               KAISEI<br />ENGINEERING
             </h1>
             <p className="text-white/90 text-lg md:text-xl font-medium mb-10 max-w-2xl mx-auto">
-              陸上のスピード、AIの知能、プログラミングの創造性。<br />
-              すべてを統合するクリエイティブ・ハブ。
+              KAISEIのためのツールページ<br />
+              すべてを統合するクリエイティブハブ。
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/tools" className="bg-white text-zinc-950 px-8 py-4 rounded-full font-black flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-xl active:scale-95">
@@ -44,9 +44,9 @@ export default function Home() {
       <section className="py-24 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
-            { icon: <Activity className="text-blue-500" />, title: "ATHLETICS", desc: "100m/200m。速さを追求する理論と肉体。陸上競技のデータ分析と記録。" },
-            { icon: <Brain className="text-purple-500" />, title: "AI RESEARCH", desc: "機械学習と最新AI技術。未来を予測し、自動化するプログラムの研究。" },
-            { icon: <Code2 className="text-emerald-500" />, title: "DEV TOOLS", desc: "独自開発のIDEやノートアプリ。Chromebookでの開発限界を突破する。" }
+            { icon: <Activity className="text-blue-500" />, title: "TRACK & FIELD", desc: "陸上部。" },
+            { icon: <Code2 className="text-emerald-500" />, title: "AI & TECHNOLOGY", desc: "機械学習とAI技術。プログラミング多数を活用。" },
+            { icon: <Code2 className="text-emerald-500" />, title: "TOOLS FOR CHROMEBOOK", desc: "Chromebook環境で使える最大限を実現します。" }
           ].map((item, i) => (
             <div key={i} className="p-10 bg-white border border-zinc-200 rounded-[2rem] hover:shadow-xl transition-all group">
               <div className="mb-6 p-4 bg-zinc-50 rounded-2xl w-fit group-hover:scale-110 transition-transform">
