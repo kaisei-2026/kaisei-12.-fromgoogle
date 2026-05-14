@@ -1,21 +1,23 @@
 "use client";
 import React from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 
 export default function CodeEditorPage() {
+  // 🌟 URLを新しいリポジトリ名に修正
+  const iframeSrc = "/kaisei-google/apps/code-editor.html";
+
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
-      <div style={{ padding: '8px 20px', borderBottom: '1px solid #ddd', display: 'flex', alignItems: 'center', backgroundColor: '#f8f8f8' }}>
-        <Link href="/tools" style={{ display: 'flex', alignItems: 'center', color: '#333', textDecoration: 'none', fontSize: '13px', fontWeight: 'bold' }}>
-          <ArrowLeft size={16} style={{ marginRight: '8px' }} /> ツール一覧に戻る
-        </Link>
+    <div className="flex flex-col h-screen bg-[#1e1e1e]">
+      {/* ヘッダー(64px)分の隙間を作る */}
+      <div className="h-16 shrink-0" />
+
+      {/* 本体：画面いっぱいに広げる */}
+      <div className="flex-1 w-full overflow-hidden">
+        <iframe
+          src={iframeSrc}
+          className="w-full h-full border-none"
+          title="Elite Code Editor"
+        />
       </div>
-      <iframe
-        src="/kaisei-google/apps/code-editor.html"
-        style={{ flex: 1, border: 'none', width: '100%' }}
-        title="Elite Code Editor"
-      />
     </div>
   );
 }
