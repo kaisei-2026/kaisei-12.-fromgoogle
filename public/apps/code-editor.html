@@ -2,73 +2,73 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite IDE Pro</title>
+    <title>Elite IDE Pro - Local Disk Edition</title>
+    <!-- Ace Editor & Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --sidebar-bg: #252526; --header-bg: #2d2d2d; --active-blue: #007acc; --border: #333; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #1e1e1e; color: #fff; }
+        
+        /* Header */
         header { height: 40px; background: var(--header-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; border-bottom: 1px solid #111; }
-        .toolbar { display: flex; gap: 5px; align-items: center; }
-        .btn { background: transparent; color: #ccc; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .btn:hover { background: #3c3c3c; color: #fff; }
-        .btn-primary { background: var(--active-blue); color: white; font-weight: bold; }
-        
-        #main { flex: 1; display: flex; overflow: hidden; }
-        #sidebar { width: 250px; background: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid #000; }
-        
-        /* 🌟 新規ファイルボタンを大きく目立たせる設定 */
-        .sidebar-header { padding: 10px 15px; border-bottom: 1px solid #333; }
-        .add-file-btn { 
-            width: 100%; background: #3c3c3c; color: #fff; border: 1px solid #555; 
-            padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            margin-bottom: 10px; transition: 0.2s;
-        }
-        .add-file-btn:hover { background: var(--active-blue); border-color: var(--active-blue); }
+        .toolbar { display: flex; gap: 8px; align-items: center; }
+        .btn { background: #3c3c3c; color: #ccc; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold; transition: 0.2s; }
+        .btn:hover { background: #4c4c4c; color: #fff; }
+        .btn-primary { background: var(--active-blue); color: white; }
+        .btn-help { color: #e2c08d; border: 1px solid #e2c08d; background: transparent; padding: 2px 10px; border-radius: 20px; }
 
-        #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
-        .tree-item { padding: 8px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; border-left: 3px solid transparent; }
+        #main { flex: 1; display: flex; overflow: hidden; }
+
+        /* Sidebar */
+        #sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .sidebar-header { padding: 10px 15px; border-bottom: 1px solid #333; }
+        .add-file-btn { width: 100%; background: #3c3c3c; color: #fff; border: 1px solid #555; padding: 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+        .add-file-btn:hover { background: var(--active-blue); }
+
+        #file-tree { flex: 1; overflow-y: auto; font-size: 13px; color: #aaa; }
+        .tree-item { padding: 6px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
         .tree-item:hover { background: #2a2d2e; }
         .tree-item.active { background: #37373d; color: #fff; border-left-color: var(--active-blue); }
-        .tree-item.preview-target { color: #e2c08d; font-weight: bold; }
 
+        /* Editor Area */
         #editor-pane { flex: 1; display: flex; flex-direction: column; background: #1e1e1e; }
         .tabs { height: 35px; background: #252526; display: flex; border-bottom: 1px solid #111; }
         .tab { background: #1e1e1e; color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; border-right: 1px solid #111; border-top: 1px solid var(--active-blue); }
         #ace-editor { flex: 1; font-size: 15px; font-weight: 700; }
 
         /* Help Modal */
-        #help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .help-content { background: white; color: #333; width: 100%; max-width: 500px; border-radius: 15px; padding: 30px; position: relative; }
-        .help-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-size: 20px; color: #999; }
+        #help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .help-content { background: white; color: #333; width: 500px; border-radius: 20px; padding: 30px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .help-title { font-size: 22px; font-weight: 900; margin-bottom: 20px; color: var(--active-blue); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .help-step { margin-bottom: 15px; font-size: 14px; line-height: 1.6; }
+        .help-step b { color: #000; background: #f0f0f0; padding: 2px 5px; border-radius: 3px; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-weight:900; color:var(--active-blue);">ELITE IDE</span>
-        <button class="btn" style="color:#e2c08d; border:1px solid #e2c08d; padding:2px 8px; border-radius:10px;" onclick="toggleHelp(true)">使い方 ?</button>
+        <span style="font-weight:900; color:var(--active-blue); letter-spacing:1px;">ELITE IDE</span>
+        <button class="btn btn-help" onclick="toggleHelp(true)">使い方 ?</button>
     </div>
     <div class="toolbar">
-        <button class="btn" onclick="openLocalFolder()">フォルダを開く</button>
-        <button class="btn btn-primary" onclick="saveFile()">保存</button>
-        <button class="btn btn-primary" style="background:#e2c08d; color:#000" onclick="openLivePreview()">LIVE</button>
+        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> フォルダを選択</button>
+        <button class="btn btn-primary" onclick="saveFile()"><i class="fas fa-save"></i> 保存</button>
+        <button class="btn" style="background:#e2c08d; color:#000" onclick="openLivePreview()"><i class="fas fa-play"></i> LIVE</button>
     </div>
 </header>
 
 <div id="main">
     <div id="sidebar">
         <div class="sidebar-header">
-            <!-- 🌟 はっきり見える新規ファイル作成ボタン -->
-            <button class="add-file-btn" onclick="createNewFile()">
-                <i class="fas fa-plus"></i> 新規ファイル作成
-            </button>
-            <div style="font-size:10px; color:#555; font-weight:bold;">EXPLORER</div>
+            <button class="add-file-btn" onclick="createNewFile()">+ 新規ファイル作成</button>
+            <div style="font-size:9px; color:#555; font-weight:bold; letter-spacing:1px;">EXPLORER</div>
         </div>
-        <div id="file-tree"></div>
+        <div id="file-tree">
+            <div style="padding:20px; font-size:11px; text-align:center;">フォルダを選択してください</div>
+        </div>
     </div>
     <div id="editor-pane">
         <div class="tabs" id="tabs-container"></div>
@@ -76,106 +76,124 @@
     </div>
 </div>
 
-<!-- モーダル省略（前回のものをそのまま使えますが、必要ならここに追加） -->
+<!-- 使い方ガイド -->
+<div id="help-modal">
+    <div class="help-content">
+        <h2 class="help-title">Elite IDE プロ仕様ガイド</h2>
+        <div class="help-step">1. <b>フォルダを選択</b> を押し、Chromebookの好きな場所（マイファイルなど）を選びます。ブラウザの「許可」ボタンを必ず押してください。</div>
+        <div class="help-step">2. サイドバーの <b>新規ファイル作成</b> でファイル名（例: index.html）を入力すると、そのフォルダに直接ファイルが作られます。</div>
+        <div class="help-step">3. コードを書き、<b>保存</b> を押すと実際のディスクに書き込まれます。</div>
+        <div class="help-step">4. <b>LIVE</b> を押すと別タブで結果を表示します。</div>
+        <button class="btn btn-primary" style="width:100%; padding:12px; margin-top:20px;" onclick="toggleHelp(false)">閉じる</button>
+    </div>
+</div>
 
 <script>
-    let files = {}; let activeFileId = null; let previewFileId = null; let rootHandle = null;
+    let files = {}; // ファイル管理
+    let activeFileId = null;
+    let rootHandle = null; // フォルダの権限
+    let previewFileId = null;
+
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
 
+    // --- 1. 使い方表示 (toggleHelp) の修正 ---
+    function toggleHelp(show) {
+        document.getElementById('help-modal').style.display = show ? 'flex' : 'none';
+    }
+
+    // --- 2. ローカルフォルダを「選択」して開く ---
     async function openLocalFolder() {
         try {
+            // 実際のフォルダを選択させる
             rootHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
             files = {}; 
+            // フォルダ内をスキャン
             for await (const entry of rootHandle.values()) {
-                if (entry.kind === 'file') await addFileToVFS(entry);
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    const content = await file.text();
+                    files[entry.name] = { handle: entry, name: entry.name, content: content };
+                }
             }
             renderTree();
-        } catch(e){}
-    }
-
-    async function addFileToVFS(handle) {
-        const file = await handle.getFile();
-        const content = await file.text();
-        files[handle.name] = { handle, name: handle.name, content, type: 'file' };
-        if (handle.name.endsWith('.html') && !previewFileId) previewFileId = handle.name;
-        renderTree();
-        openFile(handle.name);
-    }
-
-    async function createNewFile() {
-        const name = prompt("ファイル名を入力 (例: index.html):");
-        if (!name) return;
-        if (rootHandle) {
-            try {
-                const handle = await rootHandle.getFileHandle(name, { create: true });
-                await addFileToVFS(handle);
-            } catch (e) { alert("作成エラー: " + e.message); }
-        } else {
-            files[name] = { handle: null, name, content: '', type: 'file' };
-            if (name.endsWith('.html') && !previewFileId) previewFileId = name;
-            renderTree();
-            openFile(name);
+            alert("フォルダを読み込みました。書き込み許可を求められたら「許可」してください。");
+        } catch (e) {
+            console.error(e);
+            alert("フォルダの選択がキャンセルされたか、権限がありません。");
         }
     }
 
+    // --- 3. 実際のフォルダ内に「新規ファイル」を作成 ---
+    async function createNewFile() {
+        if (!rootHandle) return alert("先に「フォルダを選択」ボタンで場所を決めてください。");
+        
+        const name = prompt("作成するファイル名を入力 (例: index.html)");
+        if (!name) return;
+
+        try {
+            // 物理的にファイルを作成
+            const handle = await rootHandle.getFileHandle(name, { create: true });
+            files[name] = { handle: handle, name: name, content: "" };
+            renderTree();
+            openFile(name);
+        } catch (e) {
+            alert("エラー: " + e.message);
+        }
+    }
+
+    // --- 4. 実際のディスクに「保存」する ---
+    async function saveFile() {
+        if (!activeFileId) return;
+        const fileData = files[activeFileId];
+        const currentContent = editor.getValue();
+        
+        if (fileData.handle) {
+            try {
+                const writable = await fileData.handle.createWritable();
+                await writable.write(currentContent);
+                await writable.close();
+                fileData.content = currentContent;
+                alert("ローカルディスクに保存しました！");
+            } catch (e) {
+                alert("保存エラー: フォルダへの書き込みを「許可」してください。");
+            }
+        }
+    }
+
+    // --- 描画系 ---
     function renderTree() {
         const tree = document.getElementById('file-tree');
         tree.innerHTML = '';
         Object.keys(files).sort().forEach(id => {
             const item = document.createElement('div');
-            item.className = `tree-item ${activeFileId === id ? 'active' : ''} ${previewFileId === id ? 'preview-target' : ''}`;
-            item.innerHTML = `<i class="fas fa-file-code"></i> ${id} ${previewFileId === id ? ' (LIVE)' : ''}`;
-            item.oncontextmenu = (e) => { e.preventDefault(); if(id.endsWith('.html')) { previewFileId = id; renderTree(); } };
+            item.className = `tree-item ${activeFileId === id ? 'active' : ''}`;
+            const icon = id.endsWith('.html') ? 'fa-html5' : id.endsWith('.css') ? 'fa-css3-alt' : 'fa-file-code';
+            item.innerHTML = `<i class="fab ${icon}"></i> ${id}`;
             item.onclick = () => openFile(id);
             tree.appendChild(item);
         });
     }
 
     function openFile(id) {
-        if (activeFileId && files[activeFileId]) files[activeFileId].content = editor.getValue();
+        if (activeFileId) files[activeFileId].content = editor.getValue();
         activeFileId = id;
         editor.setValue(files[id].content, -1);
-        editor.getSession().setMode(getMode(id));
+        editor.getSession().setMode(id.endsWith('.html') ? "ace/mode/html" : id.endsWith('.css') ? "ace/mode/css" : "ace/mode/javascript");
         document.getElementById('tabs-container').innerHTML = `<div class="tab">${id}</div>`;
         renderTree();
     }
 
-    async function saveFile() {
-        if (!activeFileId) return;
-        const file = files[activeFileId];
-        file.content = editor.getValue();
-        if (file.handle) {
-            const writable = await file.handle.createWritable();
-            await writable.write(file.content);
-            await writable.close();
-            alert("保存しました");
-        } else { alert("メモリに一時保存しました"); }
-    }
-
-    function getMode(n) {
-        if(n.endsWith('.html')) return 'ace/mode/html';
-        if(n.endsWith('.css')) return 'ace/mode/css';
-        if(n.endsWith('.js')) return 'ace/mode/javascript';
-        return 'ace/mode/text';
-    }
-
     function openLivePreview() {
-        if (!previewFileId) return alert("HTMLを選択してください");
-        files[activeFileId].content = editor.getValue();
-        let html = files[previewFileId].content;
-        Object.keys(files).forEach(name => {
-            if (name.endsWith('.css')) {
-                const cssTag = new RegExp(`<link[^>]*href=["']${name}["'][^>]*>`, 'g');
-                html = html.replace(cssTag, `<style>${files[name].content}</style>`);
-            }
-            if (name.endsWith('.js')) {
-                const jsTag = new RegExp(`<script[^>]*src=["']${name}["'][^>]*><\/script>`, 'g');
-                html = html.replace(jsTag, `<script>${files[name].content}<\/script>`);
-            }
-        });
-        localStorage.setItem('elite_live_code', html);
+        if (!activeFileId) return alert("ファイルを開いてください");
+        localStorage.setItem('elite_live_code', editor.getValue());
         window.open('live-preview.html', 'LivePreview');
+    }
+
+    // 初回のみ自動でヘルプを表示
+    if (!localStorage.getItem('ide_ready')) {
+        toggleHelp(true);
+        localStorage.setItem('ide_ready', 'true');
     }
 </script>
 </body>
