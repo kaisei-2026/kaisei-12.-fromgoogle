@@ -7,9 +7,4 @@ date: "2026-05-14"
 クロームブックで活用できるツールの提供
 
 ## ブログ
-ブログ的な
-
-```javascript
-const analyzeSpeed = (data) => {
-  return data.map(point => point.pitch * point.stride);
-};
+ブログ的なことやりまーす
