@@ -1,35 +1,32 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { PenTool, Terminal, Plus } from "lucide-react";
+import { PenTool, Terminal, Layout } from "lucide-react";
 
 export default function ToolsPage() {
   return (
     <div className="min-h-screen pt-40 pb-20 px-6 max-w-6xl mx-auto">
-      <div className="mb-20">
-        <h1 className="text-6xl font-black text-zinc-900 tracking-tighter uppercase">Tools.</h1>
-        <div className="h-2 w-20 bg-blue-600 mt-4" />
-      </div>
+      <h1 className="text-6xl font-black text-zinc-950 tracking-tighter uppercase italic mb-16">Tools.</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Forenote */}
         <Link href="/tools/forenote" className="group">
-          <motion.div whileHover={{ y: -10 }} className="h-[400px] bg-white border-2 border-zinc-900 p-10 flex flex-col justify-between shadow-[10px_10px_0px_#18181b] transition-all active:translate-x-1 active:translate-y-1 active:shadow-none">
-            <PenTool size={48} className="text-zinc-900" />
+          <motion.div whileHover={{ y: -5 }} className="h-[350px] bg-white border-2 border-zinc-950 p-10 flex flex-col justify-between hover:shadow-[12px_12px_0px_#000] transition-all">
+            <PenTool size={40} className="text-zinc-950" />
             <div>
-              <h2 className="text-4xl font-black text-zinc-900">FORENOTE PRO</h2>
-              <p className="text-zinc-500 font-bold mt-2 uppercase tracking-widest text-sm">Analog Power / Digital Speed</p>
+              <h2 className="text-4xl font-black text-zinc-950">FORENOTE PRO</h2>
+              <p className="text-zinc-500 font-bold mt-2 uppercase tracking-widest">Handwriting / Master V24</p>
             </div>
           </motion.div>
         </Link>
 
         {/* Code Runner */}
         <Link href="/tools/code-runner" className="group">
-          <motion.div whileHover={{ y: -10 }} className="h-[400px] bg-blue-600 border-2 border-zinc-900 p-10 flex flex-col justify-between shadow-[10px_10px_0px_#18181b] transition-all active:translate-x-1 active:translate-y-1 active:shadow-none text-white">
-            <Terminal size={48} />
+          <motion.div whileHover={{ y: -5 }} className="h-[350px] bg-[#f4f4f5] border-2 border-zinc-950 p-10 flex flex-col justify-between hover:shadow-[12px_12px_0px_#000] transition-all">
+            <Terminal size={40} className="text-zinc-950" />
             <div>
-              <h2 className="text-4xl font-black">SUBLIME RUNNER</h2>
-              <p className="text-blue-200 font-bold mt-2 uppercase tracking-widest text-sm">Virtual File System / Debug Console</p>
+              <h2 className="text-4xl font-black text-zinc-950">SUBLIME RUNNER</h2>
+              <p className="text-zinc-500 font-bold mt-2 uppercase tracking-widest">Code Editor / Debugger</p>
             </div>
           </motion.div>
         </Link>
