@@ -34,3 +34,13 @@ export default function ToolsPage() {
     </div>
   );
 }
+
+<Link href="/tools/code-editor" className="group">
+  <motion.div whileHover={{ y: -5 }} className="h-[350px] bg-white border-2 border-zinc-950 p-10 flex flex-col justify-between hover:shadow-[12px_12px_0px_#000] transition-all">
+    <Terminal size={40} className="text-zinc-950" />
+    <div>
+      <h2 className="text-4xl font-black text-zinc-950 uppercase">Live Editor</h2>
+      <p className="text-zinc-500 font-bold mt-2 uppercase tracking-widest">VS Code Style / Live Preview</p>
+    </div>
+  </motion.div>
+</Link>
