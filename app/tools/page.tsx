@@ -39,6 +39,20 @@ export default function ToolsPage() {
             </div>
           </motion.div>
         </Link>
+{/* Python Runner カード */}
+<Link href="/tools/python-hub" className="group block outline-none">
+  <motion.div 
+    whileHover={{ y: -10 }} 
+    className="h-[350px] bg-white border-2 border-zinc-950 p-10 flex flex-col justify-between hover:shadow-[12px_12px_0px_#3b82f6] transition-all"
+  >
+    <div className="text-5xl">🐍</div>
+    <div>
+      <h2 className="text-4xl font-black text-zinc-950 uppercase leading-none">PYTHON HUB</h2>
+      <p className="text-zinc-500 font-bold mt-4 uppercase tracking-[0.1em] text-sm italic">Script IDE & Jupyter Notebook</p>
+    </div>
+  </motion.div>
+</Link>
+        
       </div>
     </div>
   );
