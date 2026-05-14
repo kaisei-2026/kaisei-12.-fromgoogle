@@ -1,25 +1,63 @@
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight, Activity, Brain, Code2 } from "lucide-react";
 
 export default function Home() {
+  const bgImg = "https://ichiritsukoukou.jp/wordpress/wp-content/uploads/2021/03/%E9%AB%98%E6%A0%A1%E7%B4%B9%E4%BB%8B_%E9%96%8B%E6%88%90top.jpg";
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 relative overflow-hidden bg-white">
-      {/* 背景の柔らかな光 */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[140px] pointer-events-none opacity-50" />
-      
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center relative z-10"
-      >
-        <h1 className="text-8xl md:text-[10rem] font-black tracking-tighter text-zinc-900 leading-none">
-          CRAFT<br />
-          <span className="text-blue-600">SPACE.</span>
-        </h1>
-        <p className="mt-10 text-lg text-zinc-500 max-w-2xl mx-auto font-bold tracking-[0.2em] uppercase">
-          Engineering Hub / Tools / Garden
-        </p>
-      </motion.div>
+    <div className="min-h-screen bg-zinc-50">
+      {/* HERO SECTION */}
+      <section className="relative h-[90vh] flex items-center justify-center pt-16 px-6">
+        <div 
+          className="absolute inset-4 rounded-[2.5rem] overflow-hidden bg-cover bg-center shadow-2xl"
+          style={{ backgroundImage: `url(${bgImg})` }}
+        >
+          <div className="absolute inset-0 bg-black/30 backdrop-brightness-90" />
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="relative z-10 text-center max-w-4xl"
+        >
+          <div className="bg-white/20 backdrop-blur-2xl p-10 md:p-16 rounded-[3rem] border border-white/30 shadow-2xl">
+            <span className="text-white text-xs font-black tracking-[0.5em] uppercase mb-4 block">Personal Portfolio & Tools</span>
+            <h1 className="text-5xl md:text-8xl font-black text-white tracking-tighter leading-none mb-8">
+              KAISEI<br />ENGINEERING
+            </h1>
+            <p className="text-white/90 text-lg md:text-xl font-medium mb-10 max-w-2xl mx-auto">
+              陸上のスピード、AIの知能、プログラミングの創造性。<br />
+              すべてを統合するクリエイティブ・ハブ。
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/tools" className="bg-white text-zinc-950 px-8 py-4 rounded-full font-black flex items-center gap-2 hover:bg-blue-600 hover:text-white transition-all shadow-xl active:scale-95">
+                GET STARTED <ArrowRight size={20} />
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* 3 PILLARS SECTION */}
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { icon: <Activity className="text-blue-500" />, title: "ATHLETICS", desc: "100m/200m。速さを追求する理論と肉体。陸上競技のデータ分析と記録。" },
+            { icon: <Brain className="text-purple-500" />, title: "AI RESEARCH", desc: "機械学習と最新AI技術。未来を予測し、自動化するプログラムの研究。" },
+            { icon: <Code2 className="text-emerald-500" />, title: "DEV TOOLS", desc: "独自開発のIDEやノートアプリ。Chromebookでの開発限界を突破する。" }
+          ].map((item, i) => (
+            <div key={i} className="p-10 bg-white border border-zinc-200 rounded-[2rem] hover:shadow-xl transition-all group">
+              <div className="mb-6 p-4 bg-zinc-50 rounded-2xl w-fit group-hover:scale-110 transition-transform">
+                {item.icon}
+              </div>
+              <h3 className="text-2xl font-black mb-4 tracking-tighter">{item.title}</h3>
+              <p className="text-zinc-500 font-medium leading-relaxed">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }
