@@ -2,142 +2,127 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite Code Editor - Live</title>
+    <title>Elite Code Editor Pro</title>
+    <!--Ace Editorの読み込み-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <style>
-        :root { --sidebar-bg: #1e1e1e; --tab-bg: #2d2d2d; --border: #ddd; }
+        :root { --sidebar-bg: #1e1e1e; --toolbar-bg: #2d2d2d; --active-bg: #37373d; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #fff; color: #000; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
         
-        /* Header */
-        header { height: 45px; background: #333; color: #fff; display: flex; alignItems: center; justify-content: space-between; padding: 0 15px; font-size: 12px; }
-        .run-badge { background: #0078d4; padding: 4px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        header { height: 45px; background: #333; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; }
+        .btn-live { background: #0078d4; color: white; border: none; padding: 6px 15px; border-radius: 4px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .btn-live:hover { background: #0086ed; }
 
-        /* Main Layout */
-        #main-container { flex: 1; display: flex; overflow: hidden; }
+        #main { flex: 1; display: flex; overflow: hidden; }
 
-        /* Sidebar (Explorer) */
-        #sidebar { width: 220px; background: var(--sidebar-bg); color: #888; display: flex; flex-direction: column; user-select: none; }
-        .sidebar-title { padding: 10px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-        .file-item { padding: 6px 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; }
-        .file-item.active { background: #37373d; color: #fff; border-left: 2px solid #0078d4; }
+        /* Sidebar */
+        #sidebar { width: 200px; background: var(--sidebar-bg); color: #888; display: flex; flex-direction: column; user-select: none; border-right: 1px solid #000; }
+        .sidebar-header { padding: 10px 15px; font-size: 11px; font-weight: bold; text-transform: uppercase; color: #555; }
+        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .file-item.active { background: var(--active-bg); color: #fff; border-left: 2px solid #0078d4; }
         .file-item:hover:not(.active) { background: #2a2d2e; }
 
-        /* Editor Area (Left Side) */
-        #editor-pane { flex: 1; display: flex; flex-direction: column; border-right: 2px solid var(--border); }
-        .tabs { height: 35px; background: #ececec; display: flex; border-bottom: 1px solid var(--border); }
-        .tab { background: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; font-weight: bold; border-right: 1px solid var(--border); color: #333; }
-        #code-input { flex: 1; border: none; outline: none; padding: 20px; font-family: 'Consolas', monospace; font-size: 16px; font-weight: 700; line-height: 1.5; resize: none; color: #000; background: #fff; }
-
-        /* Preview Area (Right Side) */
-        #preview-pane { flex: 1; display: flex; flex-direction: column; background: #f9f9f9; }
-        .pane-title { background: #eee; padding: 5px 15px; font-size: 10px; font-weight: bold; color: #666; border-bottom: 1px solid var(--border); }
-        #live-preview { flex: 1; border: none; background: #fff; }
-
-        /* Console (Bottom) */
-        #console { height: 120px; border-top: 2px solid var(--border); background: #fff; display: flex; flex-direction: column; }
-        #log-area { flex: 1; overflow-y: auto; padding: 10px; font-family: monospace; font-size: 12px; color: #333; }
-        .log-entry { border-bottom: 1px solid #f0f0f0; padding: 2px 0; }
+        /* Editor Area */
+        #editor-pane { flex: 1; display: flex; flex-direction: column; }
+        #ace-editor { flex: 1; font-size: 16px; } /* 文字サイズを大きく設定 */
+        
+        .tabs { height: 35px; background: #252526; display: flex; }
+        .tab { background: var(--active-bg); color: #fff; padding: 0 20px; display: flex; align-items: center; font-size: 11px; font-border-right: 1px solid #1e1e1e; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:20px;">
-        <span>ELITE CODE EDITOR</span>
-        <span style="color:#888;">● index.html</span>
+    <div style="display:flex; align-items:center; gap:15px;">
+        <span style="font-weight:bold; letter-spacing:1px;">ELITE CODE EDITOR</span>
     </div>
-    <div id="run-btn" class="run-badge">LIVE RUNNING</div>
+    <button class="btn-live" onclick="openLivePreview()">
+        <span>🌐 OPEN LIVE PREVIEW</span>
+    </button>
 </header>
 
-<div id="main-container">
-    <!-- Sidebar -->
+<div id="main">
     <div id="sidebar">
-        <div class="sidebar-title">Explorer</div>
-        <div class="file-item active">📄 index.html</div>
-        <div class="file-item">📄 style.css</div>
-        <div class="file-item">📄 main.js</div>
+        <div class="sidebar-header">Explorer</div>
+        <div class="file-item active" onclick="switchFile('index.html')">📄 index.html</div>
+        <div class="file-item" onclick="switchFile('style.css')">📄 style.css</div>
+        <div class="file-item" onclick="switchFile('main.js')">📄 main.js</div>
     </div>
 
-    <!-- Editor -->
     <div id="editor-pane">
-        <div class="tabs"><div class="tab">index.html</div></div>
-        <textarea id="code-input" spellcheck="false"><!-- HTMLを書くと右にすぐ反映されます -->
-<div class="card">
-  <h1>Hello Live Preview!</h1>
-  <p>Chromebook開発環境へようこそ。</p>
-  <button id="btn">ここをクリック</button>
-</div>
-
-<style>
-  body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 80vh; background: #f0f4f8; }
-  .card { background: white; padding: 40px; border-radius: 20px; shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border: 2px solid #000; }
-  h1 { color: #0078d4; font-size: 32px; }
-  button { background: #000; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
-</style>
-
-<script>
-  console.log("ライブプレビュー起動完了！");
-  document.getElementById('btn').onclick = () => {
-    alert("動きました！");
-    console.log("ボタンが押されました");
-  };
-</script></textarea>
-    </div>
-
-    <!-- Preview & Console -->
-    <div id="preview-pane">
-        <div class="pane-title">LIVE PREVIEW</div>
-        <iframe id="live-preview"></iframe>
-        <div id="console">
-            <div class="pane-title">CONSOLE</div>
-            <div id="log-area"></div>
-        </div>
+        <div class="tabs"><div class="tab" id="active-tab-name">index.html</div></div>
+        <div id="ace-editor"></div>
     </div>
 </div>
 
 <script>
-    const codeInput = document.getElementById('code-input');
-    const livePreview = document.getElementById('live-preview');
-    const logArea = document.getElementById('log-area');
-
-    // コンソールログを画面に表示する仕組み
-    window.onmessage = (e) => {
-        if(e.data.type === 'log') {
-            const div = document.createElement('div');
-            div.className = 'log-entry';
-            div.innerHTML = `<span style="color:#aaa;">[LOG]</span> ${e.data.content}`;
-            logArea.appendChild(div);
-            logArea.scrollTop = logArea.scrollHeight;
-        }
+    // 仮想ファイル管理
+    let files = {
+        'index.html': { content: '<!-- HTML -->\n<div class="box">\n  <h1>Hello Ace!</h1>\n</div>', mode: 'ace/mode/html' },
+        'style.css': { content: '/* CSS */\nbody { background: #f0f0f0; display: flex; justify-content: center; align-items: center; height: 90vh; }\n.box { background: white; padding: 50px; border: 3px solid black; }', mode: 'ace/mode/css' },
+        'main.js': { content: '// JavaScript\nconsole.log("JavaScript Loaded.");', mode: 'ace/mode/javascript' }
     };
 
-    function updatePreview() {
-        const code = codeInput.value;
-        const previewDoc = livePreview.contentWindow.document;
+    let currentFile = 'index.html';
+
+    // Ace Editorの初期化
+    const editor = ace.edit("ace-editor");
+    editor.setTheme("ace/theme/monokai"); // 画像のような暗い背景
+    editor.getSession().setMode(files[currentFile].mode);
+    editor.setValue(files[currentFile].content, -1);
+    editor.setOptions({
+        fontFamily: "Consolas, 'Courier New', monospace",
+        enableBasicAutocompletion: true,
+        enableLiveAutocompletion: true
+    });
+
+    // ファイル切り替え機能
+    function switchFile(filename) {
+        // 現在の内容を保存
+        files[currentFile].content = editor.getValue();
         
-        // iframeの中にコードを注入 + console.logの乗っ取り
-        const content = `
-            ${code}
-            <script>
-                const originLog = console.log;
-                console.log = (...args) => {
-                    window.parent.postMessage({type: 'log', content: args.join(' ')}, '*');
-                    originLog(...args);
-                };
-            <\/script>
-        `;
+        currentFile = filename;
+        document.getElementById('active-tab-name').innerText = filename;
         
-        previewDoc.open();
-        previewDoc.write(content);
-        previewDoc.close();
+        // サイドバーのアクティブ表示切り替え
+        document.querySelectorAll('.file-item').forEach(el => {
+            el.classList.toggle('active', el.innerText.includes(filename));
+        });
+
+        // エディタの設定更新
+        editor.getSession().setMode(files[filename].mode);
+        editor.setValue(files[filename].content, -1);
+        
+        updateLivePreviewData();
     }
 
-    // 入力するたびにリアルタイム更新
-    codeInput.addEventListener('input', updatePreview);
+    // 別ページで開くライブプレビュー
+    let previewWindow = null;
 
-    // 初回実行
-    updatePreview();
+    function openLivePreview() {
+        // 別タブを開く
+        const path = window.location.pathname.replace('code-editor.html', 'live-preview.html');
+        previewWindow = window.open(path, 'LivePreview');
+        updateLivePreviewData();
+    }
+
+    function updateLivePreviewData() {
+        files[currentFile].content = editor.getValue();
+        const fullCode = `
+            ${files['index.html'].content}
+            <style>${files['style.css'].content}</style>
+            <script>${files['main.js'].content}<\/script>
+        `;
+        // LocalStorageを使って別タブにデータを送る（確実な方法）
+        localStorage.setItem('elite_live_code', fullCode);
+    }
+
+    // 入力するたびにLocalStorageを更新
+    editor.on('change', () => {
+        updateLivePreviewData();
+    });
+
 </script>
-
 </body>
 </html>
