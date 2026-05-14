@@ -5,22 +5,24 @@ import ReactMarkdown from "react-markdown";
 
 export async function generateStaticParams() {
   const posts = getSortedPostsData();
-  return posts.map((post) => ({ slug: post.slug }));
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
 }
 
-export default async function PostPage({ params }: { params: { slug: string } }) {
-  const { slug } = await (params as any);
-  const postData = getPostData(slug);
+export default function PostPage({ params }: { params: { slug: string } }) {
+  // awaitを使わず直接参照する形に変更
+  const postData = getPostData(params.slug);
 
   return (
-    <div className="min-h-screen pt-40 pb-24 px-6 max-w-3xl mx-auto">
-      <Link href="/blog" className="inline-flex items-center text-xs font-bold text-zinc-500 hover:text-white mb-12 transition-colors uppercase tracking-widest">
+    <div className="min-h-screen pt-40 pb-24 px-6 max-w-3xl mx-auto bg-white text-zinc-950">
+      <Link href="/blog" className="inline-flex items-center text-xs font-bold text-zinc-500 hover:text-zinc-950 mb-12 transition-colors uppercase tracking-widest">
         <ArrowLeft size={14} className="mr-2" /> Back to Garden
       </Link>
       <article>
-        <time className="text-blue-500 font-mono text-xs tracking-widest mb-4 block">{postData.date}</time>
-        <h1 className="text-4xl md:text-6xl font-black text-white mb-16 leading-tight tracking-tighter uppercase italic">{postData.title}</h1>
-        <div className="prose prose-invert prose-blue max-w-none prose-headings:italic prose-headings:tracking-tighter">
+        <time className="text-blue-600 font-mono text-xs tracking-widest mb-4 block">{postData.date}</time>
+        <h1 className="text-5xl md:text-7xl font-black text-zinc-950 mb-16 leading-tight tracking-tighter uppercase italic">{postData.title}</h1>
+        <div className="prose prose-zinc max-w-none prose-headings:text-zinc-950 prose-p:text-zinc-800">
           <ReactMarkdown>{postData.content}</ReactMarkdown>
         </div>
       </article>
