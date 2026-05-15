@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, CheckSquare } from "lucide-react";
 
 export default function Home() {
   const [lang, setLang] = useState<"jp" | "en">("jp");
@@ -15,29 +15,25 @@ export default function Home() {
 
   if (!mounted) return null;
 
-  const newsItems = [
-    { date: "2026.05.15", title: "次世代IDE「Elite Pro」正式リリース", tag: "UPDATE", link: "/tools/code-editor" },
-    { date: "2026.05.01", title: "PythonエディタがJupyterノートブック形式（.ipy）を完全サポート", tag: "FEATURE", link: "/tools/python-editor" },
-    { date: "2026.04.25", title: "学校プロジェクト：課題管理アプリの運用を開始", tag: "PROJECT", link: "/tools/python-editor" },
-    { date: "2026.04.14", title: "ポートフォリオサイトのデザインを一新しました", tag: "INFO", link: "/blog" },
-    { date: "2026.04.01", title: "開発ブログ「Insights」を開設", tag: "BLOG", link: "/blog" },
-  ];
-
   return (
     <div className="bg-[#ffffff] text-zinc-900 font-serif selection:bg-zinc-900 selection:text-white">
       
       {/* SECTION 1: HERO */}
-      <section className="relative min-h-screen flex flex-col justify-end px-8 md:px-20 pb-20 overflow-hidden bg-zinc-800">
+      <section className="relative min-h-screen flex flex-col justify-end px-8 md:px-20 pb-20 overflow-hidden bg-zinc-900">
+        {/* 背景画像エリア */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url('/kaisei-google/bg-school.png')" }}
+          style={{ 
+            // 🌟 publicフォルダに入れた画像を表示するパス
+            backgroundImage: "url('/kaisei-google/bg-school.png')" 
+          }}
         >
           <div className="absolute inset-0 bg-black/40" /> 
         </div>
 
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.5 }} className="relative z-10 text-white">
-          <h2 className="text-3xl md:text-4xl font-medium mb-4 tracking-tight drop-shadow-lg opacity-80 font-sans">
-            {lang === "jp" ? "唯一無二の、感動を。" : "The only one, the emotion."}
+          <h2 className="text-3xl md:text-5xl font-bold mb-4 tracking-tighter font-sans">
+            KAISEI TOOLS
           </h2>
           <h1 className="text-[18vw] md:text-[16rem] font-bold tracking-tighter leading-[0.8] drop-shadow-2xl">
             KAISEI
@@ -45,62 +41,63 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* SECTION 2: NEWS (5件に更新) */}
+      {/* SECTION 2: NEW TOOL PROMOTION */}
+      <section className="py-32 px-8 md:px-20 bg-blue-600 text-white rounded-b-[4rem]">
+        <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center gap-12">
+          <div className="md:w-1/2">
+            <span className="inline-block px-4 py-1 rounded-full bg-white/20 text-xs font-bold mb-6 tracking-widest uppercase font-sans">New Tool</span>
+            <h3 className="text-5xl md:text-7xl font-bold tracking-tighter mb-8 italic">Task Manager</h3>
+            <p className="text-xl md:text-2xl leading-relaxed mb-10 opacity-90 font-sans">
+              {lang === "jp" ? "開成の膨大な課題を、戦略的に管理する。" : "Manage Kaisei's massive workload strategically."}
+            </p>
+            <Link href="/tools/task-manager" className="inline-flex items-center gap-4 bg-white text-blue-600 px-10 py-4 rounded-full font-bold hover:bg-zinc-100 transition-all font-sans text-sm">
+              ツールを使ってみる <ArrowUpRight size={20}/>
+            </Link>
+          </div>
+          <div className="md:w-1/2 flex justify-center">
+             <div className="w-64 h-64 md:w-80 md:h-80 bg-white/10 rounded-[3rem] backdrop-blur-3xl flex items-center justify-center border border-white/20 shadow-2xl">
+                <CheckSquare size={120} className="text-white opacity-80" />
+             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 3: INSIGHTS & NEWS */}
       <section className="py-40 px-8 md:px-20 max-w-[1600px] mx-auto">
         <div className="flex flex-col lg:flex-row gap-20">
           <div className="lg:w-1/4">
             <h3 className="text-7xl font-bold tracking-tighter mb-4 text-zinc-900">News</h3>
-            <p className="text-zinc-400 font-medium text-sm mb-12 font-sans">( お知らせ )</p>
+            <p className="text-zinc-400 font-medium text-sm mb-12 font-sans">( 最新情報とブログ )</p>
             <Link href="/blog" className="group inline-flex items-center gap-6 bg-zinc-900 text-white px-10 py-4 rounded-full text-xs font-bold tracking-widest hover:bg-zinc-700 transition-all font-sans">
-              ALL NEWS <ArrowUpRight size={16} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+              VIEW ALL <ArrowUpRight size={16}/>
             </Link>
           </div>
 
-          <div className="lg:w-3/4 space-y-6">
-            {newsItems.map((news, i) => (
-              <Link href={news.link} key={i} className="group block bg-white border border-zinc-100 p-8 md:p-12 rounded-[3.5rem] flex items-center justify-between hover:shadow-2xl hover:border-zinc-200 transition-all duration-500">
-                <div className="flex gap-10 md:gap-20 items-center">
-                  <div className="font-mono text-zinc-400">
-                    <span className="block text-[11px] opacity-60">2026.</span>
-                    <span className="text-3xl text-zinc-900 font-bold tracking-tighter">{news.date.slice(5)}</span>
-                  </div>
+          <div className="lg:w-3/4 space-y-6 text-zinc-950">
+            {[
+              { date: "2026.05.15", title: "課題管理ツール「Kaisei Task Manager」をリリース", tag: "NEW TOOL", link: "/tools/task-manager" },
+              { date: "2026.05.01", title: "Pythonエディタの活用術：CSV連携による自動化", tag: "BLOG", link: "/blog/python-engine" },
+              { date: "2026.04.14", title: "ポートフォリオサイトの完全リニューアルが完了", tag: "INFO", link: "/blog" },
+            ].map((item, i) => (
+              <Link href={item.link} key={i} className="group block bg-white border border-zinc-100 p-8 md:p-12 rounded-[3rem] flex items-center justify-between hover:shadow-2xl transition-all duration-500">
+                <div className="flex gap-10 md:gap-16 items-center">
+                  <div className="font-mono text-zinc-400 text-xl font-bold">{item.date.slice(5)}</div>
                   <div>
-                    <span className="inline-block px-4 py-1.5 rounded-lg bg-zinc-100 text-[10px] font-black text-zinc-500 mb-4 tracking-widest uppercase font-sans">{news.tag}</span>
-                    <h4 className="text-xl md:text-3xl font-bold text-zinc-900 tracking-tight leading-tight">{news.title}</h4>
+                    <span className="inline-block px-3 py-1 rounded-md bg-zinc-100 text-[9px] font-black text-zinc-500 mb-2 uppercase tracking-widest font-sans">{item.tag}</span>
+                    <h4 className="text-xl md:text-2xl font-bold text-zinc-900 tracking-tight">{item.title}</h4>
                   </div>
                 </div>
-                <ArrowUpRight size={32} className="text-zinc-200 group-hover:text-zinc-900 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all duration-300 hidden md:block" />
+                <ArrowUpRight size={32} className="text-zinc-200 group-hover:text-zinc-900 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SECTION 3: TECH BLOG */}
-      <section className="py-40 px-8 md:px-20 bg-[#0a0a0a] text-white rounded-t-[5rem]">
-        <div className="max-w-[1600px] mx-auto">
-          <h3 className="text-7xl font-bold italic tracking-tighter mb-24">Tech Blog</h3>
-          <div className="grid md:grid-cols-2 gap-10">
-            {[
-              { title: "コーディングエージェントと協働する未来", date: "2026.05.01", desc: "AIと人間がどのようにコードを書いていくべきか。最新のAI技術と開発フローの統合について考察します。", slug: "coding-agent" },
-              { title: "ブラウザ上で動くPython実行エンジンの仕組み", date: "2026.04.21", desc: "Pyodideを活用し、サーバーレスでPythonを実行するフロントエンド技術。IDE開発の裏側を解説。", slug: "python-engine" },
-            ].map((post, i) => (
-              <Link href={`/blog/${post.slug}`} key={i} className="group bg-zinc-900/40 border border-zinc-800 rounded-[3.5rem] p-12 hover:border-zinc-500 transition-all flex flex-col justify-between h-[500px]">
-                <div>
-                  <time className="font-mono text-zinc-500 text-sm mb-8 block tracking-[0.2em]">{post.date}</time>
-                  <h4 className="text-3xl md:text-5xl font-bold mb-10 group-hover:text-blue-400 transition-colors leading-tight">{post.title}</h4>
-                  <p className="text-zinc-500 text-lg leading-relaxed line-clamp-3 font-sans opacity-80">{post.desc}</p>
-                </div>
-                <div className="flex justify-end">
-                  <div className="w-20 h-20 rounded-full border border-zinc-800 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all duration-500">
-                    <ArrowUpRight size={28} />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <footer className="py-20 px-8 text-center bg-zinc-50 border-t border-zinc-100 text-zinc-950">
+        <p className="text-zinc-400 text-[10px] tracking-[0.4em] font-bold uppercase font-sans">© 2026 KAISEI HUB.</p>
+      </footer>
+
     </div>
   );
 }
