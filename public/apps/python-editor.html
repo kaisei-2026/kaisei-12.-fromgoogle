@@ -2,43 +2,51 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Python Professional IDE</title>
+    <title>Hybrid Python IDE (.py & .ipy)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --header-bg: #212121; --sidebar-bg: #181818; --term-bg: #000; --active-blue: #0078d4; }
+        :root { --header-bg: #f8f9fa; --sidebar-bg: #f1f3f4; --active-blue: #1a73e8; --border: #dadce0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; color: #202124; }
         
-        header { height: 45px; background: var(--header-bg); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; }
+        /* Header */
+        header { height: 48px; background: var(--header-bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 15px; }
         .toolbar { display: flex; gap: 8px; align-items: center; }
-        .btn { background: #444; color: white; border: none; padding: 6px 15px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; }
-        .btn-run { background: #28a745; border: 1px solid #1e7e34; }
-        .btn-run:hover { background: #218838; }
-        .lang-select { background: #333; color: #fff; border: 1px solid #555; padding: 2px 5px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+        .btn { background: #fff; color: #3c4043; border: 1px solid var(--border); padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn:hover { background: #f1f3f4; }
+        .btn-run { background: #1a73e8 !important; color: white !important; border: none; }
+        .btn-run:hover { background: #1765cc !important; }
+        .lang-select { background: #fff; color: #3c4043; border: 1px solid var(--border); padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
 
         #main { flex: 1; display: flex; overflow: hidden; }
-        #sidebar { width: 220px; background: var(--sidebar-bg); color: #888; display: flex; flex-direction: column; border-right: 1px solid #000; }
-        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #555; display: flex; justify-content: space-between; }
-        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #aaa; }
-        .file-item.active { background: #37373d; color: #fff; border-left: 3px solid var(--active-blue); }
 
+        /* Sidebar */
+        #sidebar { width: 240px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; user-select: none; }
+        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #5f6368; display: flex; justify-content: space-between; }
+        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #3c4043; border-left: 3px solid transparent; }
+        .file-item.active { background: #e8f0fe; color: var(--active-blue); border-left-color: var(--active-blue); font-weight: bold; }
+        .file-item:hover:not(.active) { background: #e0e2e4; }
+
+        /* Editor */
         #editor-pane { flex: 1; display: flex; flex-direction: column; }
-        #ace-editor { flex: 1; font-size: 16px; font-weight: 700; }
+        #ace-editor { flex: 1; font-size: 16px; border-bottom: 1px solid var(--border); }
 
-        #terminal { height: 250px; background: var(--term-bg); border-top: 2px solid #444; display: flex; flex-direction: column; }
-        .term-header { background: #2d2d2d; padding: 5px 15px; font-size: 10px; font-weight: bold; color: #aaa; display: flex; justify-content: space-between; }
-        #output { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; color: #fff; line-height: 1.5; white-space: pre-wrap; font-weight: bold; }
-        .text-error { color: #ff5555; }
-        .text-system { color: #55aaff; }
+        /* Terminal (Bottom) */
+        #terminal { height: 260px; background: #000; display: flex; flex-direction: column; }
+        .term-header { background: #202124; padding: 6px 15px; font-size: 10px; font-weight: bold; color: #9aa0a6; display: flex; justify-content: space-between; align-items: center; }
+        #output { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; color: #fff; line-height: 1.6; white-space: pre-wrap; font-weight: bold; }
+        .text-error { color: #f28b82; }
+        .text-system { color: #8ab4f8; }
+        .text-input-hint { color: #81c995; font-style: italic; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
-        <span style="font-weight:bold; letter-spacing:1px;">PYTHON ELITE IDE</span>
+        <span style="font-weight:900; color:#1a73e8; font-size:14px; letter-spacing:0.5px;">KAISEI PYTHON IDE</span>
         <select class="lang-select" id="lang-toggle" onchange="switchLang(this.value)">
             <option value="jp">日本語</option>
             <option value="en">English</option>
@@ -53,7 +61,7 @@
 
 <div id="main">
     <div id="sidebar">
-        <div class="sidebar-header"><span id="lbl-explorer">エクスプローラー</span> <i class="fas fa-file-plus" onclick="newFile()"></i></div>
+        <div class="sidebar-header"><span id="lbl-explorer">エクスプローラー</span> <i class="fas fa-file-circle-plus" style="cursor:pointer" onclick="newFile()"></i></div>
         <div id="file-tree"></div>
     </div>
     <div id="editor-pane">
@@ -63,39 +71,64 @@
                 <span id="lbl-terminal">ターミナル出力</span>
                 <span style="cursor:pointer" onclick="clearTerminal()">CLEAR</span>
             </div>
-            <div id="output">Python エンジンを起動中...</div>
+            <div id="output">Python Engine Loading...</div>
         </div>
     </div>
 </div>
 
 <script>
     const i18n = {
-        jp: { folder: "フォルダを開く", save: "保存", run: "実行", explorer: "エクスプローラー", terminal: "ターミナル出力", ready: "Python 3.11 準備完了。" },
-        en: { folder: "Open Folder", save: "Save", run: "Run Script", explorer: "Explorer", terminal: "Terminal Output", ready: "Python 3.11 Ready." }
+        jp: { folder: "フォルダを開く", save: "保存", run: "実行", explorer: "エクスプローラー", terminal: "ターミナル出力", ready: "Python 3.11 エンジン準備完了。", running: "を実行中..." },
+        en: { folder: "Open Folder", save: "Save", run: "Run", explorer: "Explorer", terminal: "Terminal Output", ready: "Python 3.11 Engine Ready.", running: "Running..." }
     };
 
-    let files = {'main.py': { content: '', handle: null }};
+    let currentLang = 'jp';
+    let files = {
+        'main.py': { content: 'print("Standard Python mode")', handle: null },
+        'task_manager.ipy': { content: '# Jupyter mode with clear_output support\nfrom IPython.display import clear_output\nimport time\n\nprint("This will disappear in 2 seconds...")\ntime.sleep(2)\nclear_output(wait=True)\nprint("Refreshed! This is .ipy mode.")', handle: null }
+    };
     let activeFile = 'main.py';
     let pyodide = null;
 
     const editor = ace.edit("ace-editor");
-    editor.setTheme("ace/theme/monokai");
+    editor.setTheme("ace/theme/chrome"); // 明るいエディタテーマ
     editor.getSession().setMode("ace/mode/python");
+
+    // JS側からターミナルを消去する関数（Pythonから呼び出す）
+    window.clearTerminal = function() {
+        document.getElementById('output').innerHTML = '';
+    };
 
     async function init() {
         pyodide = await loadPyodide();
-        // 修正ポイント：inputをJSのpromptに置き換える
-        pyodide.runPython(`
-            import js
-            def input(p=""):
+        
+        // --- 魔法のコード：IPythonをエミュレートし、inputをpromptに接続する ---
+        await pyodide.runPythonAsync(`
+            import js, sys
+            from types import ModuleType
+
+            # 1. input() の接続
+            def custom_input(p=""):
                 return js.prompt(p)
-            __builtins__.input = input
+            __builtins__.input = custom_input
+
+            # 2. IPython.display.clear_output のモック作成
+            ipython = ModuleType("IPython")
+            display = ModuleType("display")
+            def clear_output(wait=False):
+                js.clearTerminal()
+            
+            display.clear_output = clear_output
+            ipython.display = display
+            sys.modules["IPython"] = ipython
+            sys.modules["IPython.display"] = display
         `);
-        document.getElementById('output').innerHTML = `<span class="text-system">${i18n.jp.ready}</span>\n`;
+
+        document.getElementById('output').innerHTML = `<span class="text-system">${i18n[currentLang].ready}</span>\n`;
     }
     init();
 
-    function clearTerminal() { document.getElementById('output').innerHTML = ''; }
+    function clearTerminal() { window.clearTerminal(); }
 
     function log(msg, isError = false) {
         const div = document.createElement('div');
@@ -108,17 +141,15 @@
 
     async function runPython() {
         if (!pyodide) return alert("Python is loading...");
-        log(`\n> ${activeFile} を実行中...`, false);
+        
+        const isIPY = activeFile.endsWith('.ipy');
+        if (!isIPY) log(`\n> ${activeFile} ${i18n[currentLang].running}`, false);
         
         try {
             pyodide.setStdout({ batched: (msg) => log(msg) });
             pyodide.setStderr({ batched: (msg) => log(msg, true) });
             
-            // 修正ポイント：IPythonのエラーを避けるためコードを掃除
-            let code = editor.getValue();
-            code = code.replace(/from IPython\.display import clear_output/g, "");
-            code = code.replace(/clear_output\(wait=True\)/g, "");
-
+            const code = editor.getValue();
             await pyodide.runPythonAsync(code);
         } catch (err) {
             log(err.message, true);
@@ -126,6 +157,7 @@
     }
 
     function switchLang(lang) {
+        currentLang = lang;
         document.getElementById('btn-folder').innerHTML = `<i class="fas fa-folder-open"></i> ${i18n[lang].folder}`;
         document.getElementById('btn-save').innerHTML = `<i class="fas fa-save"></i> ${i18n[lang].save}`;
         document.getElementById('btn-run').innerHTML = `<i class="fas fa-play"></i> ${i18n[lang].run}`;
@@ -133,14 +165,15 @@
         document.getElementById('lbl-terminal').innerText = i18n[lang].terminal;
     }
 
-    // --- ファイル操作関数 (省略せず実装) ---
     function renderTree() {
         const tree = document.getElementById('file-tree');
         tree.innerHTML = '';
-        Object.keys(files).forEach(name => {
+        Object.keys(files).sort().forEach(name => {
             const div = document.createElement('div');
             div.className = `file-item ${activeFile === name ? 'active' : ''}`;
-            div.innerHTML = `<i class="fab fa-python" style="color:#ffd43b"></i> ${name}`;
+            const icon = name.endsWith('.ipy') ? 'fa-book' : 'fa-brands fa-python';
+            const iconColor = name.endsWith('.ipy') ? '#1a73e8' : '#ffd43b';
+            div.innerHTML = `<i class="fas ${icon}" style="color:${iconColor}"></i> ${name}`;
             div.onclick = () => {
                 files[activeFile].content = editor.getValue();
                 activeFile = name;
@@ -156,7 +189,7 @@
             const handle = await window.showDirectoryPicker();
             files = {};
             for await (const entry of handle.values()) {
-                if (entry.kind === 'file' && entry.name.endsWith('.py')) {
+                if (entry.kind === 'file' && (entry.name.endsWith('.py') || entry.name.endsWith('.ipy'))) {
                     const file = await entry.getFile();
                     files[entry.name] = { content: await file.text(), handle: entry };
                 }
@@ -174,13 +207,13 @@
             const writable = await file.handle.createWritable();
             await writable.write(file.content);
             await writable.close();
-            log("ディスクに保存しました。");
-        } else { log("仮想保存完了（フォルダを開くとディスクに保存できます）"); }
+            log("Saved to local disk.");
+        } else { log("Saved in browser memory."); }
     }
 
     function newFile() {
-        const name = prompt("ファイル名 (.py):");
-        if (name) {
+        const name = prompt("ファイル名 (例: test.py または test.ipy):");
+        if (name && (name.endsWith('.py') || name.endsWith('.ipy'))) {
             files[name] = { content: '', handle: null };
             activeFile = name;
             editor.setValue('', -1);
@@ -189,8 +222,6 @@
     }
 
     renderTree();
-    // 初期コードとしてあなたの課題管理アプリをセット
-    editor.setValue(`import csv\nimport os\nfrom datetime import datetime\n\n# 課題管理アプリ...\nprint("アプリを起動しました")`, -1);
 </script>
 </body>
 </html>
