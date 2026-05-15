@@ -51,6 +51,17 @@ const toolsData = {
       link: "/tools/forenote",
       guide: "【Forenote Proの使い方】\n1. 画面上のツールからペンや図形を選んで手書きできます。\n2. なげなわツールで書いたものを選択・移動・変形できます。\n3. データは自動的にブラウザに保存され、次回起動時も続きから描けます。"
     }
+    {
+      id: "image-upscaler",
+      title: "IMAGE UPSCALER",
+      desc: "高画質化・4Kアップスケール",
+      icon: <Monitor size={32} />, // または ImageIcon など
+      color: "bg-emerald-500",
+      textColor: "text-white",
+      iconColor: "text-white",
+      link: "/tools/image-upscaler",
+      guide: "【画像高画質化ツールの使い方】\n1. 画像をドラッグ＆ドロップで読み込みます。\n2. 2倍や4倍を選択すると、内部で最高精度の補間計算が行われます。\n3. シャープネス（くっきり感）や彩度を調整し、保存ボタンでダウンロードできます。"
+    },
   ],
   en: [
     {
@@ -97,6 +108,17 @@ const toolsData = {
       link: "/tools/forenote",
       guide: "How to use Forenote Pro:\n1. Write freely using pen and shapes.\n2. Use Lasso tool to move or resize objects.\n3. Everything is auto-saved to your browser."
     }
+    {
+      id: "image-upscaler",
+      title: "IMAGE UPSCALER",
+      desc: "Enhance & 4K Upscaling",
+      icon: <Monitor size={32} />,
+      color: "bg-emerald-500",
+      textColor: "text-white",
+      iconColor: "text-white",
+      link: "/tools/image-upscaler",
+      guide: "How to use Image Upscaler:\n1. Drag and drop an image.\n2. Select 2x or 4x scale. High-quality interpolation will be applied.\n3. Adjust sharpness and download."
+    },
   ]
 };
 
