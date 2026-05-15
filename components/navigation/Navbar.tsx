@@ -2,43 +2,54 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+
+const navItems = {
+  jp: [{ name: "ホーム", path: "/" }, { name: "ツール", path: "/tools" }, { name: "ブログ", path: "/blog" }],
+  en: [{ name: "Home", path: "/" }, { name: "Tools", path: "/tools" }, { name: "Blog", path: "/blog" }]
+};
 
 export default function Navbar() {
   const pathname = usePathname();
-  const navItems = [
-    { name: "Home", path: "/" },
-    { name: "Tools", path: "/tools" },
-    { name: "Blog", path: "/blog" },
-  ];
+  const [lang, setLang] = useState<"jp" | "en">("jp");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const savedLang = localStorage.getItem("app_lang") as "jp" | "en";
+    if (savedLang) setLang(savedLang);
+  }, []);
+
+  const toggleLang = () => {
+    const newLang = lang === "jp" ? "en" : "jp";
+    setLang(newLang);
+    localStorage.setItem("app_lang", newLang);
+    window.dispatchEvent(new Event('storage')); // エディタ等に言語変更を知らせる
+    window.location.reload(); // サイト全体に反映させるためリロード
+  };
+
+  const isActive = (path: string) => path === "/" ? pathname === "/" : pathname.startsWith(path);
+
+  if (!mounted) return null;
 
   return (
-    // 高さを h-16 (64px) に固定
-    <nav className="fixed top-0 left-0 right-0 z-[100] h-16 bg-white/80 backdrop-blur-xl border-b border-zinc-200">
-      <div className="max-w-full mx-auto px-6 h-full flex items-center justify-between">
-        <Link href="/" className="text-xl font-[900] tracking-tighter text-zinc-950">
-          KAISEI<span className="text-blue-600">.</span>HUB
-        </Link>
-        
-        <div className="flex gap-1 p-1 bg-zinc-100 rounded-full">
-          {navItems.map((item) => {
-            const active = pathname === item.path || (item.path !== "/" && pathname.startsWith(item.path));
-            return (
-              <Link key={item.path} href={item.path} className="relative px-5 py-1.5 text-sm font-bold transition-all">
-                <span className={`relative z-10 ${active ? "text-white" : "text-zinc-500 hover:text-zinc-800"}`}>
-                  {item.name}
-                </span>
-                {active && (
-                  <motion.div
-                    layoutId="nav-pill"
-                    className="absolute inset-0 bg-zinc-900 rounded-full"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </div>
-    </nav>
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4">
+      <nav className="flex gap-2 p-1.5 bg-[#18181b]/80 backdrop-blur-md border border-[#333] rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+        {navItems[lang].map((item) => (
+          <Link key={item.path} href={item.path} className="relative px-6 py-2 text-sm font-bold transition-colors outline-none">
+            <span className={`relative z-10 ${isActive(item.path) ? "text-white" : "text-zinc-500 hover:text-white"}`}>
+              {item.name}
+            </span>
+            {isActive(item.path) && (
+              <motion.div layoutId="nav-pill" className="absolute inset-0 bg-[#333] rounded-full -z-0" transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+            )}
+          </Link>
+        ))}
+      </nav>
+      {/* 言語切り替えボタン */}
+      <button onClick={toggleLang} className="bg-[#18181b]/80 backdrop-blur-md border border-[#333] text-white px-4 py-2 rounded-full text-sm font-bold shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:bg-[#333] transition-colors">
+        {lang === "jp" ? "JP" : "EN"}
+      </button>
+    </div>
   );
 }

@@ -2,153 +2,109 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Professional Python & Jupyter IDE</title>
+    <title>Python Professional IDE</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --bg-dark: #1e1e1e; --bg-side: #252526; --bg-header: #333333;
-            --text-main: #d4d4d4; --accent: #007acc; --border: #444; --term-bg: #000;
-        }
+        :root { --bg-main: #1e1e1e; --bg-side: #252526; --bg-term: #000; --text: #d4d4d4; --accent: #28a745; --border: #333; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-dark); color: var(--text-main); }
-        
-        /* Header */
-        header { height: 50px; background: var(--bg-header); border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-        .toolbar { display: flex; gap: 10px; align-items: center; }
-        .btn { background: #444; color: #fff; border: 1px solid #555; padding: 6px 15px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
-        .btn:hover { background: #555; border-color: #666; }
-        .btn-run { background: #28a745 !important; border: none; }
-        .btn-run:hover { background: #218838 !important; }
-        .lang-select { background: #2d2d2d; color: #ccc; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-size: 11px; outline: none; }
-
+        body { font-family: 'Consolas', 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-main); color: var(--text); }
+        header { height: 48px; background: #333; border-bottom: 1px solid #111; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; }
+        .toolbar { display: flex; gap: 8px; align-items: center; }
+        .btn { background: #444; color: #fff; border: 1px solid #555; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+        .btn:hover { background: #555; }
+        .btn-run { background: var(--accent) !important; border: none; }
         #main { flex: 1; display: flex; overflow: hidden; }
-
-        /* Sidebar */
-        #sidebar { width: 240px; background: var(--bg-side); border-right: 1px solid #111; display: flex; flex-direction: column; user-select: none; }
-        .sidebar-header { padding: 15px 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #777; display: flex; justify-content: space-between; align-items: center; }
-        .file-item { padding: 8px 20px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 10px; color: #999; border-left: 3px solid transparent; }
-        .file-item.active { background: #37373d; color: #fff; border-left-color: var(--accent); }
-        .file-item:hover:not(.active) { background: #2a2d2e; }
-
-        /* Editor Area */
-        #editor-container { flex: 1; display: flex; flexDirection: column; background: var(--bg-dark); }
-        #ace-editor { flex: 1; font-size: 16px; border-bottom: 1px solid var(--border); }
-
-        /* Terminal (Output) */
-        #terminal { height: 280px; background: var(--term-bg); display: flex; flex-direction: column; border-top: 2px solid var(--border); }
-        .term-header { background: #2d2d2d; padding: 8px 20px; font-size: 10px; font-weight: bold; color: #888; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; }
-        #output { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 14px; color: #00ff00; line-height: 1.6; white-space: pre-wrap; font-weight: bold; }
-        .text-error { color: #ff5555; }
-        .text-system { color: #55aaff; }
-
-        /* Custom Input Modal (Popups) */
-        #input-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .input-box { background: #252526; padding: 20px; border-radius: 8px; border: 1px solid var(--accent); width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .input-box p { font-size: 12px; color: var(--accent); margin-bottom: 10px; font-weight: bold; }
-        #custom-input-field { width: 100%; background: #1e1e1e; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; outline: none; font-size: 14px; }
+        #sidebar { width: 220px; background: var(--bg-side); border-right: 1px solid #111; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; display: flex; justify-content: space-between; }
+        #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
+        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; padding-left: 20px;}
+        .tree-item.active { background: #37373d; color: #fff; border-left: 2px solid var(--accent); padding-left: 18px; }
+        .folder-title { padding: 4px 10px; font-weight: bold; color: #ccc; background: #2d2d2d; margin-top: 5px; font-size: 11px;}
+        #editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); }
+        #ace-editor { flex: 1; font-size: 16px; }
+        #terminal { height: 240px; background: var(--bg-term); border-top: 3px solid var(--border); display: flex; flex-direction: column; }
+        .term-header { background: #2d2d2d; padding: 6px 15px; font-size: 10px; font-weight: bold; color: #888; display: flex; justify-content: space-between; }
+        #output { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Fira Code', 'Consolas', monospace; font-size: 14px; color: #0f0; line-height: 1.6; white-space: pre-wrap; }
     </style>
 </head>
 <body>
-
-<div id="input-overlay">
-    <div class="input-box">
-        <p id="input-prompt-label">INPUT REQUIRED</p>
-        <input type="text" id="custom-input-field" autocomplete="off">
-        <div style="font-size:10px; color:#666; margin-top:10px; text-align:right;">Press Enter to Submit</div>
-    </div>
-</div>
-
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
-        <span style="font-weight:900; color:var(--accent); letter-spacing:1px; font-size:14px;">KAISEI HUB IDE</span>
-        <select class="lang-select" id="lang-toggle" onchange="switchLang(this.value)">
-            <option value="jp">日本語</option>
-            <option value="en">English</option>
-        </select>
+        <span style="font-weight:900; color:var(--accent);">ELITE PY IDE</span>
     </div>
     <div class="toolbar">
-        <button class="btn" onclick="openFolder()"><i class="fas fa-folder-open"></i> <span data-i18n="folder">フォルダを開く</span></button>
-        <button class="btn" onclick="saveFile()"><i class="fas fa-save"></i> <span data-i18n="save">保存</span></button>
-        <button class="btn btn-run" onclick="runPython()"><i class="fas fa-play"></i> <span data-i18n="run">実行</span></button>
+        <button class="btn" onclick="newFile()"><i class="fas fa-plus"></i> <span id="lbl-new">新規作成</span></button>
+        <button class="btn" onclick="saveState()"><i class="fas fa-save"></i> <span id="lbl-save">保存(Ctrl+S)</span></button>
+        <button class="btn btn-run" onclick="runPython()"><i class="fas fa-play"></i> <span id="lbl-run">実行</span></button>
     </div>
 </header>
-
 <div id="main">
-    <div id="sidebar">
-        <div class="sidebar-header">
-            <span data-i18n="explorer">EXPLORER</span>
-            <i class="fas fa-plus" style="cursor:pointer" onclick="newFile()"></i>
-        </div>
-        <div id="file-tree"></div>
-    </div>
-    <div id="editor-container">
-        <div id="ace-editor"></div>
-        <div id="terminal">
-            <div class="term-header">
-                <span data-i18n="terminal">TERMINAL / CONSOLE</span>
-                <span style="cursor:pointer; color:var(--accent)" onclick="clearTerminal()">CLEAR</span>
-            </div>
-            <div id="output">Initializing Engine...</div>
-        </div>
-    </div>
+    <div id="sidebar"><div class="sidebar-header"><span id="lbl-explorer">エクスプローラー</span></div><div id="file-tree"></div></div>
+    <div id="editor-pane"><div id="ace-editor"></div><div id="terminal"><div class="term-header"><span id="lbl-terminal">ターミナル</span><span style="cursor:pointer" onclick="clearTerminal()">CLEAR</span></div><div id="output">Initializing...</div></div></div>
 </div>
 
 <script>
-    const i18n = {
-        jp: { folder: "フォルダを開く", save: "保存", run: "実行", explorer: "エクスプローラー", terminal: "ターミナル / コンソール", ready: "Python準備完了。出力はここに出ます。" },
-        en: { folder: "Open Folder", save: "Save", run: "Run", explorer: "Explorer", terminal: "Terminal / Console", ready: "Python Ready. Output will appear here." }
-    };
+    const lang = localStorage.getItem('app_lang') || 'jp';
+    if(lang === 'en') {
+        document.getElementById('lbl-new').innerText = "New File";
+        document.getElementById('lbl-save').innerText = "Save(Ctrl+S)";
+        document.getElementById('lbl-run').innerText = "Run";
+        document.getElementById('lbl-explorer').innerText = "Explorer";
+        document.getElementById('lbl-terminal').innerText = "Terminal";
+    }
 
-    let files = {
-        'main.py': { content: 'print("Standard Script Mode")\nval = input("名前を入力してください:")\nprint(f"こんにちは {val} さん！")' },
-        'project.ipynb': { content: 'from IPython.display import clear_output\nimport time\n\nprint("Jupyter Mode Loaded.")\nprint("Cleaning in 2 seconds...")\ntime.sleep(2)\nclear_output()\nprint("Done! Screen refreshed.")' }
-    };
-    let activeFile = 'main.py';
+    // 状態復元
+    let files = JSON.parse(localStorage.getItem('py_ide_files')) || {'main.py': {content: 'print("Hello Python!")'}};
+    let activeFile = localStorage.getItem('py_ide_active') || 'main.py';
+    if(!files[activeFile]) activeFile = Object.keys(files)[0];
+
     let pyodide = null;
-    let currentLang = 'jp';
-
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/python");
+
+    document.addEventListener('keydown', function(e) {
+        if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey) && e.key === 's') {
+            e.preventDefault(); saveState();
+        }
+    });
+
+    function saveState() {
+        files[activeFile].content = editor.getValue();
+        localStorage.setItem('py_ide_files', JSON.stringify(files));
+        localStorage.setItem('py_ide_active', activeFile);
+        const btn = document.querySelector('.btn'); // Save button
+        const oldColor = btn.style.background;
+        btn.style.background = '#28a745';
+        setTimeout(() => btn.style.background = oldColor, 500);
+    }
 
     async function init() {
         pyodide = await loadPyodide();
         await pyodide.runPythonAsync(`
 import js, sys
 from types import ModuleType
-
-# 1. input() を JSのpromptに接続 (Chromebook互換)
-def custom_input(p=""):
-    return js.prompt(p)
+def custom_input(p=""): return js.prompt(p)
 __builtins__.input = custom_input
-
-# 2. IPythonのモックを作成
 ipython = ModuleType("IPython")
 display = ModuleType("display")
-def clear_output(wait=False):
-    js.window.clearTerminal()
-
+def clear_output(wait=False): js.document.getElementById('output').innerHTML = ""
 display.clear_output = clear_output
 ipython.display = display
 sys.modules["IPython"] = ipython
 sys.modules["IPython.display"] = display
         `);
-        document.getElementById('output').innerHTML = i18n[currentLang].ready;
+        document.getElementById('output').innerHTML = lang === 'jp' ? "Python準備完了。" : "Python Ready.";
     }
     init();
 
-    window.clearTerminal = function() {
-        document.getElementById('output').innerHTML = '';
-    };
-
-    function clearTerminal() { window.clearTerminal(); }
-
+    function clearTerminal() { document.getElementById('output').innerHTML = ''; }
     function log(msg, isError = false) {
         const out = document.getElementById('output');
         const span = document.createElement('span');
-        if (isError) span.className = 'text-error';
+        if (isError) span.style.color = '#ff5555';
         span.textContent = msg + "\n";
         out.appendChild(span);
         out.scrollTop = out.scrollHeight;
@@ -156,76 +112,49 @@ sys.modules["IPython.display"] = display
 
     async function runPython() {
         if (!pyodide) return;
-        if (activeFile.endsWith('.ipynb')) clearTerminal();
-        const code = editor.getValue();
-        log(`\n> Running ${activeFile}...`, false);
+        saveState();
+        if (activeFile.endsWith('.ipy') || activeFile.endsWith('.ipynb')) clearTerminal();
         try {
             pyodide.setStdout({ batched: (msg) => log(msg) });
             pyodide.setStderr({ batched: (msg) => log(msg, true) });
-            await pyodide.runPythonAsync(code);
-        } catch (err) {
-            log(err.message, true);
-        }
+            await pyodide.runPythonAsync(editor.getValue());
+        } catch (err) { log(err.message, true); }
     }
 
     function renderTree() {
-        const tree = document.getElementById('file-tree');
-        tree.innerHTML = '';
-        Object.keys(files).forEach(name => {
-            const div = document.createElement('div');
-            div.className = `file-item ${activeFile === name ? 'active' : ''}`;
-            const isIPY = name.endsWith('.ipynb');
-            div.innerHTML = `<i class="fas ${isIPY ? 'fa-book' : 'fa-code'}" style="color:${isIPY ? '#007acc' : '#ffd43b'}"></i> ${name}`;
-            div.onclick = () => {
-                files[activeFile].content = editor.getValue();
-                activeFile = name;
-                editor.setValue(files[name].content, -1);
-                renderTree();
-            };
-            tree.appendChild(div);
-        });
-    }
+        const tree = document.getElementById('file-tree'); tree.innerHTML = '';
+        const sortedIds = Object.keys(files).sort();
+        let currentFolder = '';
 
-    function switchLang(lang) {
-        currentLang = lang;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            const key = el.getAttribute('data-i18n');
-            el.innerText = i18n[lang][key];
-        });
-    }
+        sortedIds.forEach(id => {
+            const parts = id.split('/');
+            const filename = parts.pop();
+            const folder = parts.join('/');
 
-    async function openFolder() {
-        try {
-            const handle = await window.showDirectoryPicker();
-            files = {};
-            for await (const entry of handle.values()) {
-                if (entry.kind === 'file' && (entry.name.endsWith('.py') || entry.name.endsWith('.ipynb'))) {
-                    const file = await entry.getFile();
-                    files[entry.name] = { content: await file.text() };
-                }
+            if (folder && folder !== currentFolder) {
+                const fEl = document.createElement('div');
+                fEl.className = 'folder-title';
+                fEl.innerHTML = `<i class="fas fa-folder-open"></i> ${folder}`;
+                tree.appendChild(fEl);
+                currentFolder = folder;
             }
-            activeFile = Object.keys(files)[0];
-            editor.setValue(files[activeFile].content, -1);
-            renderTree();
-        } catch(e){}
-    }
 
-    async function saveFile() {
-        alert("Saved to Storage!");
+            const el = document.createElement('div');
+            el.className = `tree-item ${activeFile === id ? 'active' : ''}`;
+            const icon = id.endsWith('.ipy') ? 'fa-book' : 'fa-python';
+            el.innerHTML = `<i class="fab ${icon}" style="color:#ffd43b"></i> ${filename}`;
+            el.onclick = () => { files[activeFile].content = editor.getValue(); activeFile = id; editor.setValue(files[id].content, -1); saveState(); renderTree(); };
+            tree.appendChild(el);
+        });
     }
 
     function newFile() {
-        const name = prompt("Filename (.py or .ipynb):");
-        if(name) {
-            files[name] = { content: '' };
-            activeFile = name;
-            editor.setValue('', -1);
-            renderTree();
-        }
+        const name = prompt(lang === 'jp' ? "ファイル名 (例: utils/script.py):" : "Filename (e.g. utils/script.py):");
+        if(name) { files[name] = {content: ''}; activeFile = name; editor.setValue('', -1); saveState(); renderTree(); }
     }
 
-    renderTree();
     editor.setValue(files[activeFile].content, -1);
+    renderTree();
 </script>
 </body>
 </html>
