@@ -20,14 +20,12 @@
 
         .layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
         
-        /* コントロールパネル */
         .controls { width: 320px; background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; z-index: 100; }
         .control-group { display: flex; flex-direction: column; gap: 8px; }
         label { font-size: 12px; font-weight: bold; color: #5f6368; display: flex; justify-content: space-between; }
-        select, input[type="range"] { width: 100%; }
-        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-weight: bold; }
+        select, input[type="range"] { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-weight: bold; }
         
-        input[type="range"] { -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 5px; outline: none; }
+        input[type="range"] { -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 5px; outline: none; padding: 0; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; }
         input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
@@ -36,18 +34,16 @@
         .btn-upload:hover { background: #e8eaed; }
         .btn-download { background: var(--primary); color: white; margin-top: auto; font-size: 14px; }
         .btn-download:hover { background: #0ea5e9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        .btn-download:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+        .btn-download:disabled { background: #ccc; cursor: not-allowed; }
 
-        /* プレビューエリア */
         .preview-container { flex: 1; background: white; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; background-image: radial-gradient(#ddd 1px, transparent 1px); background-size: 20px 20px; }
         .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9aa0a6; pointer-events: none; z-index: 20; }
         
-        /* 🌟 ズーム用ラッパー */
         .zoom-wrapper { width: 100%; height: 100%; position: absolute; inset: 0; transform-origin: center center; transition: transform 0.1s ease-out; }
-        
-        /* 比較UI */
         .comp-wrapper { position: absolute; inset: 0; display: none; width: 100%; height: 100%; touch-action: none; }
-        #img-before, #canvas-after { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        
+        /* 画像描画アルゴリズムをブラウザ最高品質に固定 */
+        #img-before, #canvas-after { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; image-rendering: high-quality; }
         #canvas-after { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
 
         .slider-handle { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: white; cursor: ew-resize; transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
@@ -63,9 +59,7 @@
         .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* ズームガイド表示 */
         .zoom-guide { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: bold; z-index: 100; pointer-events: none; }
-
         input[type="file"] { display: none; }
     </style>
 </head>
@@ -90,13 +84,13 @@
             <select id="scaleSelect" onchange="applyFilters()">
                 <option value="1">等倍 (1x) - 画質補正のみ</option>
                 <option value="2" selected>2倍 (2x) - 推奨</option>
-                <option value="4">4倍 (4x) - 4K化</option>
+                <option value="4">4倍 (4x) - 高画質化</option>
             </select>
         </div>
 
         <div class="control-group">
-            <label>輪郭の自然なくっきり感 <span id="sharpVal" style="color:var(--primary)">30%</span></label>
-            <input type="range" id="sharpness" min="0" max="100" value="30" onchange="updateVal('sharpVal', this.value); applyFilters()">
+            <label>AI風スムージング（ガビガビ消し） <span id="smoothVal" style="color:var(--primary)">50%</span></label>
+            <input type="range" id="smooth" min="0" max="100" value="50" onchange="updateVal('smoothVal', this.value); applyFilters()">
         </div>
 
         <div class="control-group">
@@ -105,13 +99,13 @@
         </div>
 
         <div class="control-group">
-            <label>鮮やかさ（彩度） <span id="saturationVal" style="color:var(--primary)">110%</span></label>
-            <input type="range" id="saturation" min="100" max="200" value="110" onchange="updateVal('saturationVal', this.value); applyFilters()">
+            <label>鮮やかさ（彩度） <span id="saturationVal" style="color:var(--primary)">120%</span></label>
+            <input type="range" id="saturation" min="100" max="200" value="120" onchange="updateVal('saturationVal', this.value); applyFilters()">
         </div>
 
         <div style="font-size:10px; color:#888; line-height:1.5; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
             <i class="fas fa-info-circle"></i> <strong>ヒント:</strong><br>
-            プレビュー画面で<b>マウスホイール（または2本指スクロール）</b>をすると、画像を拡大して細部の解像度の違いを確認できます！
+            「AI風スムージング」を上げると、ピクセルのカクカクが溶けて滑らかになります。少し重い処理なので、ツマミから手を離した時に反映されます。
         </div>
 
         <button class="btn btn-download" id="downloadBtn" onclick="downloadImage()" disabled>
@@ -125,13 +119,8 @@
             <i class="fas fa-image"></i>
             <p style="font-weight:bold;">画像をドラッグ＆ドロップ</p>
         </div>
-        
-        <div class="loading-overlay" id="loading">
-            <div class="spinner"></div>
-            <div>高画質化 処理中...</div>
-        </div>
+        <div class="loading-overlay" id="loading"><div class="spinner"></div><div>高画質化 処理中...</div></div>
 
-        <!-- 🌟 ズーム対応ラッパー -->
         <div class="zoom-wrapper" id="zoomWrapper">
             <div class="comp-wrapper" id="compWrapper">
                 <img id="img-before" alt="Before">
@@ -142,7 +131,7 @@
         
         <div class="badge badge-before" style="display:none;" id="badgeB">BEFORE</div>
         <div class="badge badge-after" style="display:none;" id="badgeA">AFTER</div>
-        <div class="zoom-guide" id="zoomGuide" style="display:none;">ホイールで拡大/縮小できます</div>
+        <div class="zoom-guide" id="zoomGuide" style="display:none;">ホイールで拡大して違いを確認！</div>
     </div>
 </div>
 
@@ -154,18 +143,12 @@
 
     function updateVal(id, val) { document.getElementById(id).innerText = val + '%'; }
 
-    // ドラッグ＆ドロップ
     const dropZone = document.getElementById('dropZone');
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e8f0fe'; });
     dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = ''; });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault(); dropZone.style.background = '';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
-    });
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.background = ''; if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
 
-    function loadImage(event) {
-        if (event.target.files && event.target.files[0]) processFile(event.target.files[0]);
-    }
+    function loadImage(event) { if (event.target.files && event.target.files[0]) processFile(event.target.files[0]); }
 
     function processFile(file) {
         const reader = new FileReader();
@@ -181,13 +164,39 @@
                 document.getElementById('zoomGuide').style.display = 'block';
                 document.getElementById('downloadBtn').disabled = false;
                 applyFilters();
-                
-                // 3秒後にズームガイドを消す
-                setTimeout(() => { document.getElementById('zoomGuide').style.opacity = '0'; }, 3000);
+                setTimeout(() => { document.getElementById('zoomGuide').style.opacity = '0'; }, 4000);
             };
             img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+    }
+
+    // 🌟 一気に拡大せず、少しずつ拡大して滑らかさを保つ「ステップアップスケール」
+    function stepUpscale(img, scale) {
+        let curImg = img;
+        let curW = img.width;
+        let curH = img.height;
+        const targetW = img.width * scale;
+        const targetH = img.height * scale;
+
+        // 1.5倍ずつじわじわ拡大していくことで、ガタつきを防ぐ
+        while (curW < targetW) {
+            let nextW = Math.min(curW * 1.5, targetW);
+            let nextH = Math.min(curH * 1.5, targetH);
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = nextW;
+            tempCanvas.height = nextH;
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.imageSmoothingEnabled = true;
+            tCtx.imageSmoothingQuality = 'high';
+            tCtx.drawImage(curImg, 0, 0, nextW, nextH);
+            
+            curImg = tempCanvas;
+            curW = nextW;
+            curH = nextH;
+        }
+        return curImg;
     }
 
     function applyFilters() {
@@ -196,78 +205,45 @@
         
         setTimeout(() => {
             const scale = parseInt(document.getElementById('scaleSelect').value);
-            // シャープネスの値をマイルドにする
-            const sharpness = parseInt(document.getElementById('sharpness').value) / 200; 
+            const smooth = parseInt(document.getElementById('smooth').value) / 100; // 0 ~ 1.0px のぼかし
             const contrast = document.getElementById('contrast').value;
             const saturation = document.getElementById('saturation').value;
 
-            const width = originalImage.width * scale;
-            const height = originalImage.height * scale;
+            // 1. 段階的拡大アルゴリズムで、ガビガビさせずに高解像度化
+            const upscaledCanvas = stepUpscale(originalImage, scale);
             
-            canvasAfter.width = width;
-            canvasAfter.height = height;
+            canvasAfter.width = upscaledCanvas.width;
+            canvasAfter.height = upscaledCanvas.height;
 
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
-            ctx.filter = `contrast(${contrast}%) saturate(${saturation}%)`;
-            ctx.drawImage(originalImage, 0, 0, width, height);
+            
+            // 2. 「微細なぼかし(blur)」と「コントラスト」を同時にかけることで
+            // ピクセルのカクカクを溶かし、擬似的にAIのようなツルッとしたエッジを作る
+            ctx.filter = `blur(${smooth}px) contrast(${contrast}%) saturate(${saturation}%)`;
+            
+            ctx.drawImage(upscaledCanvas, 0, 0);
             ctx.filter = 'none';
 
-            if (sharpness > 0) applyNaturalSharpen(width, height, sharpness);
-            
             document.getElementById('loading').style.display = 'none';
         }, 50);
     }
 
-    // 🌟 不自然なノイズを出さない「優しい」シャープネス処理
-    function applyNaturalSharpen(w, h, amount) {
-        const imageData = ctx.getImageData(0, 0, w, h);
-        const data = imageData.data;
-        const a = amount;
-        const b = -a / 8;
-        const c = 1 + a;
-        const weights = [ b, b, b, b, c, b, b, b, b ];
-        
-        const src = new Uint8ClampedArray(data);
-        for (let y = 1; y < h - 1; y++) {
-            for (let x = 1; x < w - 1; x++) {
-                const dstOff = (y * w + x) * 4;
-                let r = 0, g = 0, b_val = 0;
-                for (let cy = 0; cy < 3; cy++) {
-                    for (let cx = 0; cx < 3; cx++) {
-                        const srcOff = ((y + cy - 1) * w + (x + cx - 1)) * 4;
-                        const wt = weights[cy * 3 + cx];
-                        r += src[srcOff] * wt;
-                        g += src[srcOff + 1] * wt;
-                        b_val += src[srcOff + 2] * wt;
-                    }
-                }
-                data[dstOff] = r; data[dstOff + 1] = g; data[dstOff + 2] = b_val;
-            }
-        }
-        ctx.putImageData(imageData, 0, 0);
-    }
-
-    // --- 🌟 マウスホイールでの「ズーム（拡大鏡）」機能 ---
+    // ズーム機能
     let currentZoom = 1;
     const zoomWrapper = document.getElementById('zoomWrapper');
-    
     document.querySelector('.preview-container').addEventListener('wheel', (e) => {
         if (!originalImage) return;
-        e.preventDefault(); // 画面全体のスクロールを防ぐ
-        
-        // ホイールの向きで拡大縮小
+        e.preventDefault();
         const delta = e.deltaY > 0 ? 0.9 : 1.1;
         currentZoom *= delta;
-        // 1倍（全体表示）〜 5倍（ピクセル等倍レベル）まで制限
         currentZoom = Math.max(1, Math.min(currentZoom, 5));
-        
         zoomWrapper.style.transform = `scale(${currentZoom})`;
     }, { passive: false });
 
-
-    // --- 比較スライダーのドラッグ処理 ---
+    // スライダー処理
     const handle = document.getElementById('sliderHandle');
+    const compWrapper = document.getElementById('compWrapper');
     let isDragging = false;
 
     function onMove(e) {
@@ -278,7 +254,6 @@
         let x = clientX - rect.left;
         x = Math.max(0, Math.min(x, rect.width));
         const percentage = (x / rect.width) * 100;
-        
         handle.style.left = `${percentage}%`;
         canvasAfter.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
     }
