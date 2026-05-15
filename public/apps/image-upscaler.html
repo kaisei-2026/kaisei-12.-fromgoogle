@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kaisei Image Upscaler</title>
+    <title>Kaisei Image Upscaler Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --bg: #ffffff; --text: #202124; --border: #dadce0; }
+        :root { --primary: #10b981; --bg: #ffffff; --text: #202124; --border: #dadce0; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: var(--text); padding: 20px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
@@ -16,38 +16,61 @@
         .layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
         
         /* コントロールパネル */
-        .controls { width: 300px; background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .controls { width: 320px; background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
         .control-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-size: 12px; font-weight: bold; color: #5f6368; }
+        label { font-size: 12px; font-weight: bold; color: #5f6368; display: flex; justify-content: space-between; }
         select, input[type="range"] { width: 100%; }
-        select { padding: 8px; border-radius: 8px; border: 1px solid var(--border); outline: none; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid var(--border); outline: none; font-weight: bold; }
         
         /* スライダーの見た目 */
         input[type="range"] { -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 5px; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; transition: 0.2s; }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
         .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
         .btn-upload { background: #f1f3f4; color: #3c4043; border: 1px dashed #aaa; }
         .btn-upload:hover { background: #e8eaed; }
-        .btn-download { background: var(--primary); color: white; margin-top: auto; }
-        .btn-download:hover { background: #1557b0; }
-        .btn-download:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-download { background: var(--primary); color: white; margin-top: auto; font-size: 14px; }
+        .btn-download:hover { background: #0ea5e9; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+        .btn-download:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
 
-        /* プレビューエリア */
-        .preview-container { flex: 1; background: white; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; background-image: radial-gradient(#eee 1px, transparent 1px); background-size: 20px 20px; }
-        canvas { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-        .empty-state { position: absolute; display: flex; flex-direction: column; align-items: center; color: #9aa0a6; pointer-events: none; }
-        .empty-state i { font-size: 48px; margin-bottom: 10px; }
+        /* プレビューエリア（比較スライダー付き） */
+        .preview-container { flex: 1; background: white; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; background-image: radial-gradient(#ddd 1px, transparent 1px); background-size: 20px 20px; }
+        .empty-state { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #9aa0a6; pointer-events: none; z-index: 20; }
+        .empty-state i { font-size: 48px; margin-bottom: 10px; color: #dadce0; }
         
-        /* 隠し要素 */
+        /* 比較UI */
+        .comp-wrapper { position: absolute; inset: 0; display: none; width: 100%; height: 100%; }
+        #img-before, #canvas-after { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+        
+        /* 右側のAfter画像（クリッピングで半分だけ見せる） */
+        #canvas-after { clip-path: polygon(50% 0, 100% 0, 100% 100%, 50% 100%); }
+
+        /* 真ん中のスライダーハンドル */
+        .slider-handle { position: absolute; top: 0; bottom: 0; left: 50%; width: 4px; background: white; cursor: ew-resize; transform: translateX(-50%); z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .slider-handle::after {
+            content: '◄ ▶'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.3); font-size: 10px; letter-spacing: -1px;
+        }
+
+        /* Before / After バッジ */
+        .badge { position: absolute; top: 20px; padding: 6px 12px; background: rgba(0,0,0,0.6); color: white; border-radius: 6px; font-size: 11px; font-weight: bold; letter-spacing: 1px; z-index: 5; backdrop-filter: blur(4px); }
+        .badge-before { left: 20px; }
+        .badge-after { right: 20px; background: rgba(16, 185, 129, 0.8); }
+
+        .loading-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.8); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; font-weight: bold; color: var(--primary); }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <h1><i class="fas fa-magic"></i> IMAGE UPSCALER</h1>
-    <span style="font-size: 11px; font-weight: bold; color: #888; background: #eee; padding: 4px 10px; border-radius: 12px;">CLIENT-SIDE ENHANCE</span>
+    <h1><i class="fas fa-wand-magic-sparkles"></i> IMAGE UPSCALER PRO</h1>
+    <span style="font-size: 10px; font-weight: bold; color: #888; background: #eee; padding: 4px 10px; border-radius: 12px; border: 1px solid #ddd;">
+        <i class="fas fa-sliders-h"></i> COMPARISON MODE
+    </span>
 </div>
 
 <div class="layout">
@@ -62,28 +85,29 @@
             <label>解像度アップスケール</label>
             <select id="scaleSelect" onchange="applyFilters()">
                 <option value="1">等倍 (1x) - 画質補正のみ</option>
-                <option value="2" selected>2倍 (2x) - フルHD化</option>
-                <option value="4">4倍 (4x) - 4K化</option>
+                <option value="2" selected>2倍 (2x) - 推奨</option>
+                <option value="4">4倍 (4x) - 4K化 (少し重いです)</option>
             </select>
         </div>
 
         <div class="control-group">
-            <label>シャープネス（くっきりさせる） <span id="sharpVal">50</span>%</label>
-            <input type="range" id="sharpness" min="0" max="100" value="50" oninput="updateVal('sharpVal', this.value); applyFilters()">
+            <label>輪郭くっきり（シャープネス） <span id="sharpVal" style="color:var(--primary)">100%</span></label>
+            <input type="range" id="sharpness" min="0" max="200" value="100" onchange="updateVal('sharpVal', this.value); applyFilters()">
         </div>
 
         <div class="control-group">
-            <label>コントラスト（メリハリ） <span id="contrastVal">110</span>%</label>
-            <input type="range" id="contrast" min="100" max="150" value="110" oninput="updateVal('contrastVal', this.value); applyFilters()">
+            <label>色のメリハリ（コントラスト） <span id="contrastVal" style="color:var(--primary)">120%</span></label>
+            <input type="range" id="contrast" min="100" max="200" value="120" onchange="updateVal('contrastVal', this.value); applyFilters()">
         </div>
 
         <div class="control-group">
-            <label>彩度（鮮やかさ） <span id="saturationVal">110</span>%</label>
-            <input type="range" id="saturation" min="100" max="200" value="110" oninput="updateVal('saturationVal', this.value); applyFilters()">
+            <label>鮮やかさ（彩度） <span id="saturationVal" style="color:var(--primary)">110%</span></label>
+            <input type="range" id="saturation" min="100" max="200" value="110" onchange="updateVal('saturationVal', this.value); applyFilters()">
         </div>
 
-        <div style="font-size:10px; color:#888; line-height:1.4; margin-top:10px;">
-            ※ブラウザの最高精度描画エンジンを使用し、疑似的に高画質化を行います。画像サイズが大きすぎると処理に数秒かかる場合があります。
+        <div style="font-size:10px; color:#888; line-height:1.5; margin-top:10px; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+            <i class="fas fa-info-circle"></i> <strong>ヒント:</strong><br>
+            スライダーを左右に動かして、加工前（Before）と加工後（After）の違いを確認できます。処理を軽くするため、ツマミから手を離した時に画質が更新されます。
         </div>
 
         <button class="btn btn-download" id="downloadBtn" onclick="downloadImage()" disabled>
@@ -91,23 +115,38 @@
         </button>
     </div>
 
-    <!-- プレビュー -->
+    <!-- プレビュー（比較スライダー） -->
     <div class="preview-container" id="dropZone">
         <div class="empty-state" id="emptyState">
             <i class="fas fa-image"></i>
-            <p>画像をドラッグ＆ドロップ</p>
+            <p style="font-weight:bold;">画像をドラッグ＆ドロップ</p>
         </div>
-        <canvas id="canvas" style="display: none;"></canvas>
+        
+        <div class="loading-overlay" id="loading">
+            <div class="spinner"></div>
+            <div>高画質化 処理中...</div>
+        </div>
+
+        <div class="comp-wrapper" id="compWrapper">
+            <img id="img-before" alt="Before">
+            <canvas id="canvas-after"></canvas>
+            
+            <div class="badge badge-before">BEFORE</div>
+            <div class="badge badge-after">AFTER</div>
+            
+            <div class="slider-handle" id="sliderHandle"></div>
+        </div>
     </div>
 </div>
 
 <script>
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const imgBefore = document.getElementById('img-before');
+    const canvasAfter = document.getElementById('canvas-after');
+    const ctx = canvasAfter.getContext('2d', { willReadFrequently: true });
     let originalImage = null;
 
-    // スライダーの値表示更新
-    function updateVal(id, val) { document.getElementById(id).innerText = val; }
+    // スライダーの数値更新
+    function updateVal(id, val) { document.getElementById(id).innerText = val + '%'; }
 
     // ドラッグ＆ドロップ対応
     const dropZone = document.getElementById('dropZone');
@@ -115,26 +154,22 @@
     dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = ''; });
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault(); dropZone.style.background = '';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-            processFile(e.dataTransfer.files[0]);
-        }
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
     });
 
-    // ファイル読み込み
     function loadImage(event) {
-        if (event.target.files && event.target.files[0]) {
-            processFile(event.target.files[0]);
-        }
+        if (event.target.files && event.target.files[0]) processFile(event.target.files[0]);
     }
 
     function processFile(file) {
         const reader = new FileReader();
         reader.onload = (e) => {
+            imgBefore.src = e.target.result;
             const img = new Image();
             img.onload = () => {
                 originalImage = img;
                 document.getElementById('emptyState').style.display = 'none';
-                canvas.style.display = 'block';
+                document.getElementById('compWrapper').style.display = 'block';
                 document.getElementById('downloadBtn').disabled = false;
                 applyFilters();
             };
@@ -143,90 +178,96 @@
         reader.readAsDataURL(file);
     }
 
-    // フィルタとアップスケールの適用
+    // 画像処理（重いのでLoadingを表示）
     function applyFilters() {
         if (!originalImage) return;
-
-        const scale = parseInt(document.getElementById('scaleSelect').value);
-        const sharpness = parseInt(document.getElementById('sharpness').value) / 100;
-        const contrast = document.getElementById('contrast').value;
-        const saturation = document.getElementById('saturation').value;
-
-        // 解像度を拡大
-        const width = originalImage.width * scale;
-        const height = originalImage.height * scale;
+        document.getElementById('loading').style.display = 'flex';
         
-        canvas.width = width;
-        canvas.height = height;
+        // UIがフリーズしないように少し遅延させてから重い処理を回す
+        setTimeout(() => {
+            const scale = parseInt(document.getElementById('scaleSelect').value);
+            const sharpness = parseInt(document.getElementById('sharpness').value) / 100;
+            const contrast = document.getElementById('contrast').value;
+            const saturation = document.getElementById('saturation').value;
 
-        // 最高精度の補間アルゴリズムを有効化
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
+            const width = originalImage.width * scale;
+            const height = originalImage.height * scale;
+            
+            canvasAfter.width = width;
+            canvasAfter.height = height;
 
-        // CSSフィルタでコントラストと彩度を調整
-        ctx.filter = `contrast(${contrast}%) saturate(${saturation}%)`;
-        
-        // 画像を描画（ここで拡大される）
-        ctx.drawImage(originalImage, 0, 0, width, height);
-        ctx.filter = 'none'; // フィルタをリセット
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.filter = `contrast(${contrast}%) saturate(${saturation}%)`;
+            ctx.drawImage(originalImage, 0, 0, width, height);
+            ctx.filter = 'none';
 
-        // シャープネス処理（コンボリューション行列）
-        if (sharpness > 0) {
-            applySharpen(width, height, sharpness);
-        }
+            if (sharpness > 0) applySharpen(width, height, sharpness);
+            
+            document.getElementById('loading').style.display = 'none';
+        }, 50);
     }
 
+    // シャープネスフィルター
     function applySharpen(w, h, amount) {
         const imageData = ctx.getImageData(0, 0, w, h);
         const data = imageData.data;
-        const side = Math.round(Math.sqrt(9));
-        const halfSide = Math.floor(side / 2);
-        
-        // シャープネスの強さを計算
-        const a = amount * 3;
-        const b = -amount;
-        const weights = [
-            0, b, 0,
-            b, 1 - (b * 4), b,
-            0, b, 0
-        ];
+        const a = amount * 2;
+        const b = -amount / 2;
+        const weights = [ 0, b, 0, b, 1 - (b * 4), b, 0, b, 0 ];
         
         const src = new Uint8ClampedArray(data);
-        const sw = w, sh = h;
-        const wSum = 1;
-
-        for (let y = 0; y < h; y++) {
-            for (let x = 0; x < w; x++) {
+        for (let y = 1; y < h - 1; y++) {
+            for (let x = 1; x < w - 1; x++) {
                 const dstOff = (y * w + x) * 4;
                 let r = 0, g = 0, b_val = 0;
-                
-                for (let cy = 0; cy < side; cy++) {
-                    for (let cx = 0; cx < side; cx++) {
-                        const scy = y + cy - halfSide;
-                        const scx = x + cx - halfSide;
-                        if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
-                            const srcOff = (scy * sw + scx) * 4;
-                            const wt = weights[cy * side + cx];
-                            r += src[srcOff] * wt;
-                            g += src[srcOff + 1] * wt;
-                            b_val += src[srcOff + 2] * wt;
-                        }
+                for (let cy = 0; cy < 3; cy++) {
+                    for (let cx = 0; cx < 3; cx++) {
+                        const srcOff = ((y + cy - 1) * w + (x + cx - 1)) * 4;
+                        const wt = weights[cy * 3 + cx];
+                        r += src[srcOff] * wt;
+                        g += src[srcOff + 1] * wt;
+                        b_val += src[srcOff + 2] * wt;
                     }
                 }
-                data[dstOff] = r / wSum;
-                data[dstOff + 1] = g / wSum;
-                data[dstOff + 2] = b_val / wSum;
+                data[dstOff] = r; data[dstOff + 1] = g; data[dstOff + 2] = b_val;
             }
         }
         ctx.putImageData(imageData, 0, 0);
     }
 
+    // --- 比較スライダーのドラッグ処理 ---
+    const handle = document.getElementById('sliderHandle');
+    const compWrapper = document.getElementById('compWrapper');
+    let isDragging = false;
+
+    function onMove(e) {
+        if (!isDragging) return;
+        const rect = compWrapper.getBoundingClientRect();
+        let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        let x = clientX - rect.left;
+        x = Math.max(0, Math.min(x, rect.width));
+        const percentage = (x / rect.width) * 100;
+        
+        handle.style.left = `${percentage}%`;
+        // After画像の表示領域をクリッピング
+        canvasAfter.style.clipPath = `polygon(${percentage}% 0, 100% 0, 100% 100%, ${percentage}% 100%)`;
+    }
+
+    handle.addEventListener('mousedown', () => isDragging = true);
+    handle.addEventListener('touchstart', () => isDragging = true, {passive: true});
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('touchend', () => isDragging = false);
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive: true});
+
+    // ダウンロード
     function downloadImage() {
         if (!originalImage) return;
         const scale = document.getElementById('scaleSelect').value;
         const link = document.createElement('a');
-        link.download = `upscaled_${scale}x.png`;
-        link.href = canvas.toDataURL('image/png', 1.0); // 最高画質のPNGで出力
+        link.download = `upscaled_${scale}x_enhanced.png`;
+        link.href = canvasAfter.toDataURL('image/png', 1.0);
         link.click();
     }
 </script>
