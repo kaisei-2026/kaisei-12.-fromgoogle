@@ -16,12 +16,11 @@
         .btn:hover { background: #555; }
         .btn-run { background: var(--accent) !important; border: none; }
         #main { flex: 1; display: flex; overflow: hidden; }
-        #sidebar { width: 220px; background: var(--bg-side); border-right: 1px solid #111; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; display: flex; justify-content: space-between; }
+        #sidebar { width: 250px; background: var(--bg-side); border-right: 1px solid #111; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; color: #666; display: flex; justify-content: space-between; }
         #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
-        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; padding-left: 20px;}
-        .tree-item.active { background: #37373d; color: #fff; border-left: 2px solid var(--accent); padding-left: 18px; }
-        .folder-title { padding: 4px 10px; font-weight: bold; color: #ccc; background: #2d2d2d; margin-top: 5px; font-size: 11px;}
+        .tree-item { padding: 6px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .tree-item.active { background: #37373d; color: #fff; border-left: 3px solid var(--accent); }
         #editor-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); }
         #ace-editor { flex: 1; font-size: 16px; }
         #terminal { height: 240px; background: var(--bg-term); border-top: 3px solid var(--border); display: flex; flex-direction: column; }
@@ -35,51 +34,40 @@
         <span style="font-weight:900; color:var(--accent);">ELITE PY IDE</span>
     </div>
     <div class="toolbar">
-        <button class="btn" onclick="newFile()"><i class="fas fa-plus"></i> <span id="lbl-new">新規作成</span></button>
-        <button class="btn" onclick="saveState()"><i class="fas fa-save"></i> <span id="lbl-save">保存(Ctrl+S)</span></button>
+        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> <span id="lbl-open">フォルダを開く</span></button>
+        <button class="btn" onclick="newLocalFile()"><i class="fas fa-plus"></i> <span id="lbl-new">新規ファイル</span></button>
+        <button class="btn" onclick="saveActiveFile()"><i class="fas fa-save"></i> <span id="lbl-save">保存(Ctrl+S)</span></button>
         <button class="btn btn-run" onclick="runPython()"><i class="fas fa-play"></i> <span id="lbl-run">実行</span></button>
     </div>
 </header>
 <div id="main">
-    <div id="sidebar"><div class="sidebar-header"><span id="lbl-explorer">エクスプローラー</span></div><div id="file-tree"></div></div>
+    <div id="sidebar"><div class="sidebar-header"><span id="lbl-explorer">EXPLORER</span></div><div id="file-tree"></div></div>
     <div id="editor-pane"><div id="ace-editor"></div><div id="terminal"><div class="term-header"><span id="lbl-terminal">ターミナル</span><span style="cursor:pointer" onclick="clearTerminal()">CLEAR</span></div><div id="output">Initializing...</div></div></div>
 </div>
 
 <script>
     const lang = localStorage.getItem('app_lang') || 'jp';
     if(lang === 'en') {
+        document.getElementById('lbl-open').innerText = "Open Folder";
         document.getElementById('lbl-new').innerText = "New File";
         document.getElementById('lbl-save').innerText = "Save(Ctrl+S)";
         document.getElementById('lbl-run').innerText = "Run";
-        document.getElementById('lbl-explorer').innerText = "Explorer";
-        document.getElementById('lbl-terminal').innerText = "Terminal";
     }
 
-    // 状態復元
-    let files = JSON.parse(localStorage.getItem('py_ide_files')) || {'main.py': {content: 'print("Hello Python!")'}};
-    let activeFile = localStorage.getItem('py_ide_active') || 'main.py';
-    if(!files[activeFile]) activeFile = Object.keys(files)[0];
-
+    let dirHandle = null;
+    let files = {};
+    let activeFile = null;
     let pyodide = null;
+
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/python");
 
     document.addEventListener('keydown', function(e) {
         if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey) && e.key === 's') {
-            e.preventDefault(); saveState();
+            e.preventDefault(); saveActiveFile();
         }
     });
-
-    function saveState() {
-        files[activeFile].content = editor.getValue();
-        localStorage.setItem('py_ide_files', JSON.stringify(files));
-        localStorage.setItem('py_ide_active', activeFile);
-        const btn = document.querySelector('.btn'); // Save button
-        const oldColor = btn.style.background;
-        btn.style.background = '#28a745';
-        setTimeout(() => btn.style.background = oldColor, 500);
-    }
 
     async function init() {
         pyodide = await loadPyodide();
@@ -96,7 +84,7 @@ ipython.display = display
 sys.modules["IPython"] = ipython
 sys.modules["IPython.display"] = display
         `);
-        document.getElementById('output').innerHTML = lang === 'jp' ? "Python準備完了。" : "Python Ready.";
+        document.getElementById('output').innerHTML = lang === 'jp' ? "Python準備完了。フォルダを開いてください。" : "Python Ready. Please Open Folder.";
     }
     init();
 
@@ -111,8 +99,8 @@ sys.modules["IPython.display"] = display
     }
 
     async function runPython() {
-        if (!pyodide) return;
-        saveState();
+        if (!pyodide || !activeFile) return;
+        saveActiveFile();
         if (activeFile.endsWith('.ipy') || activeFile.endsWith('.ipynb')) clearTerminal();
         try {
             pyodide.setStdout({ batched: (msg) => log(msg) });
@@ -121,40 +109,74 @@ sys.modules["IPython.display"] = display
         } catch (err) { log(err.message, true); }
     }
 
+    // 1. ローカルフォルダを開く
+    async function openLocalFolder() {
+        try {
+            dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            files = {};
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'file' && (entry.name.endsWith('.py') || entry.name.endsWith('.ipy') || entry.name.endsWith('.csv'))) {
+                    const file = await entry.getFile();
+                    files[entry.name] = { handle: entry, content: await file.text() };
+                }
+            }
+            activeFile = Object.keys(files)[0];
+            if (activeFile) {
+                editor.setValue(files[activeFile].content, -1);
+            }
+            renderTree();
+        } catch (err) { console.error(err); }
+    }
+
+    // 2. 実ファイルとして保存
+    async function saveActiveFile() {
+        if (!activeFile || !files[activeFile]) return;
+        const currentFile = files[activeFile];
+        currentFile.content = editor.getValue();
+        if (currentFile.handle) {
+            const writable = await currentFile.handle.createWritable();
+            await writable.write(currentFile.content);
+            await writable.close();
+            
+            const btn = document.querySelectorAll('.btn')[2]; // Save Btn
+            const oldColor = btn.style.background;
+            btn.style.background = '#28a745';
+            setTimeout(() => btn.style.background = oldColor, 500);
+        }
+    }
+
+    // 3. 実ディレクトリに新規作成
+    async function newLocalFile() {
+        if (!dirHandle) {
+            alert(lang === 'jp' ? "先にフォルダを開いてください。" : "Please open a folder first.");
+            return;
+        }
+        const name = prompt(lang === 'jp' ? "ファイル名 (例: main.py):" : "Filename (e.g. main.py):");
+        if (name) {
+            const newHandle = await dirHandle.getFileHandle(name, { create: true });
+            files[name] = { handle: newHandle, content: '' };
+            activeFile = name;
+            editor.setValue('', -1);
+            renderTree();
+        }
+    }
+
     function renderTree() {
         const tree = document.getElementById('file-tree'); tree.innerHTML = '';
-        const sortedIds = Object.keys(files).sort();
-        let currentFolder = '';
-
-        sortedIds.forEach(id => {
-            const parts = id.split('/');
-            const filename = parts.pop();
-            const folder = parts.join('/');
-
-            if (folder && folder !== currentFolder) {
-                const fEl = document.createElement('div');
-                fEl.className = 'folder-title';
-                fEl.innerHTML = `<i class="fas fa-folder-open"></i> ${folder}`;
-                tree.appendChild(fEl);
-                currentFolder = folder;
-            }
-
+        Object.keys(files).sort().forEach(id => {
             const el = document.createElement('div');
             el.className = `tree-item ${activeFile === id ? 'active' : ''}`;
-            const icon = id.endsWith('.ipy') ? 'fa-book' : 'fa-python';
-            el.innerHTML = `<i class="fab ${icon}" style="color:#ffd43b"></i> ${filename}`;
-            el.onclick = () => { files[activeFile].content = editor.getValue(); activeFile = id; editor.setValue(files[id].content, -1); saveState(); renderTree(); };
+            const icon = id.endsWith('.ipy') ? 'fa-book' : id.endsWith('.csv') ? 'fa-table' : 'fa-python';
+            el.innerHTML = `<i class="fa-solid ${icon}" style="color:${id.endsWith('.csv') ? '#28a745' : '#ffd43b'}"></i> ${id}`;
+            el.onclick = () => { 
+                if (activeFile) files[activeFile].content = editor.getValue(); 
+                activeFile = id; 
+                editor.setValue(files[id].content, -1); 
+                renderTree(); 
+            };
             tree.appendChild(el);
         });
     }
-
-    function newFile() {
-        const name = prompt(lang === 'jp' ? "ファイル名 (例: utils/script.py):" : "Filename (e.g. utils/script.py):");
-        if(name) { files[name] = {content: ''}; activeFile = name; editor.setValue('', -1); saveState(); renderTree(); }
-    }
-
-    editor.setValue(files[activeFile].content, -1);
-    renderTree();
 </script>
 </body>
 </html>
