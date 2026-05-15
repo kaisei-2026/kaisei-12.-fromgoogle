@@ -23,7 +23,7 @@ export default function Home() {
         {/* 背景画像とオーバーレイ */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{ backgroundImage: "url('/kaisei-12.-fromgoogle/bg-school.png')" }}
+          style={{ backgroundImage: "url('/kaisei-google/public/bg-school.png')" }}
         >
           <div className="absolute inset-0 bg-black/30" /> {/* 画像を少し暗くして文字を読みやすく */}
         </div>
