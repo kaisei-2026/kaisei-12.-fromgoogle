@@ -1,55 +1,48 @@
 "use client";
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-
-const navItems = {
-  jp: [{ name: "ホーム", path: "/" }, { name: "ツール", path: "/tools" }, { name: "ブログ", path: "/blog" }],
-  en: [{ name: "Home", path: "/" }, { name: "Tools", path: "/tools" }, { name: "Blog", path: "/blog" }]
-};
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function Navbar() {
-  const pathname = usePathname();
   const [lang, setLang] = useState<"jp" | "en">("jp");
-  const [mounted, setMounted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     const savedLang = localStorage.getItem("app_lang") as "jp" | "en";
     if (savedLang) setLang(savedLang);
+    
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const toggleLang = () => {
     const newLang = lang === "jp" ? "en" : "jp";
     setLang(newLang);
     localStorage.setItem("app_lang", newLang);
-    window.dispatchEvent(new Event('storage')); // エディタ等に言語変更を知らせる
-    window.location.reload(); // サイト全体に反映させるためリロード
+    window.location.reload();
   };
 
-  const isActive = (path: string) => path === "/" ? pathname === "/" : pathname.startsWith(path);
-
-  if (!mounted) return null;
-
   return (
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-4">
-      <nav className="flex gap-2 p-1.5 bg-[#18181b]/80 backdrop-blur-md border border-[#333] rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)]">
-        {navItems[lang].map((item) => (
-          <Link key={item.path} href={item.path} className="relative px-6 py-2 text-sm font-bold transition-colors outline-none">
-            <span className={`relative z-10 ${isActive(item.path) ? "text-white" : "text-zinc-500 hover:text-white"}`}>
-              {item.name}
-            </span>
-            {isActive(item.path) && (
-              <motion.div layoutId="nav-pill" className="absolute inset-0 bg-[#333] rounded-full -z-0" transition={{ type: "spring", stiffness: 380, damping: 30 }} />
-            )}
-          </Link>
-        ))}
-      </nav>
-      {/* 言語切り替えボタン */}
-      <button onClick={toggleLang} className="bg-[#18181b]/80 backdrop-blur-md border border-[#333] text-white px-4 py-2 rounded-full text-sm font-bold shadow-[0_0_20px_rgba(0,0,0,0.5)] hover:bg-[#333] transition-colors">
-        {lang === "jp" ? "JP" : "EN"}
-      </button>
-    </div>
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 px-8 md:px-16 py-6 flex justify-between items-center ${scrolled ? "bg-white/80 backdrop-blur-md border-b border-zinc-200" : "bg-transparent"}`}>
+      {/* Logo */}
+      <Link href="/" className="text-2xl font-black tracking-tighter text-zinc-900 flex items-center gap-2">
+        <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center">
+          <div className="w-3 h-3 bg-white rotate-45" />
+        </div>
+        KAISEI.HUB
+      </Link>
+
+      {/* Nav Items */}
+      <div className="hidden md:flex items-center gap-12 text-sm font-bold tracking-widest text-zinc-500 uppercase">
+        <Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link>
+        <Link href="/tools" className="hover:text-zinc-900 transition-colors">Tools</Link>
+        <Link href="/blog" className="hover:text-zinc-900 transition-colors">Insights</Link>
+        <button onClick={toggleLang} className="hover:text-zinc-900 transition-colors">{lang === "jp" ? "EN" : "JP"}</button>
+        <Link href="/tools" className="bg-zinc-900 text-white px-8 py-3 rounded-full hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200">
+          {lang === "jp" ? "はじめる" : "Get Started"}
+        </Link>
+      </div>
+    </nav>
   );
 }
