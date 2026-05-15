@@ -19,18 +19,19 @@ export default function Home() {
     <div className="bg-[#fcfcfc] text-zinc-900 font-serif selection:bg-zinc-900 selection:text-white">
       
 {/* SECTION 1: KAISEI HERO (学校の画像を背景に) */}
+// ... (前略)
+      {/* SECTION 1: KAISEI HERO */}
       <section className="relative min-h-screen flex flex-col justify-end px-8 md:px-20 pb-20 overflow-hidden bg-zinc-800">
-        {/* 背景画像エリア */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{ 
-            // 修正ポイント：スラッシュの有無やパスを再調整
-            backgroundImage: "url('bg-school.png')", 
+            // 🌟 以下の書き方に修正してください
+            backgroundImage: "url('/kaisei-google/bg-school.png')", 
           }}
         >
-          {/* 画像の上に被せる暗いフィルター（これがないと文字が見えません） */}
           <div className="absolute inset-0 bg-black/40" /> 
         </div>
+// ... (後略)
 
         <motion.div 
           initial={{ opacity: 0, y: 40 }} 
@@ -39,7 +40,7 @@ export default function Home() {
           className="relative z-10 text-white"
         >
           <h2 className="text-3xl md:text-4xl font-medium mb-4 tracking-tight drop-shadow-lg opacity-80">
-            {lang === "jp" ? "唯一無二の、感動を。" : "The only one, the emotion."}
+            {lang === "jp" ? "KAISEI-TOOLS" : "KAISEI-TOOLS"}
           </h2>
           <h1 className="text-[20vw] md:text-[18rem] font-bold tracking-tighter leading-[0.8] drop-shadow-2xl">
             KAISEI
