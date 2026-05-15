@@ -2,47 +2,62 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Kaisei Calendar Manager</title>
+    <title>Kaisei Professional Calendar</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --primary: #1a73e8; --border: #dadce0; --bg: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: #202124; padding: 20px; }
+        body { font-family: 'Segoe UI', 'Meiryo', sans-serif; background: #f8f9fa; color: #202124; padding: 20px; }
         
-        .layout { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
+        .layout { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
 
-        /* 左側：入力とフィルタ */
-        .sidebar { background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); height: fit-content; position: sticky; top: 20px; }
-        h2 { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
-        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
-        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        /* サイドバー */
+        .sidebar { background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); height: fit-content; position: sticky; top: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        h2 { font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; font-weight: 800; color: #1a73e8; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; }
+        input:focus, select:focus { border-color: var(--primary); ring: 2px solid #1a73e822; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-add:hover { background: #1765cc; transform: translateY(-1px); }
 
-        .filter-group { border-top: 1px solid #eee; pt: 20px; }
-        .filter-label { font-size: 12px; font-weight: bold; color: #70757a; margin-bottom: 10px; display: block; }
-        .subject-chip { display: inline-block; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; margin: 2px; transition: 0.2s; }
-        .subject-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+        /* 科目フィルター */
+        .filter-group { border-top: 1px solid #eee; padding-top: 20px; }
+        .filter-label { font-size: 11px; font-weight: bold; color: #70757a; margin-bottom: 12px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+        .subject-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .subject-chip { padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 11px; cursor: pointer; transition: 0.2s; text-align: center; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .subject-chip.active { background: #202124; color: white; border-color: #202124; }
 
-        /* 右側：カレンダー */
-        .calendar-container { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); }
+        /* カレンダー */
+        .calendar-container { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); background: #fff; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
-        .day-label { padding: 10px; text-align: center; font-size: 12px; font-weight: bold; color: #70757a; background: #f1f3f4; }
-        .day-cell { height: 120px; border: 0.5px solid #eee; padding: 5px; position: relative; overflow-y: auto; }
-        .day-cell.today { background: #f8faff; }
-        .day-cell.other-month { opacity: 0.3; }
-        .day-num { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+        .day-label { padding: 12px; text-align: center; font-size: 11px; font-weight: 900; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
+        .day-cell { height: 130px; border: 0.5px solid #f1f3f4; padding: 6px; position: relative; overflow-y: auto; transition: 0.2s; }
+        .day-cell:hover { background: #fdfdfd; }
+        .day-cell.today { background: #f1f7ff; }
+        .day-cell.other-month { background: #fafafa; color: #ccc; }
+        .day-num { font-size: 12px; font-weight: 800; margin-bottom: 6px; display: block; }
 
-        /* タスクの見た目 */
-        .task-bar { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; display: flex; justify-content: space-between; }
-        .task-bar i { cursor: pointer; }
+        /* 課題バーの見た目 */
+        .task-bar { font-size: 10px; padding: 3px 6px; border-radius: 5px; margin-bottom: 3px; color: white; font-weight: 700; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .task-bar i { opacity: 0.7; transition: 0.2s; font-size: 9px; margin-left: 4px; }
+        .task-bar i:hover { opacity: 1; scale: 1.2; }
         
-        /* 科目ごとの色 */
-        .bg-math { background: #ea4335; }
-        .bg-english { background: #4285f4; }
-        .bg-science { background: #34a853; }
-        .bg-social { background: #fbbc04; }
-        .bg-other { background: #70757a; }
+        /* --- 科目別カラー --- */
+        .bg-math { background: #ea4335; }      /* 数学: 赤 */
+        .bg-english { background: #4285f4; }   /* 英語: 青 */
+        .bg-japanese { background: #f06292; }  /* 国語: ピンク */
+        .bg-science { background: #34a853; }   /* 理科: 緑 */
+        .bg-social { background: #fbbc04; }    /* 社会: 黄色 */
+        .bg-art { background: #a142f4; }       /* 芸術: 紫 */
+        .bg-info { background: #00acc1; }      /* 情報: 水色 */
+        .bg-health { background: #00897b; }    /* 保健体育: エメラルド */
+        .bg-home { background: #8d6e brown; }  /* 家庭科: 茶色 */
+        .bg-other { background: #70757a; }     /* LHR/その他: グレー */
+
+        /* 簡易ボタン */
+        .nav-btn { background: none; border: 1px solid var(--border); padding: 5px 15px; border-radius: 6px; cursor: pointer; transition: 0.2s; }
+        .nav-btn:hover { background: #eee; }
     </style>
 </head>
 <body>
@@ -50,28 +65,37 @@
 <div class="layout">
     <!-- Sidebar -->
     <div class="sidebar">
-        <h2><i class="fas fa-edit"></i> 課題を追加</h2>
+        <h2><i class="fas fa-plus-circle"></i> 課題登録</h2>
         <div class="input-group">
-            <input type="text" id="taskName" placeholder="課題名を入力">
+            <input type="text" id="taskName" placeholder="課題名 (例: 数学レポート)">
             <input type="date" id="taskDate">
             <select id="taskSubject">
-                <option value="math">数学</option>
-                <option value="english">英語</option>
-                <option value="science">理科</option>
-                <option value="social">社会</option>
-                <option value="other">その他</option>
+                <option value="math">数学 (数３/４/５)</option>
+                <option value="japanese">国語 (現国/言文/国１/２)</option>
+                <option value="english">英語 (英４/５/６)</option>
+                <option value="science">理科 (化生/物地/理１/２)</option>
+                <option value="social">社会 (公共/地総/社２)</option>
+                <option value="art">芸術 (音/美/書)</option>
+                <option value="info">情報 (CP/PC室)</option>
+                <option value="health">保健体育</option>
+                <option value="home">家庭科</option>
+                <option value="other">その他 (LHR/行事)</option>
             </select>
             <button class="btn-add" onclick="addTask()">カレンダーに追加</button>
         </div>
 
         <div class="filter-group">
-            <span class="filter-label">表示する科目を選択:</span>
-            <div id="filter-chips">
-                <div class="subject-chip active" onclick="setFilter('all')">すべて</div>
+            <span class="filter-label">表示フィルター</span>
+            <div class="subject-grid">
+                <div class="subject-chip active" style="grid-column: span 2" onclick="setFilter('all')">すべて表示</div>
                 <div class="subject-chip" onclick="setFilter('math')">数学</div>
+                <div class="subject-chip" onclick="setFilter('japanese')">国語</div>
                 <div class="subject-chip" onclick="setFilter('english')">英語</div>
                 <div class="subject-chip" onclick="setFilter('science')">理科</div>
                 <div class="subject-chip" onclick="setFilter('social')">社会</div>
+                <div class="subject-chip" onclick="setFilter('info')">情報</div>
+                <div class="subject-chip" onclick="setFilter('health')">保体</div>
+                <div class="subject-chip" onclick="setFilter('art')">芸術</div>
             </div>
         </div>
     </div>
@@ -79,23 +103,26 @@
     <!-- Calendar -->
     <div class="calendar-container">
         <div class="calendar-header">
-            <button class="btn" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
-            <h2 id="currentMonthYear">2026年 5月</h2>
-            <button class="btn" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+            <button class="nav-btn" onclick="prevMonth()"><i class="fas fa-chevron-left"></i> 前月</button>
+            <h2 id="currentMonthYear" style="color:#202124; font-size: 20px;"></h2>
+            <button class="nav-btn" onclick="nextMonth()">次月 <i class="fas fa-chevron-right"></i></button>
         </div>
-        <div class="calendar-grid" id="calendarGrid">
-            <!-- JSで描画 -->
-        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
     </div>
 </div>
 
 <script>
-    let tasks = JSON.parse(localStorage.getItem('kaisei_calendar_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('kaisei_tasks_final')) || [];
     let currentViewDate = new Date();
     let currentFilter = 'all';
 
+    const subNames = {
+        math: '数学', japanese: '国語', english: '英語', science: '理科',
+        social: '社会', art: '芸術', info: '情報', health: '保体', home: '家庭', other: '他'
+    };
+
     function save() {
-        localStorage.setItem('kaisei_calendar_tasks', JSON.stringify(tasks));
+        localStorage.setItem('kaisei_tasks_final', JSON.stringify(tasks));
         render();
     }
 
@@ -103,7 +130,7 @@
         const name = document.getElementById('taskName').value;
         const date = document.getElementById('taskDate').value;
         const subject = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("情報を入力してください");
+        if(!name || !date) return alert("課題名と日付を入力してください");
 
         tasks.push({ id: Date.now(), name, date, subject });
         save();
@@ -111,23 +138,17 @@
     }
 
     function deleteTask(id) {
-        if(confirm("削除しますか？")) {
-            tasks = tasks.filter(t => t.id !== id);
-            save();
-        }
+        tasks = tasks.filter(t => t.id !== id);
+        save();
     }
 
     function setFilter(subject) {
         currentFilter = subject;
         document.querySelectorAll('.subject-chip').forEach(chip => {
-            chip.classList.toggle('active', chip.innerText.includes(subject === 'all' ? 'すべて' : getSubjectName(subject)));
+            const isTarget = subject === 'all' ? chip.innerText === 'すべて表示' : chip.innerText === subNames[subject];
+            chip.classList.toggle('active', isTarget);
         });
         render();
-    }
-
-    function getSubjectName(sub) {
-        const names = { math: '数学', english: '英語', science: '理科', social: '社会', other: 'その他' };
-        return names[sub];
     }
 
     function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); render(); }
@@ -138,7 +159,6 @@
         const monthLabel = document.getElementById('currentMonthYear');
         grid.innerHTML = '';
 
-        // 曜日ラベル
         ['日','月','火','水','木','金','土'].forEach(day => {
             grid.innerHTML += `<div class="day-label">${day}</div>`;
         });
@@ -150,19 +170,16 @@
         const firstDay = new Date(year, month, 1).getDay();
         const lastDate = new Date(year, month + 1, 0).getDate();
 
-        // 前月の空セル
         for(let i = 0; i < firstDay; i++) {
             grid.innerHTML += `<div class="day-cell other-month"></div>`;
         }
 
-        // 当月のセル
         for(let date = 1; date <= lastDate; date++) {
             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-            const isToday = new Date().toISOString().split('T')[0] === dateStr;
+            const isToday = new Date().toLocaleDateString('sv-SE') === dateStr;
             
             let cellHtml = `<div class="day-cell ${isToday ? 'today' : ''}"><span class="day-num">${date}</span>`;
             
-            // タスクのフィルタリングと描画
             const dayTasks = tasks.filter(t => t.date === dateStr && (currentFilter === 'all' || t.subject === currentFilter));
             
             dayTasks.forEach(t => {
@@ -172,7 +189,6 @@
                         <i class="fas fa-times" onclick="deleteTask(${t.id})"></i>
                     </div>`;
             });
-
             cellHtml += `</div>`;
             grid.innerHTML += cellHtml;
         }
