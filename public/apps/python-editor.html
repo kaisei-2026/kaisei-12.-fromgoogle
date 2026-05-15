@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Python Professional IDE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --header-bg: #212121; --sidebar-bg: #181818; --term-bg: #000; --active-blue: #0078d4; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+        
+        /* Header */
+        header { height: 45px; background: var(--header-bg); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; }
+        .toolbar { display: flex; gap: 8px; }
+        .btn { background: #444; color: white; border: none; padding: 6px 15px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+        .btn-run { background: #28a745; border: 1px solid #1e7e34; }
+        .btn-run:hover { background: #218838; }
+
+        #main { flex: 1; display: flex; overflow: hidden; }
+
+        /* Sidebar */
+        #sidebar { width: 220px; background: var(--sidebar-bg); color: #888; display: flex; flex-direction: column; border-right: 1px solid #000; }
+        .sidebar-header { padding: 12px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #555; display: flex; justify-content: space-between; }
+        .file-item { padding: 6px 15px; cursor: pointer; font-size: 13px; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .file-item.active { background: #37373d; color: #fff; border-left: 3px solid var(--active-blue); }
+
+        /* Editor Area */
+        #editor-pane { flex: 1; display: flex; flex-direction: column; }
+        #ace-editor { flex: 1; font-size: 16px; font-weight: 700; }
+
+        /* Terminal (Bottom) */
+        #terminal { height: 200px; background: var(--term-bg); border-top: 2px solid #444; display: flex; flex-direction: column; }
+        .term-header { background: #2d2d2d; padding: 5px 15px; font-size: 10px; font-weight: bold; color: #aaa; display: flex; justify-content: space-between; }
+        #output { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Consolas', monospace; font-size: 14px; color: #fff; line-height: 1.5; white-space: pre-wrap; font-weight: bold; }
+        .text-error { color: #ff5555; }
+        .text-system { color: #55aaff; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight:bold; letter-spacing:1px;">PYTHON ELITE IDE</div>
+    <div class="toolbar">
+        <button class="btn" onclick="openFolder()"><i class="fas fa-folder-open"></i> OPEN FOLDER</button>
+        <button class="btn" onclick="saveFile()"><i class="fas fa-save"></i> SAVE</button>
+        <button class="btn btn-run" onclick="runPython()"><i class="fas fa-play"></i> RUN SCRIPT</button>
+    </div>
+</header>
+
+<div id="main">
+    <div id="sidebar">
+        <div class="sidebar-header">Explorer <i class="fas fa-file-plus" onclick="newFile()"></i></div>
+        <div id="file-tree"></div>
+    </div>
+    <div id="editor-pane">
+        <div id="ace-editor"></div>
+        <div id="terminal">
+            <div class="term-header">
+                <span>TERMINAL OUTPUT</span>
+                <span style="cursor:pointer" onclick="document.getElementById('output').innerHTML=''">CLEAR</span>
+            </div>
+            <div id="output">Initializing Python Engine...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let files = {'main.py': { content: 'print("Hello Python!")\n\nfor i in range(3):\n    print(f"Loop count: {i}")', handle: null }};
+    let activeFile = 'main.py';
+    let pyodide = null;
+
+    const editor = ace.edit("ace-editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.getSession().setMode("ace/mode/python");
+
+    async function init() {
+        pyodide = await loadPyodide();
+        document.getElementById('output').innerHTML = '<span class="text-system">Python 3.11 Engine Ready.</span>\n';
+    }
+    init();
+
+    function log(msg, isError = false) {
+        const div = document.createElement('div');
+        if (isError) div.className = 'text-error';
+        div.textContent = msg;
+        document.getElementById('output').appendChild(div);
+        const out = document.getElementById('output');
+        out.scrollTop = out.scrollHeight;
+    }
+
+    async function runPython() {
+        if (!pyodide) return alert("Python is loading...");
+        log(`\n> Running ${activeFile}...`, false);
+        
+        try {
+            pyodide.setStdout({ batched: (msg) => log(msg) });
+            pyodide.setStderr({ batched: (msg) => log(msg, true) });
+            await pyodide.runPythonAsync(editor.getValue());
+        } catch (err) {
+            log(err.message, true);
+        }
+    }
+
+    function renderTree() {
+        const tree = document.getElementById('file-tree');
+        tree.innerHTML = '';
+        Object.keys(files).forEach(name => {
+            const div = document.createElement('div');
+            div.className = `file-item ${activeFile === name ? 'active' : ''}`;
+            div.innerHTML = `<i class="fab fa-python" style="color:#ffd43b"></i> ${name}`;
+            div.onclick = () => {
+                files[activeFile].content = editor.getValue();
+                activeFile = name;
+                editor.setValue(files[name].content, -1);
+                renderTree();
+            };
+            tree.appendChild(div);
+        });
+    }
+
+    async function openFolder() {
+        try {
+            const handle = await window.showDirectoryPicker();
+            files = {};
+            for await (const entry of handle.values()) {
+                if (entry.kind === 'file' && entry.name.endsWith('.py')) {
+                    const file = await entry.getFile();
+                    files[entry.name] = { content: await file.text(), handle: entry };
+                }
+            }
+            activeFile = Object.keys(files)[0];
+            editor.setValue(files[activeFile].content, -1);
+            renderTree();
+        } catch(e) {}
+    }
+
+    async function saveFile() {
+        const file = files[activeFile];
+        file.content = editor.getValue();
+        if (file.handle) {
+            const writable = await file.handle.createWritable();
+            await writable.write(file.content);
+            await writable.close();
+            log("Saved to local disk.");
+        } else {
+            log("Virtual file saved (Select a folder to save to disk).");
+        }
+    }
+
+    function newFile() {
+        const name = prompt("Python filename:");
+        if (name && name.endsWith('.py')) {
+            files[name] = { content: '', handle: null };
+            activeFile = name;
+            editor.setValue('', -1);
+            renderTree();
+        }
+    }
+
+    renderTree();
+    editor.setValue(files[activeFile].content, -1);
+</script>
+</body>
+</html>

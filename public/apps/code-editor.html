@@ -2,188 +2,83 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Elite IDE - Python & Live</title>
-    <!-- ライブラリ読み込み -->
+    <title>Elite IDE - Professional</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --sidebar-bg: #1e1e1e; --header-bg: #2d2d2d; --active-blue: #007acc; --border: #333; --console-bg: #000; }
+        :root { --sidebar-bg: #1e1e1e; --header-bg: #2d2d2d; --active-blue: #007acc; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; background: #1e1e1e; color: #fff; }
-        
-        /* Header */
         header { height: 40px; background: var(--header-bg); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-size: 12px; border-bottom: 1px solid #111; }
-        .toolbar { display: flex; gap: 5px; }
-        .btn { background: #3c3c3c; color: #ccc; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: bold; }
+        .btn { background: #3c3c3c; color: #ccc; border: none; padding: 5px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .btn:hover { background: #505050; color: #fff; }
-        .btn-run { background: #28a745; color: white; }
-        .btn-run:hover { background: #218838; }
-
+        .btn-primary { background: var(--active-blue); color: white; }
         #main { flex: 1; display: flex; overflow: hidden; }
-
-        /* Sidebar */
-        #sidebar { width: 240px; background: #252526; display: flex; flex-direction: column; border-right: 1px solid #000; }
-        .sidebar-header { padding: 10px 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: #666; display: flex; justify-content: space-between; }
+        #sidebar { width: 250px; background: #252526; border-right: 1px solid #000; }
+        .sidebar-header { padding: 10px 15px; font-size: 10px; font-weight: bold; color: #888; display: flex; justify-content: space-between; }
         #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
-        .tree-item { padding: 5px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; }
         .tree-item.active { background: #37373d; color: #fff; }
-
-        /* Editor & Console Area */
-        #content-area { flex: 1; display: flex; flex-direction: column; }
-        #ace-editor { flex: 1; font-size: 16px; }
-        
-        /* Console (ここが重要！) */
-        #console { height: 180px; background: var(--console-bg); border-top: 2px solid var(--border); display: flex; flex-direction: column; }
-        .console-header { height: 30px; background: #252526; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; font-size: 10px; font-weight: bold; color: #888; }
-        #log-output { flex: 1; overflow-y: auto; padding: 10px; font-family: 'Consolas', monospace; font-size: 13px; color: #0f0; line-height: 1.4; white-space: pre-wrap; }
-        .log-error { color: #ff5555; }
-        .log-info { color: #55aaff; }
+        .tree-item.preview-target { border-right: 4px solid #e2c08d; color: #e2c08d; }
+        #editor-pane { flex: 1; display: flex; flex-direction: column; }
+        #ace-editor { flex: 1; font-size: 16px; font-weight: 700; }
     </style>
 </head>
 <body>
-
 <header>
-    <div style="display:flex; gap:15px; align-items:center;">
-        <span style="font-weight:900; color:var(--active-blue);">ELITE PRO IDE</span>
-    </div>
-    <div class="toolbar">
-        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> OPEN FOLDER</button>
-        <button class="btn btn-run" id="run-btn" onclick="executeCode()"><i class="fas fa-play"></i> RUN</button>
-        <button class="btn" style="background:#007acc; color:white;" onclick="openLivePreview()"><i class="fas fa-globe"></i> LIVE</button>
+    <div style="font-weight:900; color:var(--active-blue);">ELITE WEB IDE</div>
+    <div style="display:flex; gap:5px;">
+        <button class="btn" onclick="openLocalFolder()">FOLDER</button>
+        <button class="btn btn-primary" onclick="saveFile()">SAVE</button>
+        <button class="btn btn-primary" style="background:#e2c08d; color:#000" onclick="openLivePreview()">LIVE</button>
     </div>
 </header>
-
 <div id="main">
-    <div id="sidebar">
-        <div class="sidebar-header">Explorer
-            <i class="fas fa-file-plus" onclick="createNewFile()" style="cursor:pointer"></i>
-        </div>
-        <div id="file-tree"></div>
-    </div>
-    <div id="content-area">
-        <div id="ace-editor"></div>
-        <div id="console">
-            <div class="console-header">
-                <span>TERMINAL / OUTPUT</span>
-                <span style="cursor:pointer" onclick="clearConsole()">CLEAR</span>
-            </div>
-            <div id="log-output">Python / JS Engine Ready...</div>
-        </div>
-    </div>
+    <div id="sidebar"><div class="sidebar-header">EXPLORER</div><div id="file-tree"></div></div>
+    <div id="editor-pane"><div id="ace-editor"></div></div>
 </div>
-
 <script>
-    let files = {'main.py': { content: 'print("Hello Python!")\nfor i in range(5):\n    print(f"Count: {i}")', type:'file' }};
-    let activeFileId = 'main.py';
-    let pyodide = null;
-
+    let files = {'index.html': {content: '<h1>Hello</h1>', type: 'file'}};
+    let activeId = 'index.html';
+    let previewId = 'index.html';
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
-    const logOutput = document.getElementById('log-output');
 
-    // --- コンソール出力関数 ---
-    function printToConsole(text, className = '') {
-        const div = document.createElement('div');
-        div.className = className;
-        div.textContent = text;
-        logOutput.appendChild(div);
-        logOutput.scrollTop = logOutput.scrollHeight;
-    }
-
-    function clearConsole() { logOutput.innerHTML = ''; }
-
-    // --- Pythonエンジンの準備 ---
-    async function initPython() {
-        printToConsole("Loading Python Engine...", "log-info");
-        pyodide = await loadPyodide();
-        printToConsole("Python Engine Loaded!", "log-info");
-    }
-    initPython();
-
-    // --- コード実行 (JS & Python両対応) ---
-    async function executeCode() {
-        const code = editor.getValue();
-        clearConsole();
-        
-        if (activeFileId.endsWith('.py')) {
-            // Python実行
-            if (!pyodide) { alert("Python is still loading..."); return; }
-            try {
-                // Pythonの出力をJSのコンソールにリダイレクトする設定
-                pyodide.setStdout({ batched: (msg) => printToConsole(msg) });
-                pyodide.setStderr({ batched: (msg) => printToConsole(msg, "log-error") });
-                await pyodide.runPythonAsync(code);
-            } catch (err) {
-                printToConsole(err.message, "log-error");
-            }
-        } else {
-            // JavaScript実行
-            try {
-                const originalLog = console.log;
-                console.log = (...args) => printToConsole(args.join(' '));
-                eval(code);
-                console.log = originalLog;
-            } catch (err) {
-                printToConsole(err.message, "log-error");
-            }
-        }
-    }
-
-    // --- ファイルツリー表示 ---
     function renderTree() {
-        const tree = document.getElementById('file-tree');
-        tree.innerHTML = '';
-        Object.keys(files).forEach(name => {
-            const item = document.createElement('div');
-            item.className = `tree-item ${activeFileId === name ? 'active' : ''}`;
-            item.innerHTML = `<i class="fas ${name.endsWith('.py') ? 'fa-brands fa-python' : 'fa-file-code'}"></i> ${name}`;
-            item.onclick = () => {
-                files[activeFileId].content = editor.getValue();
-                activeFileId = name;
-                editor.setValue(files[name].content, -1);
-                editor.getSession().setMode(name.endsWith('.py') ? 'ace/mode/python' : 'ace/mode/html');
-                renderTree();
-            };
-            tree.appendChild(item);
+        const tree = document.getElementById('file-tree'); tree.innerHTML = '';
+        Object.keys(files).forEach(id => {
+            const el = document.createElement('div');
+            el.className = `tree-item ${activeId === id ? 'active' : ''} ${previewId === id ? 'preview-target' : ''}`;
+            el.innerHTML = `<i class="fas fa-file-code"></i> ${id}`;
+            el.oncontextmenu = (e) => { e.preventDefault(); if(id.endsWith('.html')) previewId = id; renderTree(); };
+            el.onclick = () => { files[activeId].content = editor.getValue(); activeId = id; editor.setValue(files[id].content, -1); renderTree(); };
+            tree.appendChild(el);
         });
     }
 
     async function openLocalFolder() {
-        try {
-            const handle = await window.showDirectoryPicker();
-            files = {};
-            for await (const entry of handle.values()) {
-                if (entry.kind === 'file') {
-                    const file = await entry.getFile();
-                    files[entry.name] = { content: await file.text(), type: 'file' };
-                }
+        const root = await window.showDirectoryPicker();
+        files = {};
+        for await (const entry of root.values()) {
+            if (entry.kind === 'file') {
+                const f = await entry.getFile();
+                files[entry.name] = { content: await f.text(), handle: entry };
             }
-            activeFileId = Object.keys(files)[0];
-            editor.setValue(files[activeFileId].content, -1);
-            renderTree();
-        } catch(e) {}
+        }
+        activeId = Object.keys(files)[0]; renderTree();
     }
 
-    function createNewFile() {
-        const name = prompt("Filename (e.g. script.py):");
-        if(name) {
-            files[name] = { content: '', type: 'file' };
-            activeFileId = name;
-            renderTree();
-            editor.setValue('', -1);
-        }
+    async function saveFile() {
+        const f = files[activeId]; f.content = editor.getValue();
+        if(f.handle) { const w = await f.handle.createWritable(); await w.write(f.content); await w.close(); }
+        alert("Saved!");
     }
 
     function openLivePreview() {
-        const html = activeFileId.endsWith('.html') ? editor.getValue() : "<h1>Please select an HTML file</h1>";
-        localStorage.setItem('elite_live_code', html);
+        localStorage.setItem('elite_live_code', editor.getValue());
         window.open('live-preview.html', 'LivePreview');
     }
-
     renderTree();
-    editor.getSession().setMode('ace/mode/python');
-    editor.setValue(files[activeFileId].content, -1);
 </script>
 </body>
 </html>
