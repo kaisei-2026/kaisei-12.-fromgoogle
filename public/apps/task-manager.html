@@ -2,111 +2,180 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Kaisei Task Manager</title>
+    <title>Kaisei Calendar Manager</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --urgent: #d93025; --soon: #f9ab00; --safe: #1e8e3e; }
+        :root { --primary: #1a73e8; --border: #dadce0; --bg: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: #202124; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #ddd; }
-        h1 { font-size: 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
-        /* 入力エリア */
-        .input-group { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 10px; margin-bottom: 30px; background: #f1f3f4; padding: 15px; border-radius: 12px; }
-        input, select { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; }
-        .btn-add { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        .layout { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 300px 1fr; gap: 20px; }
 
-        /* タスクリスト */
-        .task-list { list-style: none; }
-        .task-item { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid #eee; transition: 0.2s; }
-        .task-item:hover { background: #f8f9fa; }
-        .task-info { display: flex; flex-direction: column; gap: 4px; }
-        .task-name { font-weight: bold; font-size: 16px; }
-        .task-meta { font-size: 12px; color: #5f6368; }
+        /* 左側：入力とフィルタ */
+        .sidebar { background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); height: fit-content; position: sticky; top: 20px; }
+        h2 { font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        input, select { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+
+        .filter-group { border-top: 1px solid #eee; pt: 20px; }
+        .filter-label { font-size: 12px; font-weight: bold; color: #70757a; margin-bottom: 10px; display: block; }
+        .subject-chip { display: inline-block; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; cursor: pointer; margin: 2px; transition: 0.2s; }
+        .subject-chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        /* 右側：カレンダー */
+        .calendar-container { background: white; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+        .day-label { padding: 10px; text-align: center; font-size: 12px; font-weight: bold; color: #70757a; background: #f1f3f4; }
+        .day-cell { height: 120px; border: 0.5px solid #eee; padding: 5px; position: relative; overflow-y: auto; }
+        .day-cell.today { background: #f8faff; }
+        .day-cell.other-month { opacity: 0.3; }
+        .day-num { font-size: 12px; font-weight: bold; margin-bottom: 5px; display: block; }
+
+        /* タスクの見た目 */
+        .task-bar { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; display: flex; justify-content: space-between; }
+        .task-bar i { cursor: pointer; }
         
-        /* 期限バッジ */
-        .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
-        .urgent { background: var(--urgent); } /* 3日以内 */
-        .soon { background: var(--soon); }   /* 7日以内 */
-        .safe { background: var(--safe); }   /* それ以上 */
-
-        .btn-delete { color: #aaa; cursor: pointer; transition: 0.2s; }
-        .btn-delete:hover { color: var(--urgent); }
+        /* 科目ごとの色 */
+        .bg-math { background: #ea4335; }
+        .bg-english { background: #4285f4; }
+        .bg-science { background: #34a853; }
+        .bg-social { background: #fbbc04; }
+        .bg-other { background: #70757a; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1><i class="fas fa-tasks" style="color:var(--primary)"></i> Kaisei Task Manager</h1>
-    
-    <div class="input-group">
-        <input type="text" id="taskName" placeholder="課題名を入力 (例: 数学プリント)">
-        <input type="date" id="taskDate">
-        <select id="taskCategory">
-            <option value="提出物">提出物</option>
-            <option value="小テスト">小テスト</option>
-            <option value="考査">定期考査</option>
-        </select>
-        <button class="btn-add" onclick="addTask()">追加</button>
+<div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h2><i class="fas fa-edit"></i> 課題を追加</h2>
+        <div class="input-group">
+            <input type="text" id="taskName" placeholder="課題名を入力">
+            <input type="date" id="taskDate">
+            <select id="taskSubject">
+                <option value="math">数学</option>
+                <option value="english">英語</option>
+                <option value="science">理科</option>
+                <option value="social">社会</option>
+                <option value="other">その他</option>
+            </select>
+            <button class="btn-add" onclick="addTask()">カレンダーに追加</button>
+        </div>
+
+        <div class="filter-group">
+            <span class="filter-label">表示する科目を選択:</span>
+            <div id="filter-chips">
+                <div class="subject-chip active" onclick="setFilter('all')">すべて</div>
+                <div class="subject-chip" onclick="setFilter('math')">数学</div>
+                <div class="subject-chip" onclick="setFilter('english')">英語</div>
+                <div class="subject-chip" onclick="setFilter('science')">理科</div>
+                <div class="subject-chip" onclick="setFilter('social')">社会</div>
+            </div>
+        </div>
     </div>
 
-    <ul id="taskList" class="task-list"></ul>
+    <!-- Calendar -->
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <button class="btn" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+            <h2 id="currentMonthYear">2026年 5月</h2>
+            <button class="btn" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- JSで描画 -->
+        </div>
+    </div>
 </div>
 
 <script>
-    let tasks = JSON.parse(localStorage.getItem('kaisei_tasks')) || [];
+    let tasks = JSON.parse(localStorage.getItem('kaisei_calendar_tasks')) || [];
+    let currentViewDate = new Date();
+    let currentFilter = 'all';
 
     function save() {
-        localStorage.setItem('kaisei_tasks', JSON.stringify(tasks));
+        localStorage.setItem('kaisei_calendar_tasks', JSON.stringify(tasks));
         render();
     }
 
     function addTask() {
         const name = document.getElementById('taskName').value;
         const date = document.getElementById('taskDate').value;
-        const cat = document.getElementById('taskCategory').value;
-        if(!name || !date) return alert("入力してください");
+        const subject = document.getElementById('taskSubject').value;
+        if(!name || !date) return alert("情報を入力してください");
 
-        tasks.push({ id: Date.now(), name, date, cat });
-        document.getElementById('taskName').value = '';
+        tasks.push({ id: Date.now(), name, date, subject });
         save();
+        document.getElementById('taskName').value = '';
     }
 
     function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        save();
+        if(confirm("削除しますか？")) {
+            tasks = tasks.filter(t => t.id !== id);
+            save();
+        }
     }
 
-    function getRemainingDays(dateStr) {
-        const diff = new Date(dateStr) - new Date().setHours(0,0,0,0);
-        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    function setFilter(subject) {
+        currentFilter = subject;
+        document.querySelectorAll('.subject-chip').forEach(chip => {
+            chip.classList.toggle('active', chip.innerText.includes(subject === 'all' ? 'すべて' : getSubjectName(subject)));
+        });
+        render();
     }
+
+    function getSubjectName(sub) {
+        const names = { math: '数学', english: '英語', science: '理科', social: '社会', other: 'その他' };
+        return names[sub];
+    }
+
+    function prevMonth() { currentViewDate.setMonth(currentViewDate.getMonth() - 1); render(); }
+    function nextMonth() { currentViewDate.setMonth(currentViewDate.getMonth() + 1); render(); }
 
     function render() {
-        const list = document.getElementById('taskList');
-        list.innerHTML = '';
-        
-        // 期限が近い順に並び替え
-        tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+        const grid = document.getElementById('calendarGrid');
+        const monthLabel = document.getElementById('currentMonthYear');
+        grid.innerHTML = '';
 
-        tasks.forEach(t => {
-            const days = getRemainingDays(t.date);
-            let statusClass = days <= 3 ? 'urgent' : (days <= 7 ? 'soon' : 'safe');
-            let statusText = days < 0 ? '期限切れ' : (days === 0 ? '今日まで' : `あと ${days} 日`);
-
-            list.innerHTML += `
-                <li class="task-item">
-                    <div class="task-info">
-                        <span class="task-name">${t.name}</span>
-                        <span class="task-meta">${t.cat} | 締切: ${t.date}</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:20px;">
-                        <span class="badge ${statusClass}">${statusText}</span>
-                        <i class="fas fa-trash-alt btn-delete" onclick="deleteTask(${t.id})"></i>
-                    </div>
-                </li>
-            `;
+        // 曜日ラベル
+        ['日','月','火','水','木','金','土'].forEach(day => {
+            grid.innerHTML += `<div class="day-label">${day}</div>`;
         });
+
+        const year = currentViewDate.getFullYear();
+        const month = currentViewDate.getMonth();
+        monthLabel.innerText = `${year}年 ${month + 1}月`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        // 前月の空セル
+        for(let i = 0; i < firstDay; i++) {
+            grid.innerHTML += `<div class="day-cell other-month"></div>`;
+        }
+
+        // 当月のセル
+        for(let date = 1; date <= lastDate; date++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            const isToday = new Date().toISOString().split('T')[0] === dateStr;
+            
+            let cellHtml = `<div class="day-cell ${isToday ? 'today' : ''}"><span class="day-num">${date}</span>`;
+            
+            // タスクのフィルタリングと描画
+            const dayTasks = tasks.filter(t => t.date === dateStr && (currentFilter === 'all' || t.subject === currentFilter));
+            
+            dayTasks.forEach(t => {
+                cellHtml += `
+                    <div class="task-bar bg-${t.subject}">
+                        <span>${t.name}</span>
+                        <i class="fas fa-times" onclick="deleteTask(${t.id})"></i>
+                    </div>`;
+            });
+
+            cellHtml += `</div>`;
+            grid.innerHTML += cellHtml;
+        }
     }
 
     render();
