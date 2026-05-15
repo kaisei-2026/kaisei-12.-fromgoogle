@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Web IDE</title>
+    <title>Web IDE - Local File System</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.32.7/ace.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -14,104 +14,127 @@
         .btn:hover { background: #505050; color: #fff; }
         .btn-primary { background: var(--active-blue); color: white; }
         #main { flex: 1; display: flex; overflow: hidden; }
-        #sidebar { width: 250px; background: #252526; border-right: 1px solid #000; }
+        #sidebar { width: 250px; background: #252526; border-right: 1px solid #000; display: flex; flex-direction: column; }
         .sidebar-header { padding: 10px 15px; font-size: 10px; font-weight: bold; color: #888; display: flex; justify-content: space-between; }
         #file-tree { flex: 1; overflow-y: auto; font-size: 13px; }
-        .tree-item { padding: 4px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; padding-left: 20px;}
-        .tree-item.active { background: #37373d; color: #fff; border-left: 2px solid var(--active-blue); padding-left: 18px; }
+        .tree-item { padding: 6px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #aaa; }
+        .tree-item.active { background: #37373d; color: #fff; border-left: 3px solid var(--active-blue); }
         .tree-item.preview-target { color: #e2c08d; }
         #editor-pane { flex: 1; display: flex; flex-direction: column; }
         #ace-editor { flex: 1; font-size: 16px; font-weight: 700; }
-        .folder-title { padding: 4px 10px; font-weight: bold; color: #ccc; background: #2d2d2d; margin-top: 5px; font-size: 11px;}
     </style>
 </head>
 <body>
 <header>
     <div style="font-weight:900; color:var(--active-blue);">ELITE WEB IDE</div>
     <div style="display:flex; gap:5px;">
-        <button class="btn" onclick="newFile()"><i class="fas fa-plus"></i> <span id="lbl-new">新規作成</span></button>
-        <button class="btn btn-primary" onclick="saveState()"><i class="fas fa-save"></i> <span id="lbl-save">保存(Ctrl+S)</span></button>
+        <button class="btn" onclick="openLocalFolder()"><i class="fas fa-folder-open"></i> <span id="lbl-open">フォルダを開く</span></button>
+        <button class="btn" onclick="newLocalFile()"><i class="fas fa-plus"></i> <span id="lbl-new">新規ファイル</span></button>
+        <button class="btn btn-primary" onclick="saveActiveFile()"><i class="fas fa-save"></i> <span id="lbl-save">保存(Ctrl+S)</span></button>
         <button class="btn btn-primary" style="background:#e2c08d; color:#000" onclick="openLivePreview()"><i class="fas fa-play"></i> LIVE</button>
     </div>
 </header>
 <div id="main">
-    <div id="sidebar"><div class="sidebar-header">EXPLORER</div><div id="file-tree"></div></div>
+    <div id="sidebar"><div class="sidebar-header"><span id="lbl-explorer">EXPLORER</span></div><div id="file-tree"></div></div>
     <div id="editor-pane"><div id="ace-editor"></div></div>
 </div>
 <script>
     const lang = localStorage.getItem('app_lang') || 'jp';
     if(lang === 'en') {
+        document.getElementById('lbl-open').innerText = "Open Folder";
         document.getElementById('lbl-new').innerText = "New File";
         document.getElementById('lbl-save').innerText = "Save(Ctrl+S)";
     }
 
-    // 前回の状態を復元（なければ初期データ）
-    let files = JSON.parse(localStorage.getItem('web_ide_files')) || {'index.html': {content: '<h1>Hello Web!</h1>', type: 'file'}};
-    let activeId = localStorage.getItem('web_ide_active') || 'index.html';
-    let previewId = localStorage.getItem('web_ide_preview') || 'index.html';
+    let dirHandle = null;
+    let files = {}; // 本物のファイルデータを格納
+    let activeId = null;
+    let previewId = null;
     
-    if(!files[activeId]) activeId = Object.keys(files)[0]; // エラー防止
-
     const editor = ace.edit("ace-editor");
     editor.setTheme("ace/theme/monokai");
 
-    // --- ショートカットキー (Ctrl+S / Cmd+S) ---
+    // Ctrl+S で本物のファイルに上書き保存
     document.addEventListener('keydown', function(e) {
         if ((window.navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey) && e.key === 's') {
-            e.preventDefault(); saveState();
+            e.preventDefault(); saveActiveFile();
         }
     });
 
-    function saveState() {
-        files[activeId].content = editor.getValue();
-        localStorage.setItem('web_ide_files', JSON.stringify(files));
-        localStorage.setItem('web_ide_active', activeId);
-        localStorage.setItem('web_ide_preview', previewId);
+    // 1. ローカルフォルダを開く
+    async function openLocalFolder() {
+        try {
+            dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+            files = {};
+            for await (const entry of dirHandle.values()) {
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    files[entry.name] = { handle: entry, content: await file.text() };
+                    if (entry.name.endsWith('.html') && !previewId) previewId = entry.name;
+                }
+            }
+            activeId = Object.keys(files)[0];
+            if (activeId) {
+                editor.setValue(files[activeId].content, -1);
+                editor.getSession().setMode(getMode(activeId));
+            }
+            renderTree();
+        } catch (err) { console.error(err); }
+    }
+
+    // 2. 実際のファイルとして保存
+    async function saveActiveFile() {
+        if (!activeId || !files[activeId]) return;
+        const currentFile = files[activeId];
+        currentFile.content = editor.getValue();
         
-        // ボタンを一瞬緑にして保存したことを伝える
-        const btn = document.querySelector('.btn-primary');
-        const oldColor = btn.style.background;
-        btn.style.background = '#28a745';
-        setTimeout(() => btn.style.background = oldColor, 500);
+        if (currentFile.handle) {
+            const writable = await currentFile.handle.createWritable();
+            await writable.write(currentFile.content);
+            await writable.close();
+            
+            const btn = document.querySelector('.btn-primary');
+            const oldColor = btn.style.background;
+            btn.style.background = '#28a745';
+            setTimeout(() => btn.style.background = oldColor, 500);
+        } else {
+            alert(lang === 'jp' ? "フォルダが開かれていません。" : "Please open a folder first.");
+        }
+    }
+
+    // 3. 実際のディレクトリ内に新規作成
+    async function newLocalFile() {
+        if (!dirHandle) {
+            alert(lang === 'jp' ? "先に「フォルダを開く」から保存先のフォルダを選んでください。" : "Please open a folder first.");
+            return;
+        }
+        const name = prompt(lang === 'jp' ? "ファイル名を入力 (例: index.html):" : "Filename (e.g. index.html):");
+        if (name) {
+            const newHandle = await dirHandle.getFileHandle(name, { create: true });
+            files[name] = { handle: newHandle, content: '' };
+            activeId = name;
+            editor.setValue('', -1);
+            editor.getSession().setMode(getMode(name));
+            renderTree();
+        }
     }
 
     function renderTree() {
         const tree = document.getElementById('file-tree'); tree.innerHTML = '';
-        
-        // 簡易的にフォルダ階層っぽく見せる処理
-        const sortedIds = Object.keys(files).sort();
-        let currentFolder = '';
-
-        sortedIds.forEach(id => {
-            const parts = id.split('/');
-            const filename = parts.pop();
-            const folder = parts.join('/');
-
-            if (folder && folder !== currentFolder) {
-                const fEl = document.createElement('div');
-                fEl.className = 'folder-title';
-                fEl.innerHTML = `<i class="fas fa-folder-open"></i> ${folder}`;
-                tree.appendChild(fEl);
-                currentFolder = folder;
-            }
-
+        Object.keys(files).sort().forEach(id => {
             const el = document.createElement('div');
             el.className = `tree-item ${activeId === id ? 'active' : ''} ${previewId === id ? 'preview-target' : ''}`;
-            el.innerHTML = `<i class="fas fa-file-code"></i> ${filename}`;
-            el.oncontextmenu = (e) => { e.preventDefault(); if(id.endsWith('.html')) previewId = id; saveState(); renderTree(); };
-            el.onclick = () => { files[activeId].content = editor.getValue(); activeId = id; editor.setValue(files[id].content, -1); editor.getSession().setMode(getMode(id)); saveState(); renderTree(); };
+            el.innerHTML = `<i class="fas fa-file-code"></i> ${id}`;
+            el.oncontextmenu = (e) => { e.preventDefault(); if(id.endsWith('.html')) { previewId = id; renderTree(); } };
+            el.onclick = () => { 
+                if (activeId) files[activeId].content = editor.getValue(); 
+                activeId = id; 
+                editor.setValue(files[id].content, -1); 
+                editor.getSession().setMode(getMode(id)); 
+                renderTree(); 
+            };
             tree.appendChild(el);
         });
-    }
-
-    function newFile() {
-        const name = prompt(lang === 'jp' ? "ファイル名 (例: src/style.css):" : "Filename (e.g. src/style.css):");
-        if(name) {
-            files[name] = {content: '', type: 'file'};
-            activeId = name;
-            editor.setValue('', -1);
-            saveState(); renderTree();
-        }
     }
 
     function getMode(n) {
@@ -122,7 +145,9 @@
     }
 
     function openLivePreview() {
-        saveState();
+        if (activeId) files[activeId].content = editor.getValue();
+        if (!previewId || !files[previewId]) return alert("HTMLがありません");
+        
         let html = files[previewId].content;
         Object.keys(files).forEach(name => {
             if (name.endsWith('.css')) html = html.replace(new RegExp(`<link[^>]*href=["']${name}["'][^>]*>`, 'g'), `<style>${files[name].content}</style>`);
@@ -131,11 +156,6 @@
         localStorage.setItem('elite_live_code', html);
         window.open('live-preview.html', 'LivePreview');
     }
-
-    // 初期化
-    editor.setValue(files[activeId].content, -1);
-    editor.getSession().setMode(getMode(activeId));
-    renderTree();
 </script>
 </body>
 </html>
