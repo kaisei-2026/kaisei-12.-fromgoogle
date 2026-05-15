@@ -1,65 +1,64 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-// 🌟 ImageIconを追加インポートしています
-import { PenTool, Terminal, Monitor, CheckSquare, Info, X, Image as ImageIcon } from "lucide-react";
+import { PenTool, Terminal, Monitor, CheckSquare, Info, X, Image as ImageIcon, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// ツールのデータ定義
+// 洗練されたデータ定義に変更
 const toolsData = {
   jp: [
     {
       id: "python-editor",
-      title: "PYTHON エディタ",
-      desc: "データ分析・ローカルファイル対応",
-      icon: <Terminal size={32} />,
-      color: "bg-zinc-950",
-      textColor: "text-white",
-      iconColor: "text-[#28a745]",
+      title: "Python IDE",
+      subtitle: "Python エディタ",
+      desc: "データ分析やローカルファイル操作に完全対応したPython実行環境。",
+      icon: <Terminal size={24} strokeWidth={1.5} />,
+      glow: "from-emerald-400/20 to-transparent",
+      textGlow: "group-hover:text-emerald-500",
       link: "/tools/python-editor",
       guide: "【Pythonエディタの使い方】\n1. 「実行」ボタンでコードを動かせます。\n2. .ipynb拡張子を使えばJupyterモード（自動画面クリア）になります。\n3. 「フォルダを開く」でChromebook内の実際のファイルを直接編集・保存（Ctrl+S）できます。"
     },
     {
       id: "code-editor",
-      title: "WEB エディタ",
-      desc: "HTML/CSS/JS リアルタイムプレビュー",
-      icon: <Monitor size={32} />,
-      color: "bg-blue-600",
-      textColor: "text-white",
-      iconColor: "text-white",
+      title: "Web Editor",
+      subtitle: "WEB エディタ",
+      desc: "HTML / CSS / JS のリアルタイムプレビューを搭載した開発ツール。",
+      icon: <Monitor size={24} strokeWidth={1.5} />,
+      glow: "from-blue-400/20 to-transparent",
+      textGlow: "group-hover:text-blue-500",
       link: "/tools/code-editor",
-      guide: "【Webエディタの使い方】\n1. 左側のエディタでコードを書くと、LIVEプレビューに反映されます。\n2. HTML/CSS/JSファイルを切り替えて開発できます。\n3. 「LIVE」ボタンを押すと、別ウィンドウで全画面プレビューが開きます。"
+      guide: "【Webエディタの使い方】\n1. 左側のエディタでコードを書くと、LIVEプレビューに即座に反映されます。\n2. 複数のファイルを切り替えて開発できます。\n3. 「LIVE」ボタンを押すと、別ウィンドウで全画面プレビューが開きます。"
     },
     {
       id: "task-manager",
-      title: "TASK MANAGER",
-      desc: "開成生の課題管理・カレンダー",
-      icon: <CheckSquare size={32} />,
-      color: "bg-white",
-      textColor: "text-zinc-950",
-      iconColor: "text-blue-600",
+      title: "Task Manager",
+      subtitle: "課題管理カレンダー",
+      desc: "開成の膨大な課題を、カレンダー上で戦略的かつ直感的に管理する。",
+      icon: <CheckSquare size={24} strokeWidth={1.5} />,
+      glow: "from-indigo-400/20 to-transparent",
+      textGlow: "group-hover:text-indigo-500",
       link: "/tools/task-manager",
-      guide: "【課題管理の使い方】\n1. カレンダーの日付をクリックして課題を登録します。\n2. 「全◯回」を設定すると、毎週や数日おきの課題を一括登録できます。\n3. 登録した課題を長押しして別の日にドラッグ移動できます。"
+      guide: "【課題管理の使い方】\n1. カレンダーの日付をクリックして課題を登録します。\n2. 「全◯回」を設定すると、毎週や数日おきの課題を一括登録できます。\n3. 登録した課題を長押しして別の日にドラッグ＆ドロップで移動できます。"
     },
     {
       id: "forenote",
-      title: "FORENOTE PRO",
-      desc: "無限のキャンバスと高度な手書き機能",
-      icon: <PenTool size={32} />,
-      color: "bg-zinc-100",
-      textColor: "text-zinc-950",
-      iconColor: "text-zinc-950",
+      title: "Forenote Pro",
+      subtitle: "無限キャンバス",
+      desc: "無限のキャンバスと高度な手書き機能を備えたプロフェッショナルノート。",
+      icon: <PenTool size={24} strokeWidth={1.5} />,
+      glow: "from-zinc-400/20 to-transparent",
+      textGlow: "group-hover:text-zinc-700",
       link: "/tools/forenote",
       guide: "【Forenote Proの使い方】\n1. 画面上のツールからペンや図形を選んで手書きできます。\n2. なげなわツールで書いたものを選択・移動・変形できます。\n3. データは自動的にブラウザに保存され、次回起動時も続きから描けます。"
-    }, // 🌟 ←ここにカンマが必要でした！
+    },
     {
       id: "image-upscaler",
-      title: "IMAGE UPSCALER",
-      desc: "高画質化・4Kアップスケール",
-      icon: <ImageIcon size={32} />,
-      color: "bg-emerald-500",
-      textColor: "text-white",
-      iconColor: "text-white",
+      title: "Image Upscaler",
+      subtitle: "AI風 高画質化",
+      desc: "ブラウザの限界を引き出し、画像を4K解像度へアップスケールする。",
+      icon: <ImageIcon size={24} strokeWidth={1.5} />,
+      glow: "from-teal-400/20 to-transparent",
+      textGlow: "group-hover:text-teal-500",
       link: "/tools/image-upscaler",
       guide: "【画像高画質化ツールの使い方】\n1. 画像をドラッグ＆ドロップで読み込みます。\n2. 2倍や4倍を選択すると、内部で最高精度の補間計算が行われます。\n3. シャープネス（くっきり感）や彩度を調整し、保存ボタンでダウンロードできます。"
     }
@@ -67,58 +66,58 @@ const toolsData = {
   en: [
     {
       id: "python-editor",
-      title: "PYTHON IDE",
-      desc: "Data Analysis / Local Files",
-      icon: <Terminal size={32} />,
-      color: "bg-zinc-950",
-      textColor: "text-white",
-      iconColor: "text-[#28a745]",
+      title: "Python IDE",
+      subtitle: "Python Editor",
+      desc: "Python execution environment with full support for data analysis and local files.",
+      icon: <Terminal size={24} strokeWidth={1.5} />,
+      glow: "from-emerald-400/20 to-transparent",
+      textGlow: "group-hover:text-emerald-500",
       link: "/tools/python-editor",
-      guide: "How to use Python IDE:\n1. Click 'RUN' to execute code.\n2. Use .ipynb extension for Jupyter mode.\n3. Open Folder to edit and save (Ctrl+S) local files directly."
+      guide: "How to use Python IDE:\n1. Click 'RUN' to execute code.\n2. Use .ipynb extension for Jupyter mode.\n3. Open Folder to edit and save local files directly."
     },
     {
       id: "code-editor",
-      title: "WEB IDE",
-      desc: "HTML/CSS/JS Live Preview",
-      icon: <Monitor size={32} />,
-      color: "bg-blue-600",
-      textColor: "text-white",
-      iconColor: "text-white",
+      title: "Web Editor",
+      subtitle: "HTML / CSS / JS",
+      desc: "Development tool featuring real-time preview of HTML, CSS, and JavaScript.",
+      icon: <Monitor size={24} strokeWidth={1.5} />,
+      glow: "from-blue-400/20 to-transparent",
+      textGlow: "group-hover:text-blue-500",
       link: "/tools/code-editor",
-      guide: "How to use Web IDE:\n1. Codes reflect instantly in preview.\n2. Support HTML, CSS, and JS files.\n3. Click 'LIVE' to open preview in a new window."
+      guide: "How to use Web Editor:\n1. Codes reflect instantly in preview.\n2. Switch between multiple files easily.\n3. Click 'LIVE' to open full-screen preview."
     },
     {
       id: "task-manager",
-      title: "TASK MANAGER",
-      desc: "Calendar-based Task Tracking",
-      icon: <CheckSquare size={32} />,
-      color: "bg-white",
-      textColor: "text-zinc-950",
-      iconColor: "text-blue-600",
+      title: "Task Manager",
+      subtitle: "Calendar & Tasks",
+      desc: "Manage massive workloads strategically and intuitively on a calendar.",
+      icon: <CheckSquare size={24} strokeWidth={1.5} />,
+      glow: "from-indigo-400/20 to-transparent",
+      textGlow: "group-hover:text-indigo-500",
       link: "/tools/task-manager",
-      guide: "How to use Task Manager:\n1. Click calendar days to add tasks.\n2. Use 'Repeat' to add multiple occurrences at once.\n3. Drag and drop tasks to change dates."
+      guide: "How to use Task Manager:\n1. Click dates to add tasks.\n2. Use 'Repeat' for recurring assignments.\n3. Drag & drop tasks to reschedule."
     },
     {
       id: "forenote",
-      title: "FORENOTE PRO",
-      desc: "Infinite Canvas & Handwriting",
-      icon: <PenTool size={32} />,
-      color: "bg-zinc-100",
-      textColor: "text-zinc-950",
-      iconColor: "text-zinc-950",
+      title: "Forenote Pro",
+      subtitle: "Digital Notebook",
+      desc: "Professional notebook with infinite canvas and advanced handwriting tools.",
+      icon: <PenTool size={24} strokeWidth={1.5} />,
+      glow: "from-zinc-400/20 to-transparent",
+      textGlow: "group-hover:text-zinc-700",
       link: "/tools/forenote",
-      guide: "How to use Forenote Pro:\n1. Write freely using pen and shapes.\n2. Use Lasso tool to move or resize objects.\n3. Everything is auto-saved to your browser."
-    }, // 🌟 ←ここもです！
+      guide: "How to use Forenote Pro:\n1. Write freely with various tools.\n2. Use Lasso to move or resize.\n3. Everything auto-saves to your browser."
+    },
     {
       id: "image-upscaler",
-      title: "IMAGE UPSCALER",
-      desc: "Enhance & 4K Upscaling",
-      icon: <ImageIcon size={32} />,
-      color: "bg-emerald-500",
-      textColor: "text-white",
-      iconColor: "text-white",
+      title: "Image Upscaler",
+      subtitle: "AI-style Enhance",
+      desc: "Pushing browser limits to upscale images to 4K resolution.",
+      icon: <ImageIcon size={24} strokeWidth={1.5} />,
+      glow: "from-teal-400/20 to-transparent",
+      textGlow: "group-hover:text-teal-500",
       link: "/tools/image-upscaler",
-      guide: "How to use Image Upscaler:\n1. Drag and drop an image.\n2. Select 2x or 4x scale. High-quality interpolation will be applied.\n3. Adjust sharpness and download."
+      guide: "How to use Upscaler:\n1. Drag & drop an image.\n2. Select scale (e.g., 2x or 4x).\n3. Adjust sharpness and download."
     }
   ]
 };
@@ -136,43 +135,57 @@ export default function ToolsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen pt-40 pb-20 px-6 max-w-6xl mx-auto bg-white font-sans">
+    <div className="min-h-screen pt-40 pb-24 px-6 max-w-[1200px] mx-auto bg-[#fafafa] font-sans">
+      
       {/* Header */}
-      <div className="mb-16">
-        <h1 className="text-5xl font-black text-zinc-950 tracking-tighter uppercase">
-          {lang === "jp" ? "ツール." : "Tools."}
+      <div className="mb-24 text-center">
+        <h1 className="text-6xl md:text-8xl font-black text-zinc-900 tracking-tighter uppercase mb-4">
+          Tools.
         </h1>
-        <p className="mt-2 text-zinc-500 font-bold tracking-widest text-sm">
-          {lang === "jp" ? "ブラウザで完結するプロフェッショナル開発環境" : "Professional environments directly in your browser."}
+        <p className="text-zinc-400 font-bold tracking-[0.2em] text-xs md:text-sm uppercase">
+          {lang === "jp" ? "ブラウザで完結するプロフェッショナル環境" : "Professional environments in your browser"}
         </p>
-        <div className="h-1.5 w-20 bg-blue-600 mt-6" />
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Grid: 完全にサイズを統一した美しいBentoレイアウト */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {toolsData[lang].map((tool) => (
           <div key={tool.id} className="relative group">
-            {/* ツールへのリンク */}
-            <Link href={tool.link} className="block outline-none">
-              <motion.div 
-                whileHover={{ y: -5 }} 
-                className={`h-[280px] ${tool.color} ${tool.textColor} p-10 flex flex-col justify-between rounded-[2.5rem] shadow-[0_10px_30px_rgba(0,0,0,0.08)] transition-all border border-zinc-100 hover:shadow-2xl`}
-              >
-                <div className={tool.iconColor}>{tool.icon}</div>
-                <div>
-                  <h2 className="text-3xl font-black uppercase leading-tight mb-2">{tool.title}</h2>
-                  <p className="opacity-60 font-bold text-sm tracking-wide">{tool.desc}</p>
+            
+            <Link href={tool.link} className="block outline-none h-full">
+              <div className="relative h-[260px] bg-white border border-zinc-200/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-zinc-300 transition-all duration-500 z-10">
+                
+                {/* 🌟 背景の淡い発光（Cursor風） */}
+                <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${tool.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
+
+                {/* 上部: アイコン & インフォボタン */}
+                <div className="flex justify-between items-start z-10 relative">
+                  <div className={`w-12 h-12 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 transition-colors duration-300 ${tool.textGlow}`}>
+                    {tool.icon}
+                  </div>
                 </div>
-              </motion.div>
+
+                {/* 下部: テキスト */}
+                <div className="z-10 relative">
+                  <p className="text-[10px] font-black tracking-[0.2em] text-zinc-400 mb-2 uppercase">{tool.subtitle}</p>
+                  <h2 className="text-2xl font-black text-zinc-900 tracking-tight mb-2">{tool.title}</h2>
+                  <p className="text-sm font-medium text-zinc-500 leading-relaxed line-clamp-2">{tool.desc}</p>
+                </div>
+                
+                {/* ホバー時に右下から現れる矢印 */}
+                <div className="absolute bottom-8 right-8 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-zinc-300 group-hover:text-zinc-900">
+                  <ArrowUpRight size={24} strokeWidth={2} />
+                </div>
+              </div>
             </Link>
 
-            {/* 使い方ボタン */}
+            {/* 🌟 使い方ボタン (リンクとは独立してクリック可能) */}
             <button 
-              onClick={() => setSelectedGuide(tool.guide)}
-              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-current hover:bg-white hover:text-black transition-all z-20 shadow-lg"
-              title="使い方を見る"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedGuide(tool.guide); }}
+              className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200 transition-all z-20 shadow-sm"
+              title="使い方"
             >
-              <Info size={20} />
+              <Info size={16} />
             </button>
           </div>
         ))}
@@ -187,41 +200,39 @@ export default function ToolsPage() {
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
               onClick={() => setSelectedGuide(null)}
-              className="absolute inset-0 bg-zinc-950/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-md"
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-white text-zinc-950 p-8 md:p-12 rounded-[3rem] shadow-2xl max-w-lg w-full border border-zinc-200"
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              className="relative bg-white text-zinc-900 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-zinc-200"
             >
               <button 
                 onClick={() => setSelectedGuide(null)}
-                className="absolute top-6 right-6 p-2 hover:bg-zinc-100 rounded-full transition-colors"
+                className="absolute top-6 right-6 p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400 hover:text-zinc-900"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
-              <h3 className="text-xl font-black mb-6 flex items-center gap-2">
-                <Info className="text-blue-600" />
-                {lang === "jp" ? "使い方ガイド" : "How to Use"}
+              <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900">
+                  <Info size={16} />
+                </div>
+                {lang === "jp" ? "使い方ガイド" : "Quick Guide"}
               </h3>
-              <div className="text-zinc-600 leading-relaxed whitespace-pre-wrap font-medium">
+              <div className="text-zinc-600 leading-loose text-sm font-medium whitespace-pre-wrap">
                 {selectedGuide}
               </div>
               <button 
                 onClick={() => setSelectedGuide(null)}
-                className="mt-8 w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-zinc-800 transition-colors"
+                className="mt-10 w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
               >
-                {lang === "jp" ? "わかった！" : "Got it"}
+                {lang === "jp" ? "理解しました" : "Got it"}
               </button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      <footer className="py-20 text-center text-zinc-400">
-        <p className="text-[10px] tracking-[0.4em] font-bold uppercase">© 2026 KAISEI HUB.</p>
-      </footer>
     </div>
   );
 }
