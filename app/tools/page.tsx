@@ -4,13 +4,13 @@ import Link from "next/link";
 import { PenTool, Terminal, Monitor, CheckSquare, Info, X, Image as ImageIcon, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// 洗練されたデータ定義に変更
+// 🌟 title（大きな文字）と subtitle（上の小さな文字）を入れ替えて最適化しました
 const toolsData = {
   jp: [
     {
       id: "python-editor",
-      title: "Python IDE",
-      subtitle: "Python エディタ",
+      title: "Python エディタ",
+      subtitle: "PYTHON IDE",
       desc: "データ分析やローカルファイル操作に完全対応したPython実行環境。",
       icon: <Terminal size={24} strokeWidth={1.5} />,
       glow: "from-emerald-400/20 to-transparent",
@@ -20,8 +20,8 @@ const toolsData = {
     },
     {
       id: "code-editor",
-      title: "Web Editor",
-      subtitle: "WEB エディタ",
+      title: "Web エディタ",
+      subtitle: "WEB EDITOR",
       desc: "HTML / CSS / JS のリアルタイムプレビューを搭載した開発ツール。",
       icon: <Monitor size={24} strokeWidth={1.5} />,
       glow: "from-blue-400/20 to-transparent",
@@ -31,8 +31,8 @@ const toolsData = {
     },
     {
       id: "task-manager",
-      title: "Task Manager",
-      subtitle: "課題管理カレンダー",
+      title: "課題管理カレンダー",
+      subtitle: "TASK MANAGER",
       desc: "開成の膨大な課題を、カレンダー上で戦略的かつ直感的に管理する。",
       icon: <CheckSquare size={24} strokeWidth={1.5} />,
       glow: "from-indigo-400/20 to-transparent",
@@ -42,8 +42,8 @@ const toolsData = {
     },
     {
       id: "forenote",
-      title: "Forenote Pro",
-      subtitle: "無限キャンバス",
+      title: "高機能手書きノート",
+      subtitle: "FORENOTE PRO",
       desc: "無限のキャンバスと高度な手書き機能を備えたプロフェッショナルノート。",
       icon: <PenTool size={24} strokeWidth={1.5} />,
       glow: "from-zinc-400/20 to-transparent",
@@ -53,8 +53,8 @@ const toolsData = {
     },
     {
       id: "image-upscaler",
-      title: "Image Upscaler",
-      subtitle: "AI風 高画質化",
+      title: "画像高画質化ツール",
+      subtitle: "IMAGE UPSCALER",
       desc: "ブラウザの限界を引き出し、画像を4K解像度へアップスケールする。",
       icon: <ImageIcon size={24} strokeWidth={1.5} />,
       glow: "from-teal-400/20 to-transparent",
@@ -155,7 +155,7 @@ export default function ToolsPage() {
             <Link href={tool.link} className="block outline-none h-full">
               <div className="relative h-[260px] bg-white border border-zinc-200/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-zinc-300 transition-all duration-500 z-10">
                 
-                {/* 🌟 背景の淡い発光（Cursor風） */}
+                {/* 背景の淡い発光 */}
                 <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${tool.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
                 {/* 上部: アイコン & インフォボタン */}
@@ -179,7 +179,7 @@ export default function ToolsPage() {
               </div>
             </Link>
 
-            {/* 🌟 使い方ボタン (リンクとは独立してクリック可能) */}
+            {/* 使い方ボタン */}
             <button 
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedGuide(tool.guide); }}
               className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200 transition-all z-20 shadow-sm"
