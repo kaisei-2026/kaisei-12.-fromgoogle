@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaisei Image Upscaler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --primary: #1a73e8; --bg: #ffffff; --text: #202124; --border: #dadce0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f8f9fa; color: var(--text); padding: 20px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .header h1 { font-size: 20px; font-weight: 900; color: var(--primary); letter-spacing: 1px; }
+
+        .layout { display: flex; gap: 20px; flex: 1; min-height: 0; }
+        
+        /* コントロールパネル */
+        .controls { width: 300px; background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 12px; font-weight: bold; color: #5f6368; }
+        select, input[type="range"] { width: 100%; }
+        select { padding: 8px; border-radius: 8px; border: 1px solid var(--border); outline: none; }
+        
+        /* スライダーの見た目 */
+        input[type="range"] { -webkit-appearance: none; height: 6px; background: #e0e0e0; border-radius: 5px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--primary); cursor: pointer; }
+
+        .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-upload { background: #f1f3f4; color: #3c4043; border: 1px dashed #aaa; }
+        .btn-upload:hover { background: #e8eaed; }
+        .btn-download { background: var(--primary); color: white; margin-top: auto; }
+        .btn-download:hover { background: #1557b0; }
+        .btn-download:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* プレビューエリア */
+        .preview-container { flex: 1; background: white; border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; background-image: radial-gradient(#eee 1px, transparent 1px); background-size: 20px 20px; }
+        canvas { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .empty-state { position: absolute; display: flex; flex-direction: column; align-items: center; color: #9aa0a6; pointer-events: none; }
+        .empty-state i { font-size: 48px; margin-bottom: 10px; }
+        
+        /* 隠し要素 */
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-magic"></i> IMAGE UPSCALER</h1>
+    <span style="font-size: 11px; font-weight: bold; color: #888; background: #eee; padding: 4px 10px; border-radius: 12px;">CLIENT-SIDE ENHANCE</span>
+</div>
+
+<div class="layout">
+    <!-- コントロールパネル -->
+    <div class="controls">
+        <button class="btn btn-upload" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-upload"></i> 画像を読み込む
+        </button>
+        <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp" onchange="loadImage(event)">
+
+        <div class="control-group">
+            <label>解像度アップスケール</label>
+            <select id="scaleSelect" onchange="applyFilters()">
+                <option value="1">等倍 (1x) - 画質補正のみ</option>
+                <option value="2" selected>2倍 (2x) - フルHD化</option>
+                <option value="4">4倍 (4x) - 4K化</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label>シャープネス（くっきりさせる） <span id="sharpVal">50</span>%</label>
+            <input type="range" id="sharpness" min="0" max="100" value="50" oninput="updateVal('sharpVal', this.value); applyFilters()">
+        </div>
+
+        <div class="control-group">
+            <label>コントラスト（メリハリ） <span id="contrastVal">110</span>%</label>
+            <input type="range" id="contrast" min="100" max="150" value="110" oninput="updateVal('contrastVal', this.value); applyFilters()">
+        </div>
+
+        <div class="control-group">
+            <label>彩度（鮮やかさ） <span id="saturationVal">110</span>%</label>
+            <input type="range" id="saturation" min="100" max="200" value="110" oninput="updateVal('saturationVal', this.value); applyFilters()">
+        </div>
+
+        <div style="font-size:10px; color:#888; line-height:1.4; margin-top:10px;">
+            ※ブラウザの最高精度描画エンジンを使用し、疑似的に高画質化を行います。画像サイズが大きすぎると処理に数秒かかる場合があります。
+        </div>
+
+        <button class="btn btn-download" id="downloadBtn" onclick="downloadImage()" disabled>
+            <i class="fas fa-download"></i> 高画質で保存
+        </button>
+    </div>
+
+    <!-- プレビュー -->
+    <div class="preview-container" id="dropZone">
+        <div class="empty-state" id="emptyState">
+            <i class="fas fa-image"></i>
+            <p>画像をドラッグ＆ドロップ</p>
+        </div>
+        <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let originalImage = null;
+
+    // スライダーの値表示更新
+    function updateVal(id, val) { document.getElementById(id).innerText = val; }
+
+    // ドラッグ＆ドロップ対応
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e8f0fe'; });
+    dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); dropZone.style.background = ''; });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault(); dropZone.style.background = '';
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            processFile(e.dataTransfer.files[0]);
+        }
+    });
+
+    // ファイル読み込み
+    function loadImage(event) {
+        if (event.target.files && event.target.files[0]) {
+            processFile(event.target.files[0]);
+        }
+    }
+
+    function processFile(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                originalImage = img;
+                document.getElementById('emptyState').style.display = 'none';
+                canvas.style.display = 'block';
+                document.getElementById('downloadBtn').disabled = false;
+                applyFilters();
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // フィルタとアップスケールの適用
+    function applyFilters() {
+        if (!originalImage) return;
+
+        const scale = parseInt(document.getElementById('scaleSelect').value);
+        const sharpness = parseInt(document.getElementById('sharpness').value) / 100;
+        const contrast = document.getElementById('contrast').value;
+        const saturation = document.getElementById('saturation').value;
+
+        // 解像度を拡大
+        const width = originalImage.width * scale;
+        const height = originalImage.height * scale;
+        
+        canvas.width = width;
+        canvas.height = height;
+
+        // 最高精度の補間アルゴリズムを有効化
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // CSSフィルタでコントラストと彩度を調整
+        ctx.filter = `contrast(${contrast}%) saturate(${saturation}%)`;
+        
+        // 画像を描画（ここで拡大される）
+        ctx.drawImage(originalImage, 0, 0, width, height);
+        ctx.filter = 'none'; // フィルタをリセット
+
+        // シャープネス処理（コンボリューション行列）
+        if (sharpness > 0) {
+            applySharpen(width, height, sharpness);
+        }
+    }
+
+    function applySharpen(w, h, amount) {
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const data = imageData.data;
+        const side = Math.round(Math.sqrt(9));
+        const halfSide = Math.floor(side / 2);
+        
+        // シャープネスの強さを計算
+        const a = amount * 3;
+        const b = -amount;
+        const weights = [
+            0, b, 0,
+            b, 1 - (b * 4), b,
+            0, b, 0
+        ];
+        
+        const src = new Uint8ClampedArray(data);
+        const sw = w, sh = h;
+        const wSum = 1;
+
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const dstOff = (y * w + x) * 4;
+                let r = 0, g = 0, b_val = 0;
+                
+                for (let cy = 0; cy < side; cy++) {
+                    for (let cx = 0; cx < side; cx++) {
+                        const scy = y + cy - halfSide;
+                        const scx = x + cx - halfSide;
+                        if (scy >= 0 && scy < sh && scx >= 0 && scx < sw) {
+                            const srcOff = (scy * sw + scx) * 4;
+                            const wt = weights[cy * side + cx];
+                            r += src[srcOff] * wt;
+                            g += src[srcOff + 1] * wt;
+                            b_val += src[srcOff + 2] * wt;
+                        }
+                    }
+                }
+                data[dstOff] = r / wSum;
+                data[dstOff + 1] = g / wSum;
+                data[dstOff + 2] = b_val / wSum;
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    function downloadImage() {
+        if (!originalImage) return;
+        const scale = document.getElementById('scaleSelect').value;
+        const link = document.createElement('a');
+        link.download = `upscaled_${scale}x.png`;
+        link.href = canvas.toDataURL('image/png', 1.0); // 最高画質のPNGで出力
+        link.click();
+    }
+</script>
+</body>
+</html>
