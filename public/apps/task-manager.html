@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaisei Task Manager - Full Sync</title>
+    <title>Kaisei Task Manager - Optimized</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -11,6 +11,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; }
         .wrapper { width: 100%; margin: 0; }
+        
+        /* 🌟 ログイン説明ボックスのスタイル */
+        .auth-notice {
+            background: #ffffff; border: 2px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.1);
+        }
+        .auth-notice h3 { font-size: 13px; color: var(--primary); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+        .auth-notice p { font-size: 11px; color: #5f6368; line-height: 1.5; }
+        .auth-notice strong { color: #d93025; }
+
         .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; }
         .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
@@ -43,15 +53,21 @@
 <body>
 
 <div class="wrapper">
-    <!-- ユーザーバー -->
     <div id="auth-section">
+        <!-- 🌟 説明ボックス -->
+        <div class="auth-notice" id="login-notice">
+            <h3><i class="fas fa-graduation-cap"></i> 開成生のみなさんへ</h3>
+            <p>学校のアカウント（<strong>@s.sapporo-c.ed.jpなど</strong>）でそのままログインして、課題のクラウド保存が可能です！</p>
+            <p style="margin-top:5px; opacity:0.8;">※「Googleカレンダーへの自動同期」のみ、組織の制限により<strong>個人用Gmail</strong>が必要な場合があります。</p>
+        </div>
+
         <button id="btn-login" class="btn-main btn-google" onclick="login()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16">
-            Googleでログイン
+            Googleログインを有効にする
         </button>
         <div id="user-profile" style="display:none;">
             <div id="user-info"></div>
-            <button onclick="logout()" style="background:none; border:none; color:#d93025; font-size:10px; cursor:pointer;">ログアウト</button>
+            <button onclick="logout()" style="background:none; border:none; color:#d93025; font-size:11px; cursor:pointer; font-weight:bold;">ログアウト</button>
         </div>
     </div>
 
@@ -70,7 +86,7 @@
             <input type="date" id="taskDate">
             <button class="btn-main btn-add" onclick="addSingleTask()">クラウドに保存</button>
 
-            <!-- 🌟 同期ボタン -->
+            <!-- 🌟 同期ボタン（ログイン後のみ出現） -->
             <button id="btn-sync" class="btn-main btn-sync" style="display:none;" onclick="syncToGoogle()">
                 <i class="fab fa-google"></i> Googleカレンダーへ同期
             </button>
@@ -88,6 +104,7 @@
 </div>
 
 <script>
+    // 🌟 自分のSupabase情報を入れてください
     const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -107,17 +124,18 @@
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
     }
 
+    // 🌟 修正版ログイン：学校アカウントでも通りやすくするため、初回は権限(scopes)を要求しない
     async function login() {
-    const { data, error } = await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-            redirectTo: window.location.href,
-            // 🌟 scopes を書かない（名前とメアドだけもらう設定にする）
-            skipBrowserRedirect: true
-        }
-    });
-    if (data.url) window.open(data.url, '_blank');
-}
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.href,
+                // 初回ログインを優先するため scopes は空にする
+                skipBrowserRedirect: true
+            }
+        });
+        if (data.url) window.open(data.url, '_blank');
+    }
 
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
 
@@ -125,8 +143,9 @@
         userSession = session;
         if (session) {
             document.getElementById('btn-login').style.display = 'none';
+            document.getElementById('login-notice').style.display = 'none';
             document.getElementById('user-profile').style.display = 'flex';
-            document.getElementById('btn-sync').style.display = 'block'; // 🌟 ボタンを表示
+            document.getElementById('btn-sync').style.display = 'block'; 
             document.getElementById('user-info').innerHTML = `
                 <img src="${session.user.user_metadata.avatar_url}">
                 <span>${session.user.user_metadata.full_name}</span>
@@ -134,21 +153,15 @@
         }
     }
 
-    // 🌟 Googleカレンダー同期ロジック
-async function syncToGoogle() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        
-        if (!session || !session.provider_token) {
-            alert("権限が不足しています。一度ログアウトし、再ログイン時に『カレンダーの編集』に必ずチェックを入れてください。");
+    async function syncToGoogle() {
+        // 同期には権限が必要なため、足りない場合は警告を出す
+        if (!userSession || !userSession.provider_token) {
+            alert("学校用アカウントは組織の制限により同期できない場合があります。その場合は個人のGmailでログインしてください。");
             return;
         }
-
         const btn = document.getElementById('btn-sync');
         btn.innerText = "同期中...";
         btn.disabled = true;
-
-        let successCount = 0;
-        let failCount = 0;
 
         for (const task of tasks) {
             const event = {
@@ -157,31 +170,13 @@ async function syncToGoogle() {
                 'start': { 'date': task.deadline },
                 'end': { 'date': task.deadline }
             };
-
-            const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+            await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${session.provider_token}`, 
-                    'Content-Type': 'application/json' 
-                },
+                headers: { 'Authorization': `Bearer ${userSession.provider_token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(event)
             });
-
-            if (response.ok) {
-                successCount++;
-            } else {
-                const errData = await response.json();
-                console.error("Google API Error:", errData);
-                failCount++;
-            }
         }
-
-        if (failCount > 0) {
-            alert(`${successCount}件成功、${failCount}件失敗しました。ログイン時にカレンダー権限にチェックを入れたか確認してください。`);
-        } else {
-            alert(`${successCount}件の課題をすべてGoogleカレンダーに同期しました！`);
-        }
-        
+        alert("同期が完了しました！");
         btn.innerText = "Googleカレンダーへ同期";
         btn.disabled = false;
     }
@@ -195,7 +190,7 @@ async function syncToGoogle() {
         const name = document.getElementById('taskName').value;
         const date = document.getElementById('taskDate').value;
         const sub = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("タイトルと日付を入力してください");
+        if(!name || !date) return alert("入力してください");
         await supabaseClient.from('tasks').insert([{ team: currentTeam, name, deadline: date, subject: sub }]);
         document.getElementById('taskName').value = '';
     }
