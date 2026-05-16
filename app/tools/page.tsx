@@ -120,9 +120,10 @@ const toolsData = {
       guide: "How to use Upscaler:\n1. Drag & drop an image.\n2. Select scale (e.g., 2x or 4x).\n3. Adjust sharpness and download."
     }
   ]
-};
+};。
 
 export default function ToolsPage() {
+  // ... (useState, useEffectの部分は同じ) ...
   const [lang, setLang] = useState<"jp" | "en">("jp");
   const [mounted, setMounted] = useState(false);
   const [selectedGuide, setSelectedGuide] = useState<string | null>(null);
@@ -135,55 +136,49 @@ export default function ToolsPage() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen pt-40 pb-24 px-6 max-w-[1200px] mx-auto bg-[#fafafa] font-sans">
+    // 🌟 ダークモード時の背景 (dark:bg-[#0a0a0a])
+    <div className="min-h-screen pt-40 pb-24 px-6 max-w-[1200px] mx-auto bg-[#fafafa] dark:bg-[#0a0a0a] font-sans transition-colors duration-300">
       
-      {/* Header */}
       <div className="mb-24 text-center">
-        <h1 className="text-6xl md:text-8xl font-black text-zinc-900 tracking-tighter uppercase mb-4">
+        <h1 className="text-6xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-4">
           Tools.
         </h1>
-        <p className="text-zinc-400 font-bold tracking-[0.2em] text-xs md:text-sm uppercase">
+        <p className="text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.2em] text-xs md:text-sm uppercase">
           {lang === "jp" ? "ブラウザで完結するプロフェッショナル環境" : "Professional environments in your browser"}
         </p>
       </div>
 
-      {/* Grid: 完全にサイズを統一した美しいBentoレイアウト */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         {toolsData[lang].map((tool) => (
           <div key={tool.id} className="relative group">
             
             <Link href={tool.link} className="block outline-none h-full">
-              <div className="relative h-[260px] bg-white border border-zinc-200/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] hover:border-zinc-300 transition-all duration-500 z-10">
+              {/* 🌟 カードをダークモード対応に (dark:bg-[#111] dark:border-zinc-800) */}
+              <div className="relative h-[260px] bg-white dark:bg-[#111] border border-zinc-200/80 dark:border-zinc-800/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(255,255,255,0.02)] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-500 z-10">
                 
-                {/* 背景の淡い発光 */}
                 <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${tool.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
-                {/* 上部: アイコン & インフォボタン */}
                 <div className="flex justify-between items-start z-10 relative">
-                  <div className={`w-12 h-12 rounded-2xl bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 transition-colors duration-300 ${tool.textGlow}`}>
+                  <div className={`w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 transition-colors duration-300 ${tool.textGlow}`}>
                     {tool.icon}
                   </div>
                 </div>
 
-                {/* 下部: テキスト */}
                 <div className="z-10 relative">
-                  <p className="text-[10px] font-black tracking-[0.2em] text-zinc-400 mb-2 uppercase">{tool.subtitle}</p>
-                  <h2 className="text-2xl font-black text-zinc-900 tracking-tight mb-2">{tool.title}</h2>
-                  <p className="text-sm font-medium text-zinc-500 leading-relaxed line-clamp-2">{tool.desc}</p>
+                  <p className="text-[10px] font-black tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2 uppercase">{tool.subtitle}</p>
+                  <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-2">{tool.title}</h2>
+                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2">{tool.desc}</p>
                 </div>
                 
-                {/* ホバー時に右下から現れる矢印 */}
-                <div className="absolute bottom-8 right-8 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-zinc-300 group-hover:text-zinc-900">
+                <div className="absolute bottom-8 right-8 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-white">
                   <ArrowUpRight size={24} strokeWidth={2} />
                 </div>
               </div>
             </Link>
 
-            {/* 使い方ボタン */}
             <button 
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedGuide(tool.guide); }}
-              className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center text-zinc-400 hover:text-zinc-900 hover:bg-zinc-200 transition-all z-20 shadow-sm"
-              title="使い方"
+              className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all z-20 shadow-sm"
             >
               <Info size={16} />
             </button>
@@ -191,7 +186,6 @@ export default function ToolsPage() {
         ))}
       </div>
 
-      {/* 使い方ポップアップ (Modal) */}
       <AnimatePresence>
         {selectedGuide && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
@@ -200,32 +194,32 @@ export default function ToolsPage() {
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }}
               onClick={() => setSelectedGuide(null)}
-              className="absolute inset-0 bg-zinc-900/40 backdrop-blur-md"
+              className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-md"
             />
             <motion.div 
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-white text-zinc-900 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-zinc-200"
+              className="relative bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800"
             >
               <button 
                 onClick={() => setSelectedGuide(null)}
-                className="absolute top-6 right-6 p-2 hover:bg-zinc-100 rounded-full transition-colors text-zinc-400 hover:text-zinc-900"
+                className="absolute top-6 right-6 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
               >
                 <X size={20} />
               </button>
               <h3 className="text-xl font-black mb-6 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-900">
+                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-white">
                   <Info size={16} />
                 </div>
                 {lang === "jp" ? "使い方ガイド" : "Quick Guide"}
               </h3>
-              <div className="text-zinc-600 leading-loose text-sm font-medium whitespace-pre-wrap">
+              <div className="text-zinc-600 dark:text-zinc-400 leading-loose text-sm font-medium whitespace-pre-wrap">
                 {selectedGuide}
               </div>
               <button 
                 onClick={() => setSelectedGuide(null)}
-                className="mt-10 w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold hover:bg-zinc-800 transition-colors shadow-lg shadow-zinc-900/20"
+                className="mt-10 w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
               >
                 {lang === "jp" ? "理解しました" : "Got it"}
               </button>
