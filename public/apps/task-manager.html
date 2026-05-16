@@ -42,10 +42,21 @@
         #user-info img { width: 30px; height: 30px; border-radius: 50%; }
     </style>
 </head>
+<!-- 前略（styleなどは同じ） -->
 <body>
 
 <div class="wrapper">
     <div id="auth-section">
+        <!-- 🌟 追加した説明文 -->
+        <div style="background: #fff3f3; border: 1px solid #ffcccc; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center;">
+            <p style="font-size: 12px; color: #d93025; font-weight: bold;">
+                <i class="fas fa-exclamation-triangle"></i> 注意：開成生は学校アカウント（@s.sapporo-c.ed.jp等）でログインしてください
+            </p>
+            <p style="font-size: 10px; color: #666; margin-top: 4px;">
+                ※初回のみ、Googleから警告が出ますが「詳細」→「移動」で許可してください。
+            </p>
+        </div>
+
         <button id="btn-login" class="btn-main btn-google" onclick="login()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
             Googleでログインして同期を有効化
@@ -55,7 +66,7 @@
             <button onclick="logout()" style="background:none; border:none; color:red; font-size:10px; cursor:pointer;">ログアウト</button>
         </div>
     </div>
-
+<!-- 中略（中身のロジックは前のメールの「完全版」と同じものを使ってください） -->
     <div class="team-tabs" id="teamTabs"></div>
 
     <div class="layout">
