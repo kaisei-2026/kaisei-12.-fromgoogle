@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PenTool, Terminal, Monitor, CheckSquare, Info, X, Image as ImageIcon, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// 言語別ツールデータ（省略なし）
+// ツールのデータ定義
 const toolsData = {
   jp: [
     {
@@ -135,109 +135,110 @@ export default function ToolsPage() {
   if (!mounted) return null;
 
   return (
-    // ダークモード時の背景と文字色を適用
-    <div className="min-h-screen pt-40 pb-24 px-6 max-w-[1200px] mx-auto bg-[#fafafa] dark:bg-[#0a0a0a] font-sans transition-colors duration-300">
+    // 🌟 修正ポイント１：ここが「画面全体の背景」になります。端から端まで色を塗ります。
+    <div className="min-h-screen w-full bg-[#fafafa] dark:bg-[#0a0a0a] transition-colors duration-300 font-sans">
       
-      {/* Header */}
-      <div className="mb-24 text-center">
-        <h1 className="text-6xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-4 transition-colors">
-          Tools.
-        </h1>
-        <p className="text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.2em] text-xs md:text-sm uppercase transition-colors">
-          {lang === "jp" ? "ブラウザで完結するプロフェッショナル環境" : "Professional environments in your browser"}
-        </p>
-      </div>
+      {/* 🌟 修正ポイント２：ここで「中身」だけを真ん中に寄せ、幅を最大1200pxに制限します。 */}
+      <div className="pt-40 pb-24 px-6 max-w-[1200px] mx-auto">
+        
+        {/* Header */}
+        <div className="mb-24 text-center">
+          <h1 className="text-6xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase mb-4 transition-colors">
+            Tools.
+          </h1>
+          <p className="text-zinc-400 dark:text-zinc-500 font-bold tracking-[0.2em] text-xs md:text-sm uppercase transition-colors">
+            {lang === "jp" ? "ブラウザで完結するプロフェッショナル環境" : "Professional environments in your browser"}
+          </p>
+        </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-        {toolsData[lang].map((tool) => (
-          <div key={tool.id} className="relative group">
-            
-            <Link href={tool.link} className="block outline-none h-full">
-              {/* カード背景をダークモード対応に */}
-              <div className="relative h-[260px] bg-white dark:bg-[#111] border border-zinc-200/80 dark:border-zinc-800/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(255,255,255,0.02)] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-500 z-10">
-                
-                {/* 背景の淡い発光 */}
-                <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${tool.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          {toolsData[lang].map((tool) => (
+            <div key={tool.id} className="relative group">
+              
+              <Link href={tool.link} className="block outline-none h-full">
+                <div className="relative h-[260px] bg-white dark:bg-[#111] border border-zinc-200/80 dark:border-zinc-800/80 rounded-[2rem] p-8 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_20px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_20px_40px_rgba(255,255,255,0.02)] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-500 z-10">
+                  
+                  {/* 背景の発光エフェクト */}
+                  <div className={`absolute -top-20 -right-20 w-64 h-64 bg-gradient-to-br ${tool.glow} blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none`} />
 
-                {/* 上部: アイコン */}
-                <div className="flex justify-between items-start z-10 relative">
-                  <div className={`w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 transition-colors duration-300 ${tool.textGlow}`}>
-                    {tool.icon}
+                  {/* アイコン */}
+                  <div className="flex justify-between items-start z-10 relative">
+                    <div className={`w-12 h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 transition-colors duration-300 ${tool.textGlow}`}>
+                      {tool.icon}
+                    </div>
+                  </div>
+
+                  {/* テキスト */}
+                  <div className="z-10 relative">
+                    <p className="text-[10px] font-black tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2 uppercase transition-colors">{tool.subtitle}</p>
+                    <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 transition-colors">{tool.title}</h2>
+                    <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2 transition-colors">{tool.desc}</p>
+                  </div>
+                  
+                  {/* ホバー矢印 */}
+                  <div className="absolute bottom-8 right-8 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-white">
+                    <ArrowUpRight size={24} strokeWidth={2} />
                   </div>
                 </div>
+              </Link>
 
-                {/* 下部: テキスト */}
-                <div className="z-10 relative">
-                  <p className="text-[10px] font-black tracking-[0.2em] text-zinc-400 dark:text-zinc-500 mb-2 uppercase transition-colors">{tool.subtitle}</p>
-                  <h2 className="text-2xl font-black text-zinc-900 dark:text-white tracking-tight mb-2 transition-colors">{tool.title}</h2>
-                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2 transition-colors">{tool.desc}</p>
-                </div>
-                
-                {/* ホバー時に右下から現れる矢印 */}
-                <div className="absolute bottom-8 right-8 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-900 dark:group-hover:text-white">
-                  <ArrowUpRight size={24} strokeWidth={2} />
-                </div>
-              </div>
-            </Link>
+              {/* 使い方ボタン */}
+              <button 
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedGuide(tool.guide); }}
+                className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all z-20 shadow-sm"
+                title="使い方"
+              >
+                <Info size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
 
-            {/* 使い方ボタン */}
-            <button 
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedGuide(tool.guide); }}
-              className="absolute top-8 right-8 w-8 h-8 rounded-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-zinc-800 transition-all z-20 shadow-sm"
-              title="使い方"
-            >
-              <Info size={16} />
-            </button>
-          </div>
-        ))}
+        {/* 使い方ポップアップ (Modal) */}
+        <AnimatePresence>
+          {selectedGuide && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+              <motion.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedGuide(null)}
+                className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-md"
+              />
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="relative bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800 transition-colors"
+              >
+                <button 
+                  onClick={() => setSelectedGuide(null)}
+                  className="absolute top-6 right-6 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                >
+                  <X size={20} />
+                </button>
+                <h3 className="text-xl font-black mb-6 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-white transition-colors">
+                    <Info size={16} />
+                  </div>
+                  {lang === "jp" ? "使い方ガイド" : "Quick Guide"}
+                </h3>
+                <div className="text-zinc-600 dark:text-zinc-400 leading-loose text-sm font-medium whitespace-pre-wrap transition-colors">
+                  {selectedGuide}
+                </div>
+                <button 
+                  onClick={() => setSelectedGuide(null)}
+                  className="mt-10 w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+                >
+                  {lang === "jp" ? "理解しました" : "Got it"}
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
       </div>
-
-      {/* 使い方ポップアップ (Modal) */}
-      <AnimatePresence>
-        {selectedGuide && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-            {/* モーダルの背景 */}
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedGuide(null)}
-              className="absolute inset-0 bg-zinc-900/40 dark:bg-black/60 backdrop-blur-md"
-            />
-            {/* モーダル本体 */}
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="relative bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 p-8 md:p-12 rounded-[2.5rem] shadow-2xl max-w-lg w-full border border-zinc-200 dark:border-zinc-800 transition-colors"
-            >
-              <button 
-                onClick={() => setSelectedGuide(null)}
-                className="absolute top-6 right-6 p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-              >
-                <X size={20} />
-              </button>
-              <h3 className="text-xl font-black mb-6 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-900 dark:text-white transition-colors">
-                  <Info size={16} />
-                </div>
-                {lang === "jp" ? "使い方ガイド" : "Quick Guide"}
-              </h3>
-              <div className="text-zinc-600 dark:text-zinc-400 leading-loose text-sm font-medium whitespace-pre-wrap transition-colors">
-                {selectedGuide}
-              </div>
-              <button 
-                onClick={() => setSelectedGuide(null)}
-                className="mt-10 w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-2xl font-bold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-lg"
-              >
-                {lang === "jp" ? "理解しました" : "Got it"}
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }
