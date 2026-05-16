@@ -18,7 +18,7 @@ export default function Home() {
   // 🌟 言語別のテキストデータを定義
   const content = {
     jp: {
-      heroSub: "唯一無二の、感動を。",
+      heroSub: "Sapporo Kaisei Secondary School",
       insightsTitle: "AIの使いかた",
       insightsSub: "Expert Insights",
       articleTitle: "あなたの可能性を広げる\nAI活用の3つの新常識",
@@ -31,7 +31,7 @@ export default function Home() {
       ]
     },
     en: {
-      heroSub: "The only one, the emotion.",
+      heroSub: "Sapporo Kaisei Secondary School",
       insightsTitle: "How to use AI",
       insightsSub: "Expert Insights",
       articleTitle: "3 New Paradigms of AI\nto Expand Your Potential",
