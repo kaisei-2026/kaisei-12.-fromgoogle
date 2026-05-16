@@ -135,14 +135,20 @@
     }
 
     // 🌟 Googleカレンダー同期ロジック
-    async function syncToGoogle() {
-        if (!userSession || !userSession.provider_token) {
-            alert("同期するには一度ログアウトして、再度ログインし直してください（権限更新のため）");
+async function syncToGoogle() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session || !session.provider_token) {
+            alert("権限が不足しています。一度ログアウトし、再ログイン時に『カレンダーの編集』に必ずチェックを入れてください。");
             return;
         }
+
         const btn = document.getElementById('btn-sync');
         btn.innerText = "同期中...";
         btn.disabled = true;
+
+        let successCount = 0;
+        let failCount = 0;
 
         for (const task of tasks) {
             const event = {
@@ -151,13 +157,31 @@
                 'start': { 'date': task.deadline },
                 'end': { 'date': task.deadline }
             };
-            await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+
+            const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${userSession.provider_token}`, 'Content-Type': 'application/json' },
+                headers: { 
+                    'Authorization': `Bearer ${session.provider_token}`, 
+                    'Content-Type': 'application/json' 
+                },
                 body: JSON.stringify(event)
             });
+
+            if (response.ok) {
+                successCount++;
+            } else {
+                const errData = await response.json();
+                console.error("Google API Error:", errData);
+                failCount++;
+            }
         }
-        alert("Googleカレンダーへの同期が完了しました！");
+
+        if (failCount > 0) {
+            alert(`${successCount}件成功、${failCount}件失敗しました。ログイン時にカレンダー権限にチェックを入れたか確認してください。`);
+        } else {
+            alert(`${successCount}件の課題をすべてGoogleカレンダーに同期しました！`);
+        }
+        
         btn.innerText = "Googleカレンダーへ同期";
         btn.disabled = false;
     }
