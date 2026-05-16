@@ -3,60 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaisei Task Manager - Ultimate</title>
+    <title>Kaisei Task Manager - Complete Edition</title>
+    <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; --text: #202124; }
+        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; --google-blue: #4285f4; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { font-family: sans-serif; background: #f8f9fa; color: var(--text); padding: 5px; font-size: 14px; overflow-x: hidden; }
-
+        body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; }
         .wrapper { width: 100%; margin: 0; }
+        
+        /* 使い方＆ログイン説明ボックス */
+        .instruction-banner { background: #e8f0fe; border: 1px solid var(--primary); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; display: flex; gap: 10px; line-height: 1.5; }
+        .auth-notice { background: #ffffff; border: 2px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(26, 115, 232, 0.1); }
+        .auth-notice h3 { font-size: 13px; color: var(--primary); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
+        .auth-notice p { font-size: 11px; color: #5f6368; line-height: 1.5; }
 
-        /* チームタブ */
         .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .team-tabs::-webkit-scrollbar { display: none; }
         .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
 
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-        @media (min-width: 1000px) {
-            .layout { flex-direction: row; align-items: flex-start; }
-            .sidebar { width: 320px !important; position: sticky; top: 5px; max-height: 95vh; overflow-y: auto; }
-        }
-
+        @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
+        
         .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h2 { font-size: 14px; margin-bottom: 10px; color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 5px; }
-        
         label { font-size: 10px; font-weight: bold; color: #5f6368; margin-top: 8px; display: block; }
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
         
         .mode-switch { background: #f1f3f4; padding: 10px; border-radius: 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 12px; font-weight: bold; }
         .mode-switch.active { background: var(--selected-bg); color: var(--primary); border: 1px solid var(--primary); }
 
-        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; transition: 0.2s; }
         .btn-add { background: var(--primary); }
+        .btn-google { background: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .btn-sync { background: var(--google-blue); margin-top: 15px; box-shadow: 0 4px 12px rgba(66,133,244,0.3); }
 
-        /* フィルターセクション */
         .filter-section { border-top: 1px solid #eee; margin-top: 15px; padding-top: 10px; }
         .filter-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
         .filter-chip { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 10px; background: #fff; cursor: pointer; font-weight: bold; transition: 0.1s; }
         .filter-chip.active { background: var(--selected-bg); color: var(--primary); border-color: var(--primary); }
 
-        /* カレンダー */
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
-        
         .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; transition: 0.1s; }
         .cal-cell.today { background: var(--today-bg) !important; }
         .cal-cell.today::after { content: 'TODAY'; position: absolute; top: 2px; right: 2px; font-size: 7px; font-weight: bold; color: #f57f17; }
-        .cal-cell.selected { border: 2px solid var(--primary); background: var(--selected-bg); z-index: 2; }
+        .cal-cell.selected { border: 2.5px solid var(--primary); background: var(--selected-bg); z-index: 2; }
         
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
-        
         .task-bar { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
         .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -64,8 +62,8 @@
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-
-        #auth-section { margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 8px 15px; border-radius: 12px; border: 1px solid var(--border); }
+        
+        #user-profile { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; background: #fff; border-bottom: 1px solid #eee; margin-bottom: 10px; }
         #user-info { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
         #user-info img { width: 24px; height: 24px; border-radius: 50%; }
     </style>
@@ -73,11 +71,30 @@
 <body>
 
 <div class="wrapper">
-    <!-- ユーザーログイン状況 -->
+    <!-- 🌟 使い方説明バナー（復活） -->
+    <div class="instruction-banner">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>使い方:</strong> タブでチームを切り替えます。カレンダーの日付をクリックすると入力欄に反映されます。「複数日選択」をONにすると一括登録できます。課題をドラッグして日付変更も可能です。
+        </div>
+    </div>
+
     <div id="auth-section">
-        <div id="user-info">ログインしていません</div>
-        <button id="btn-login" style="background:var(--primary); color:white; border:none; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:11px;" onclick="login()">Googleログイン</button>
-        <button id="btn-logout" style="display:none; background:none; border:none; color:red; cursor:pointer; font-size:11px;" onclick="logout()">ログアウト</button>
+        <!-- 🌟 学校アカウント向け注意書き（復活） -->
+        <div class="auth-notice" id="login-notice">
+            <h3><i class="fas fa-graduation-cap"></i> 開成生のみなさんへ</h3>
+            <p>学校のアカウント（<strong>@s.sapporo-c.ed.jpなど</strong>）でそのままログインして、課題のクラウド保存が可能です！</p>
+            <p style="margin-top:2px; opacity:0.8;">※「Googleカレンダーへの自動同期」は、組織の制限により<strong>個人用Gmail</strong>が必要な場合があります。</p>
+        </div>
+
+        <button id="btn-login" class="btn-main btn-google" onclick="login()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16">
+            Googleログインを有効にする
+        </button>
+        <div id="user-profile" style="display:none;">
+            <div id="user-info"></div>
+            <button onclick="logout()" style="background:none; border:none; color:#d93025; font-size:11px; cursor:pointer; font-weight:bold;">ログアウト</button>
+        </div>
     </div>
 
     <div class="team-tabs" id="teamTabs"></div>
@@ -85,21 +102,17 @@
     <div class="layout">
         <div class="sidebar">
             <h2><i class="fas fa-plus-circle"></i> 課題登録</h2>
-            
-            <label>タイトル</label>
-            <input type="text" id="taskName" placeholder="例：レポート提出">
-            
-            <label>科目</label>
+            <input type="text" id="taskName" placeholder="例: レポート第1回">
             <select id="taskSubject">
                 <option value="math">数学</option><option value="english">英語</option><option value="gengoku">現国</option>
                 <option value="genbun">言文</option><option value="kasei">化生 (化学/生物)</option><option value="butsuchi">物地 (物理/地学)</option>
                 <option value="koukyo">公共</option><option value="chisou">地総</option><option value="info">情報</option>
                 <option value="health">保健体育</option><option value="art">芸術 (音/美/書)</option><option value="home">家庭科</option><option value="other">その他</option>
             </select>
-
+            
             <div class="mode-switch" id="modeSwitch" onclick="toggleMultiMode()">
                 <span>複数日を選択する</span>
-                <i class="fas fa-check-double"></i>
+                <i class="fas fa-check-double" id="toggleIcon" style="color:#ccc;"></i>
             </div>
 
             <div id="singleAction">
@@ -110,26 +123,28 @@
 
             <div id="multiAction" style="display: none;">
                 <p id="selectedCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold; margin-bottom:5px;">0日選択中</p>
-                <button class="btn-main" style="background:#1e8e3e" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
+                <button class="btn-main btn-confirm" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
             </div>
 
+            <!-- 🌟 Googleカレンダー同期ボタン（復活） -->
+            <button id="btn-sync" class="btn-main btn-sync" style="display:none;" onclick="syncToGoogle()">
+                <i class="fab fa-google"></i> Googleカレンダーへ同期
+            </button>
+
+            <!-- フィルター機能 -->
             <div class="filter-section">
                 <label>表示フィルター</label>
                 <div class="filter-grid" id="filterGrid">
-                    <div class="filter-chip active" id="filter-all" onclick="setFilter('all')">すべて</div>
+                    <div class="filter-chip active" id="filter-all" style="grid-column: span 2;" onclick="setFilter('all')">すべて表示</div>
                 </div>
             </div>
-            
-            <button id="btn-sync" class="btn-main" style="background:#4285f4; display:none; margin-top:20px;" onclick="syncToGoogle()">
-                <i class="fab fa-google"></i> Googleカレンダーへ同期
-            </button>
         </div>
 
         <div class="calendar-container">
             <div class="cal-header">
-                <button onclick="changeMonth(-1)" style="border:none; background:none; padding:10px;"><i class="fas fa-chevron-left"></i></button>
+                <button onclick="changeMonth(-1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
                 <h2 id="monthLabel" style="font-size: 16px; font-weight: 800;"></h2>
-                <button onclick="changeMonth(1)" style="border:none; background:none; padding:10px;"><i class="fas fa-chevron-right"></i></button>
+                <button onclick="changeMonth(1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
             </div>
             <div class="cal-grid" id="grid"></div>
         </div>
@@ -150,7 +165,7 @@
     let currentTeam = localStorage.getItem('kaisei_current_team') || 'A';
     let userSession = null;
 
-    const subjects = {
+    const subjectsMap = {
         math:'数学', english:'英語', gengoku:'現国', genbun:'言文',
         kasei:'化生', butsuchi:'物地', koukyo:'公共', chisou:'地総',
         info:'情報', health:'保体', art:'芸術', home:'家庭', other:'他'
@@ -170,76 +185,10 @@
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
     }
 
-    // 🌟 --- 課題追加ロジック（教科名を自動付与） ---
-    async function addSingleTask() {
-        const name = document.getElementById('taskName').value;
-        const date = document.getElementById('taskDate').value;
-        const subId = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("情報を入力してください");
-
-        // 教科名：タイトル の形式にする
-        const finalTitle = `${subjects[subId]}：${name}`;
-
-        await supabaseClient.from('tasks').insert([{ 
-            team: currentTeam, 
-            name: finalTitle, 
-            deadline: date, 
-            subject: subId 
-        }]);
-        document.getElementById('taskName').value = '';
-    }
-
-    async function addMultiTasks() {
-        const name = document.getElementById('taskName').value;
-        const subId = document.getElementById('taskSubject').value;
-        if(!name || selectedDates.size === 0) return alert("情報を入力してください");
-
-        const newTasks = Array.from(selectedDates).map(d => ({
-            team: currentTeam,
-            name: `${subjects[subId]}：${name}`,
-            deadline: d,
-            subject: subId
-        }));
-
-        await supabaseClient.from('tasks').insert(newTasks);
-        toggleMultiMode();
-        document.getElementById('taskName').value = '';
-    }
-
-    // 🌟 --- フィルターロジック ---
-    function setFilter(subId) {
-        if (subId === 'all') {
-            currentFilters.clear();
-            currentFilters.add('all');
-        } else {
-            currentFilters.delete('all');
-            if (currentFilters.has(subId)) {
-                currentFilters.delete(subId);
-                if (currentFilters.size === 0) currentFilters.add('all');
-            } else {
-                currentFilters.add(subId);
-            }
-        }
-        updateFilterUI();
-        render();
-    }
-
-    function updateFilterUI() {
-        document.querySelectorAll('.filter-chip').forEach(c => {
-            const id = c.dataset.sub || 'all';
-            c.classList.toggle('active', currentFilters.has(id));
-        });
-    }
-
-    // 🌟 --- その他基本機能 ---
-    async function fetchTasks() {
-        const { data } = await supabaseClient.from('tasks').select('*').eq('team', currentTeam);
-        if (data) { tasks = data; render(); }
-    }
-
     async function login() {
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true }
+            provider: 'google',
+            options: { redirectTo: window.location.href, skipBrowserRedirect: true }
         });
         if (data.url) window.open(data.url, '_blank');
     }
@@ -250,8 +199,9 @@
         userSession = session;
         if (session) {
             document.getElementById('btn-login').style.display = 'none';
-            document.getElementById('btn-logout').style.display = 'block';
-            document.getElementById('btn-sync').style.display = 'block';
+            document.getElementById('login-notice').style.display = 'none';
+            document.getElementById('user-profile').style.display = 'flex';
+            document.getElementById('btn-sync').style.display = 'block'; 
             document.getElementById('user-info').innerHTML = `
                 <img src="${session.user.user_metadata.avatar_url}">
                 <span>${session.user.user_metadata.full_name}</span>
@@ -259,8 +209,83 @@
         }
     }
 
+    // 🌟 Googleカレンダー同期ロジック（復活）
+    async function syncToGoogle() {
+        if (!userSession || !userSession.provider_token) {
+            alert("同期に必要な権限がありません。カレンダーへの同期は個人用Gmailで再度ログインしてください。");
+            return;
+        }
+
+        const btn = document.getElementById('btn-sync');
+        btn.innerText = "同期中...";
+        btn.disabled = true;
+
+        for (const task of tasks) {
+            const event = {
+                'summary': `【課題】${task.name}`,
+                'description': `チーム: ${task.team}\nKaisei Hub Task Managerより同期`,
+                'start': { 'date': task.deadline },
+                'end': { 'date': task.deadline }
+            };
+
+            try {
+                await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${userSession.provider_token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(event)
+                });
+            } catch (e) { console.error(e); }
+        }
+        alert("Googleカレンダーへの同期が完了しました！");
+        btn.innerHTML = '<i class="fab fa-google"></i> Googleカレンダーへ同期';
+        btn.disabled = false;
+    }
+
+    async function fetchTasks() {
+        const { data } = await supabaseClient.from('tasks').select('*').eq('team', currentTeam);
+        if (data) { tasks = data; render(); }
+    }
+
+    // 🌟 今回の追加機能：教科名の自動付与
+    async function addSingleTask() {
+        const name = document.getElementById('taskName').value;
+        const date = document.getElementById('taskDate').value;
+        const subId = document.getElementById('taskSubject').value;
+        if(!name || !date) return alert("情報を入力してください");
+
+        const finalTitle = `${subjectsMap[subId]}：${name}`;
+        await supabaseClient.from('tasks').insert([{ team: currentTeam, name: finalTitle, deadline: date, subject: subId }]);
+        document.getElementById('taskName').value = '';
+    }
+
+    async function addMultiTasks() {
+        const name = document.getElementById('taskName').value;
+        const subId = document.getElementById('taskSubject').value;
+        if(!name || selectedDates.size === 0) return alert("情報を入力してください");
+
+        const newTasks = Array.from(selectedDates).map((date, idx) => ({
+            team: currentTeam,
+            name: selectedDates.size > 1 ? `${subjectsMap[subId]}：${name} (${idx+1}/${selectedDates.size})` : `${subjectsMap[subId]}：${name}`,
+            deadline: date,
+            subject: subId
+        }));
+
+        await supabaseClient.from('tasks').insert(newTasks);
+        toggleMultiMode();
+        document.getElementById('taskName').value = '';
+    }
+
     async function deleteTask(id) {
         if(confirm("削除しますか？")) await supabaseClient.from('tasks').delete().eq('id', id);
+    }
+
+    // ドラッグ＆ドロップ
+    function onDragStart(ev, id) { ev.dataTransfer.setData("taskId", id); }
+    function onDragOver(ev) { ev.preventDefault(); }
+    async function onDrop(ev, newDate) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("taskId");
+        await supabaseClient.from('tasks').update({ deadline: newDate }).eq('id', id);
     }
 
     function renderTabs() {
@@ -277,20 +302,36 @@
 
     function renderFilters() {
         const grid = document.getElementById('filterGrid');
-        Object.keys(subjects).forEach(id => {
+        Object.keys(subjectsMap).forEach(id => {
             const chip = document.createElement('div');
             chip.className = 'filter-chip';
             chip.dataset.sub = id;
-            chip.innerText = subjects[id];
+            chip.innerText = subjectsMap[id];
             chip.onclick = () => setFilter(id);
             grid.appendChild(chip);
         });
+    }
+
+    function setFilter(sub) {
+        if (sub === 'all') { currentFilters.clear(); currentFilters.add('all'); }
+        else {
+            currentFilters.delete('all');
+            if (currentFilters.has(sub)) { currentFilters.delete(sub); if(currentFilters.size===0) currentFilters.add('all'); }
+            else currentFilters.add(sub);
+        }
+        document.querySelectorAll('.filter-chip').forEach(c => {
+            const s = c.getAttribute('data-sub') || 'all';
+            c.classList.toggle('active', currentFilters.has(s));
+        });
+        render();
     }
 
     function toggleMultiMode() {
         isMultiMode = !isMultiMode;
         selectedDates.clear();
         document.getElementById('modeSwitch').classList.toggle('active', isMultiMode);
+        document.getElementById('toggleIcon').className = isMultiMode ? "fas fa-check-double" : "fas fa-toggle-off";
+        document.getElementById('toggleIcon').style.color = isMultiMode ? "#1a73e8" : "#ccc";
         document.getElementById('singleAction').style.display = isMultiMode ? "none" : "block";
         document.getElementById('multiAction').style.display = isMultiMode ? "block" : "none";
         render();
@@ -301,14 +342,14 @@
         else {
             if (selectedDates.has(dateStr)) selectedDates.delete(dateStr);
             else selectedDates.add(dateStr);
-            document.getElementById('selectedCount').innerText = `${selectedDates.size}日選択中`;
+            document.getElementById('selectedCount').innerText = `${selectedDates.size} 日選択中`;
             document.getElementById('confirmBtn').disabled = selectedDates.size === 0;
         }
         render();
     }
 
-    function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
+    function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
 
     function render() {
         const grid = document.getElementById('grid');
@@ -322,15 +363,16 @@
             const isToday = new Date().toLocaleDateString('sv-SE') === dateStr;
             const isSelected = selectedDates.has(dateStr);
             let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" 
-                        onclick="handleDateClick('${dateStr}')">
+                        onclick="handleDateClick('${dateStr}')" ondragover="onDragOver(event)" ondrop="onDrop(event, '${dateStr}')">
                         <span class="day-num">${d}</span>`;
             tasks.filter(t => t.deadline === dateStr && (currentFilters.has('all') || currentFilters.has(t.subject))).forEach(t => {
-                html += `<div class="task-bar bg-${t.subject}"><span>${t.name}</span><i class="fas fa-times" onclick="event.stopPropagation();deleteTask('${t.id}')"></i></div>`;
+                html += `<div class="task-bar bg-${t.subject}" draggable="true" ondragstart="onDragStart(event, '${t.id}')" onclick="event.stopPropagation()">
+                         <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.name}</span>
+                         <i class="fas fa-times" style="cursor:pointer; padding:2px;" onclick="deleteTask('${t.id}')"></i></div>`;
             });
             grid.innerHTML += html + `</div>`;
         }
     }
-
     init();
 </script>
 </body>
