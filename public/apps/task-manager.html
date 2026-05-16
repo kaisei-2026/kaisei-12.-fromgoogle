@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaisei Task Manager - Iframe Fix</title>
+    <title>Kaisei Task Manager - Full Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; }
+        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; --google-blue: #4285f4; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 5px; font-size: 14px; overflow-x: hidden; }
+        body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; }
         .wrapper { width: 100%; margin: 0; }
-        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
-        .team-tabs::-webkit-scrollbar { display: none; }
-        .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
+        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; }
+        .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
@@ -23,41 +22,36 @@
         .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; transition: 0.2s; }
         .btn-add { background: var(--primary); }
         .btn-google { background: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .btn-sync { background: var(--google-blue); margin-top: 15px; box-shadow: 0 4px 12px rgba(66,133,244,0.3); }
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
-        .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; transition: 0.1s; }
+        .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; }
         .cal-cell.today { background: var(--today-bg) !important; }
-        .cal-cell.selected { border: 2.5px solid var(--primary); background: var(--selected-bg); z-index: 2; }
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
         .task-bar { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-        #user-profile { display: flex; align-items: center; justify-content: space-between; padding: 10px; background: #f1f3f4; border-radius: 8px; margin-bottom: 15px; }
-        #user-info { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: bold; }
+        #user-profile { display: flex; align-items: center; justify-content: space-between; padding: 5px 10px; background: #fff; border-bottom: 1px solid #eee; margin-bottom: 10px; }
+        #user-info { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
         #user-info img { width: 24px; height: 24px; border-radius: 50%; }
-        .sync-info { background: #fff3f3; border: 1px solid #ffcccc; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
+    <!-- ユーザーバー -->
     <div id="auth-section">
-        <div class="sync-info" id="login-notice">
-            <p style="font-size: 11px; color: #d93025; font-weight: bold;">
-                学校アカウント（@s.sapporo-c.ed.jp等）でログインしてください
-            </p>
-        </div>
         <button id="btn-login" class="btn-main btn-google" onclick="login()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="16">
-            Googleログインを有効にする
+            Googleでログイン
         </button>
         <div id="user-profile" style="display:none;">
             <div id="user-info"></div>
-            <button onclick="logout()" style="background:none; border:none; color:#d93025; font-size:11px; cursor:pointer; font-weight:bold;">ログアウト</button>
+            <button onclick="logout()" style="background:none; border:none; color:#d93025; font-size:10px; cursor:pointer;">ログアウト</button>
         </div>
     </div>
 
@@ -75,6 +69,11 @@
             </select>
             <input type="date" id="taskDate">
             <button class="btn-main btn-add" onclick="addSingleTask()">クラウドに保存</button>
+
+            <!-- 🌟 同期ボタン -->
+            <button id="btn-sync" class="btn-main btn-sync" style="display:none;" onclick="syncToGoogle()">
+                <i class="fab fa-google"></i> Googleカレンダーへ同期
+            </button>
         </div>
 
         <div class="calendar-container">
@@ -89,7 +88,6 @@
 </div>
 
 <script>
-    // 🌟 自分のSupabase情報を入れてください
     const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -97,53 +95,71 @@
     let viewDate = new Date();
     let tasks = [];
     let currentTeam = localStorage.getItem('kaisei_current_team') || 'A';
+    let userSession = null;
 
     async function init() {
         renderTabs();
         updateMonthLabel();
-        
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateAuthUI(session);
-
         await fetchTasks();
         render();
-
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
     }
 
-    // 🌟 修正ポイント：iframe内エラーを回避するため、別タブで開く
     async function login() {
         const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
                 redirectTo: window.location.href,
-                skipBrowserRedirect: true // 勝手に画面を切り替えさせない
+                scopes: 'https://www.googleapis.com/auth/calendar.events',
+                skipBrowserRedirect: true
             }
         });
-        
-        if (error) {
-            alert("エラー: " + error.message);
-        } else if (data.url) {
-            // 🌟 魔法の一行：別タブでログイン画面を開く
-            window.open(data.url, '_blank');
-        }
+        if (data.url) window.open(data.url, '_blank');
     }
 
-    async function logout() {
-        await supabaseClient.auth.signOut();
-        window.location.reload();
-    }
+    async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
 
     function updateAuthUI(session) {
+        userSession = session;
         if (session) {
             document.getElementById('btn-login').style.display = 'none';
-            document.getElementById('login-notice').style.display = 'none';
             document.getElementById('user-profile').style.display = 'flex';
+            document.getElementById('btn-sync').style.display = 'block'; // 🌟 ボタンを表示
             document.getElementById('user-info').innerHTML = `
                 <img src="${session.user.user_metadata.avatar_url}">
                 <span>${session.user.user_metadata.full_name}</span>
             `;
         }
+    }
+
+    // 🌟 Googleカレンダー同期ロジック
+    async function syncToGoogle() {
+        if (!userSession || !userSession.provider_token) {
+            alert("同期するには一度ログアウトして、再度ログインし直してください（権限更新のため）");
+            return;
+        }
+        const btn = document.getElementById('btn-sync');
+        btn.innerText = "同期中...";
+        btn.disabled = true;
+
+        for (const task of tasks) {
+            const event = {
+                'summary': `【課題】${task.name}`,
+                'description': `チーム: ${task.team}\nKaisei Hubより同期`,
+                'start': { 'date': task.deadline },
+                'end': { 'date': task.deadline }
+            };
+            await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${userSession.provider_token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(event)
+            });
+        }
+        alert("Googleカレンダーへの同期が完了しました！");
+        btn.innerText = "Googleカレンダーへ同期";
+        btn.disabled = false;
     }
 
     async function fetchTasks() {
@@ -155,7 +171,7 @@
         const name = document.getElementById('taskName').value;
         const date = document.getElementById('taskDate').value;
         const sub = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("情報を入力してください");
+        if(!name || !date) return alert("タイトルと日付を入力してください");
         await supabaseClient.from('tasks').insert([{ team: currentTeam, name, deadline: date, subject: sub }]);
         document.getElementById('taskName').value = '';
     }
