@@ -1,23 +1,30 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function ForenotePage() {
-  // 🌟 URLを新しいリポジトリ名に修正
-  const iframeSrc = "/kaisei-google/apps/forenote.html";
+  const [lang, setLang] = useState<"jp" | "en">("jp");
+
+  useEffect(() => {
+    setLang((localStorage.getItem("app_lang") as "jp" | "en") || "jp");
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-white">
-      {/* ヘッダー(64px)分の隙間を作る */}
-      <div className="h-16 shrink-0" /> 
-
-      {/* 本体：画面いっぱいに広げる */}
-      <div className="flex-1 w-full overflow-hidden">
-        <iframe
-          src={iframeSrc}
-          className="w-full h-full border-none"
-          title="Forenote Pro"
-        />
+    <div className="h-screen w-full flex flex-col bg-white dark:bg-[#0a0a0a] pt-[64px] transition-colors duration-300">
+      <div className="p-3 px-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center bg-zinc-50 dark:bg-zinc-900/50 justify-between transition-colors">
+        <Link href="/tools" className="flex items-center text-sm font-bold text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+          <ArrowLeft size={16} className="mr-2" /> 
+          {lang === "jp" ? "ツール一覧に戻る" : "Back to Tools"}
+        </Link>
+        <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 tracking-[0.2em] uppercase">Forenote Pro</span>
       </div>
+      
+      <iframe
+        src="/kaisei-google/apps/forenote.html"
+        className="flex-1 border-none w-full h-full"
+        title="Forenote Pro"
+      />
     </div>
   );
 }
