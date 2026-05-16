@@ -30,7 +30,7 @@ export default function Home() {
           <div className="absolute inset-0 bg-black/40" /> 
         </div>
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.5 }} className="relative z-10 text-white">
-          <h2 className="text-2xl md:text-4xl font-bold mb-4 tracking-tighter font-sans opacity-90">KAISEI TOOLS</h2>
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 tracking-tighter font-sans opacity-90">Sapporo Kaisei Secondary School</h2>
           <h1 className="text-[18vw] md:text-[16rem] font-bold tracking-tighter leading-[0.8] drop-shadow-2xl">KAISEI</h1>
         </motion.div>
       </section>
