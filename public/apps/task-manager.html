@@ -108,16 +108,16 @@
     }
 
     async function login() {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: window.location.href,
-                scopes: 'https://www.googleapis.com/auth/calendar.events',
-                skipBrowserRedirect: true
-            }
-        });
-        if (data.url) window.open(data.url, '_blank');
-    }
+    const { data, error } = await supabaseClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+            redirectTo: window.location.href,
+            // 🌟 scopes を書かない（名前とメアドだけもらう設定にする）
+            skipBrowserRedirect: true
+        }
+    });
+    if (data.url) window.open(data.url, '_blank');
+}
 
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
 
