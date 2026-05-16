@@ -115,6 +115,36 @@
             .temp-canvas, .page-actions, .toolbar, #sub-toolbar, #lasso-ui, #zoom-indicator, #settings-menu, #text-input-box { display: none !important; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
+        /* 🌟 ダークモード設定 🌟 */
+        body.dark-mode {
+            --bg-color: #0a0a0a;
+            --border-color: #27272a;
+            color: #e0e0e0;
+        }
+        body.dark-mode #dashboard, body.dark-mode #editor, body.dark-mode .toolbar, body.dark-mode #sub-toolbar, body.dark-mode .modal, body.dark-mode #settings-menu {
+            background: #18181b;
+        }
+        body.dark-mode .dash-header, body.dark-mode .breadcrumb, body.dark-mode .toolbar, body.dark-mode #sub-toolbar {
+            border-bottom-color: #27272a;
+        }
+        body.dark-mode .notebook-card, body.dark-mode .folder-icon, body.dark-mode .folder-tab {
+            border-color: #3f3f46;
+        }
+        body.dark-mode .card-info { background: #18181b; color: #fff; border-top: 1px solid #27272a; }
+        body.dark-mode .breadcrumb span:hover, body.dark-mode .icon-btn:hover:not(.active), body.dark-mode .page-action-btn:hover, body.dark-mode .menu-item:hover, body.dark-mode #lasso-menu div:hover {
+            background: #27272a;
+        }
+        body.dark-mode .icon-btn { color: #a1a1aa; }
+        body.dark-mode #editor-note-title { color: #f4f4f5 !important; }
+        body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode select { 
+            background: #27272a; color: #fff; border-color: #3f3f46; 
+        }
+        body.dark-mode .mode-toggle label { background: #27272a; color: #a1a1aa; }
+        body.dark-mode .shape-btn { background: #27272a; border-color: #3f3f46; }
+        body.dark-mode .modal { background: #18181b; color: #fff; }
+        body.dark-mode #lasso-menu { background: #18181b; border-color: #27272a; }
+        body.dark-mode #lasso-menu div { color: #eee; border-bottom-color: #27272a; }
+        
     </style>
 </head>
 <body>
@@ -1609,6 +1639,15 @@ const fnApp = {
 };
 
 fnApp.init();
+    // 🌟 ダークモード同期機能 🌟
+function syncTheme() {
+    const theme = localStorage.getItem('app_theme') || 'light';
+    if (theme === 'dark') document.body.classList.add('dark-mode');
+    else document.body.classList.remove('dark-mode');
+}
+syncTheme();
+setInterval(syncTheme, 500);
+    
 </script>
 </body>
 </html>
