@@ -1,43 +1,58 @@
+import { getPostData, getSortedPostsData } from "@/lib/blog";
 import Link from "next/link";
-import { getSortedPostsData } from "@/lib/blog";
 import { ArrowLeft } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
-// 🌟 ここから "use client" を消しました！
-export default function BlogPage() {
+// 静的パス生成
+export async function generateStaticParams() {
   const posts = getSortedPostsData();
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default async function PostPage({ params }: { params: { slug: string } }) {
+  const { slug } = await params;
+  const postData = getPostData(slug);
 
   return (
-    <div className="min-h-screen pt-32 pb-20 px-6 max-w-4xl mx-auto bg-white dark:bg-[#0a0a0a] font-sans transition-colors duration-300">
-      <Link href="/" className="inline-flex items-center text-xs font-bold text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors uppercase tracking-widest mb-16">
-        <ArrowLeft size={16} className="mr-2" /> 
-        Back to Home
-      </Link>
+    // 🌟 外側のdiv：ここで画面全体の背景色を塗ります (w-full を指定)
+    <div className="min-h-screen w-full bg-white dark:bg-[#0a0a0a] transition-colors duration-300">
+      
+      {/* 🌟 内側のdiv：ここで中身の幅を制限して真ん中に寄せます (mx-auto) */}
+      <div className="max-w-3xl mx-auto pt-32 pb-24 px-6 font-sans">
+        
+        <Link href="/blog" className="inline-flex items-center text-xs font-bold text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white mb-16 transition-colors uppercase tracking-widest">
+          <ArrowLeft size={16} className="mr-2" /> Back to Insights
+        </Link>
+        
+        <article>
+          <div className="mb-16">
+            <time className="text-emerald-600 dark:text-emerald-400 font-mono text-sm tracking-widest mb-6 block font-bold transition-colors">
+              {postData.date}
+            </time>
+            <h1 className="text-4xl md:text-5xl font-black text-zinc-950 dark:text-white leading-[1.3] tracking-tight transition-colors">
+              {postData.title}
+            </h1>
+          </div>
+          
+          {/* 記事本文：ダークモード対応 */}
+          <div className="prose prose-lg prose-zinc dark:prose-invert max-w-none 
+            transition-colors duration-300
+            prose-headings:font-black prose-headings:tracking-tight prose-headings:text-zinc-900 dark:prose-headings:text-white prose-headings:mt-12
+            prose-p:text-zinc-700 dark:prose-p:text-zinc-300 prose-p:leading-relaxed prose-p:font-medium
+            prose-strong:text-zinc-900 dark:prose-strong:text-white prose-strong:bg-emerald-50 dark:prose-strong:bg-emerald-950/30 prose-strong:px-1
+            prose-blockquote:border-l-4 prose-blockquote:border-emerald-500 prose-blockquote:bg-zinc-50 dark:prose-blockquote:bg-zinc-900/50 prose-blockquote:py-4 prose-blockquote:px-6 prose-blockquote:not-italic prose-blockquote:text-zinc-800 dark:prose-blockquote:text-zinc-200 prose-blockquote:font-bold
+            prose-a:text-emerald-600 dark:prose-a:text-emerald-400 hover:prose-a:text-emerald-500">
+            <ReactMarkdown>{postData.content}</ReactMarkdown>
+          </div>
+        </article>
 
-      <div className="mb-20">
-        <h1 className="text-6xl md:text-8xl font-black text-zinc-900 dark:text-white tracking-tighter uppercase italic transition-colors">
-          Insights.
-        </h1>
-        <p className="mt-4 text-zinc-500 dark:text-zinc-400 font-bold tracking-widest text-sm transition-colors uppercase">
-          Technical & Development Records
-        </p>
-        <div className="h-2 w-20 bg-emerald-500 mt-6" />
-      </div>
-
-      <div className="space-y-10">
-        {posts.map(({ slug, date, title }) => (
-          <Link href={`/blog/${slug}`} key={slug} className="group block border-t border-zinc-200 dark:border-zinc-800 pt-10 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors -mx-6 px-6 rounded-3xl">
-            <time className="text-xs font-mono text-emerald-600 dark:text-emerald-400 mb-3 block tracking-widest font-bold">{date}</time>
-            <h2 className="text-3xl md:text-4xl font-black text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors leading-tight mb-6">
-              {title}
-            </h2>
-            <div className="flex items-center text-zinc-400 dark:text-zinc-500 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors text-xs font-bold uppercase tracking-widest pb-10">
-              Read Article &rarr;
-            </div>
-          </Link>
-        ))}
-        {posts.length === 0 && (
-          <p className="text-zinc-500 dark:text-zinc-400">No posts yet.</p>
-        )}
+        <footer className="mt-32 pt-12 border-t border-zinc-100 dark:border-zinc-800">
+           <p className="text-center text-zinc-400 dark:text-zinc-600 text-xs tracking-widest uppercase font-bold font-sans">
+              © 2026 KAISEI HUB.
+           </p>
+        </footer>
       </div>
     </div>
   );
