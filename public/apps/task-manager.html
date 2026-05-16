@@ -3,112 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaisei Task Manager - Pro Cloud</title>
+    <title>Kaisei Task Manager - Google Sync</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; }
+        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; --google-blue: #4285f4; }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 5px; font-size: 14px; overflow-x: hidden; }
-
-        /* 🌟 横幅を画面いっぱいに使う */
+        body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; }
         .wrapper { width: 100%; margin: 0; }
-
-        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
-        .team-tabs::-webkit-scrollbar { display: none; }
-        .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
-        .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
-
+        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; }
+        .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-        @media (min-width: 1000px) {
-            .layout { flex-direction: row; align-items: flex-start; }
-            .sidebar { width: 320px !important; position: sticky; top: 5px; }
-        }
-
+        @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
         .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         h2 { font-size: 14px; margin-bottom: 10px; color: var(--primary); font-weight: 800; display: flex; align-items: center; gap: 5px; }
-        
-        label { font-size: 10px; font-weight: bold; color: #5f6368; margin-top: 8px; display: block; }
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
-        
-        .mode-switch { background: #f1f3f4; padding: 10px; border-radius: 10px; margin: 10px 0; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .mode-switch.active { background: var(--selected-bg); color: var(--primary); border: 1px solid var(--primary); }
-
-        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; }
+        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; transition: 0.2s; }
         .btn-add { background: var(--primary); }
-        .btn-confirm { background: #1e8e3e; }
-
+        .btn-google { background: white; color: #757575; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+        .btn-google:hover { background: #f5f5f5; }
+        .btn-sync { background: var(--google-blue); margin-top: 20px; }
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
-        
-        .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; transition: 0.1s; }
+        .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; }
         .cal-cell.today { background: var(--today-bg) !important; }
-        .cal-cell.today::after { content: 'TODAY'; position: absolute; top: 2px; right: 2px; font-size: 7px; font-weight: bold; color: #f57f17; }
-        .cal-cell.selected { border: 2.5px solid var(--primary); background: var(--selected-bg); z-index: 2; }
-        
-        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
-        
-        .task-bar { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
-        .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .filter-section { border-top: 1px solid #eee; margin-top: 15px; padding-top: 10px; }
-        .filter-grid { display: flex; flex-wrap: wrap; gap: 4px; }
-        .filter-chip { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 10px; background: #fff; cursor: pointer; font-weight: bold; }
-        .filter-chip.active { background: var(--selected-bg); color: var(--primary); border-color: var(--primary); }
-
-        /* 科目カラー */
+        .cal-cell.selected { border: 2px solid var(--primary); background: var(--selected-bg); z-index: 2; }
+        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; }
+        .task-bar { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-
-        #sync-status { font-size: 10px; text-align: center; margin-top: 12px; font-weight: bold; color: #1e8e3e; }
+        #auth-section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px dashed #eee; }
+        #user-info { display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: bold; }
+        #user-info img { width: 30px; height: 30px; border-radius: 50%; }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
+    <div id="auth-section">
+        <button id="btn-login" class="btn-main btn-google" onclick="login()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
+            Googleでログインして同期を有効化
+        </button>
+        <div id="user-profile" style="display:none; justify-content: space-between; align-items: center;">
+            <div id="user-info"></div>
+            <button onclick="logout()" style="background:none; border:none; color:red; font-size:10px; cursor:pointer;">ログアウト</button>
+        </div>
+    </div>
+
     <div class="team-tabs" id="teamTabs"></div>
 
     <div class="layout">
         <div class="sidebar">
-            <h2><i class="fas fa-cloud-upload-alt"></i> 課題登録</h2>
+            <h2><i class="fas fa-plus-circle"></i> 課題登録</h2>
             <input type="text" id="taskName" placeholder="タイトルを入力">
-            <label>科目</label>
             <select id="taskSubject">
                 <option value="math">数学</option><option value="english">英語</option><option value="gengoku">現国</option>
                 <option value="genbun">言文</option><option value="kasei">化生</option><option value="butsuchi">物地</option>
                 <option value="koukyo">公共</option><option value="chisou">地総</option><option value="info">情報</option>
                 <option value="health">保健体育</option><option value="art">芸術</option><option value="home">家庭科</option><option value="other">その他</option>
             </select>
+            <input type="date" id="taskDate">
+            <button class="btn-main btn-add" onclick="addSingleTask()">クラウドに保存</button>
 
-            <div class="mode-switch" id="modeSwitch" onclick="toggleMultiMode()">
-                <span>複数日を選択する</span>
-                <i class="fas fa-check-double"></i>
-            </div>
-
-            <div id="singleAction">
-                <label>締切日</label>
-                <input type="date" id="taskDate">
-                <button class="btn-main btn-add" onclick="addSingleTask()">保存</button>
-            </div>
-
-            <div id="multiAction" style="display: none;">
-                <p id="selectedCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold; margin-bottom:5px;">0日選択中</p>
-                <button class="btn-main btn-confirm" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
-            </div>
-
-            <div id="sync-status">● オンライン同期中</div>
-
-            <div class="filter-section">
-                <label>表示フィルター</label>
-                <div class="filter-grid" id="filterGrid">
-                    <div class="filter-chip active" id="filter-all" onclick="setFilter('all')">すべて</div>
-                </div>
-            </div>
+            <button id="btn-sync" class="btn-main btn-sync" style="display:none;" onclick="syncToGoogle()">
+                <i class="fab fa-google"></i> Googleカレンダーへ同期
+            </button>
         </div>
 
         <div class="calendar-container">
@@ -123,39 +88,117 @@
 </div>
 
 <script>
-    // 🌟 Supabase情報（埋め込み済み）
     const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let viewDate = new Date();
     let tasks = [];
-    let isMultiMode = false;
-    let selectedDates = new Set();
-    let currentFilters = new Set(['all']);
     let currentTeam = localStorage.getItem('kaisei_current_team') || 'A';
-
-    const subjects = [
-        {id:'math', n:'数学'}, {id:'english', n:'英語'}, {id:'gengoku', n:'現国'},
-        {id:'genbun', n:'言文'}, {id:'kasei', n:'化生'}, {id:'butsuchi', n:'物地'},
-        {id:'koukyo', n:'公共'}, {id:'chisou', n:'地総'}, {id:'info', n:'情報'},
-        {id:'health', n:'保体'}, {id:'art', n:'芸術'}, {id:'home', n:'家庭'}, {id:'other', n:'他'}
-    ];
+    let userSession = null;
 
     async function init() {
         renderTabs();
-        renderFilters();
         updateMonthLabel();
+        
+        // ログイン状態の確認
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        updateAuthUI(session);
+
         await fetchTasks();
         render();
 
-        // リアルタイム購読
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
+    }
+
+    // 🌟 Googleログイン
+    async function login() {
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.href,
+                scopes: 'https://www.googleapis.com/auth/calendar.events'
+            }
+        });
+        if (error) alert(error.message);
+    }
+
+    async function logout() {
+        await supabaseClient.auth.signOut();
+        window.location.reload();
+    }
+
+    function updateAuthUI(session) {
+        userSession = session;
+        const loginBtn = document.getElementById('btn-login');
+        const profile = document.getElementById('user-profile');
+        const syncBtn = document.getElementById('btn-sync');
+
+        if (session) {
+            loginBtn.style.display = 'none';
+            profile.style.display = 'flex';
+            syncBtn.style.display = 'block';
+            document.getElementById('user-info').innerHTML = `
+                <img src="${session.user.user_metadata.avatar_url}">
+                <span>${session.user.user_metadata.full_name}</span>
+            `;
+        }
+    }
+
+    // 🌟 Googleカレンダー同期
+    async function syncToGoogle() {
+        if (!userSession || !userSession.provider_token) {
+            alert("同期に必要な権限がありません。一度ログアウトして再度ログインしてください。");
+            return;
+        }
+
+        const btn = document.getElementById('btn-sync');
+        btn.disabled = true;
+        btn.innerText = "同期中...";
+
+        let count = 0;
+        for (const task of tasks) {
+            const event = {
+                'summary': `【課題】${task.name}`,
+                'description': `科目: ${task.subject}\nKaisei Hub Task Managerより同期`,
+                'start': { 'date': task.deadline },
+                'end': { 'date': task.deadline }
+            };
+
+            try {
+                await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${userSession.provider_token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event)
+                });
+                count++;
+            } catch (e) { console.error(e); }
+        }
+
+        alert(`${count}件の課題をGoogleカレンダーに同期しました！`);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fab fa-google"></i> Googleカレンダーへ同期';
     }
 
     async function fetchTasks() {
         const { data } = await supabaseClient.from('tasks').select('*').eq('team', currentTeam);
         if (data) { tasks = data; render(); }
+    }
+
+    async function addSingleTask() {
+        const name = document.getElementById('taskName').value;
+        const date = document.getElementById('taskDate').value;
+        const sub = document.getElementById('taskSubject').value;
+        if(!name || !date) return alert("入力エラー");
+        await supabaseClient.from('tasks').insert([{ team: currentTeam, name, deadline: date, subject: sub }]);
+        document.getElementById('taskName').value = '';
+    }
+
+    async function deleteTask(id) {
+        if(confirm("削除しますか？")) await supabaseClient.from('tasks').delete().eq('id', id);
     }
 
     function renderTabs() {
@@ -170,84 +213,8 @@
         });
     }
 
-    function renderFilters() {
-        const grid = document.getElementById('filterGrid');
-        subjects.forEach(s => {
-            const chip = document.createElement('div');
-            chip.className = 'filter-chip';
-            chip.dataset.sub = s.id;
-            chip.innerText = s.n;
-            chip.onclick = () => setFilter(s.id);
-            grid.appendChild(chip);
-        });
-    }
-
-    function setFilter(sub) {
-        if (sub === 'all') { currentFilters.clear(); currentFilters.add('all'); }
-        else {
-            currentFilters.delete('all');
-            if (currentFilters.has(sub)) { currentFilters.delete(sub); if(currentFilters.size===0) currentFilters.add('all'); }
-            else currentFilters.add(sub);
-        }
-        document.querySelectorAll('.filter-chip').forEach(c => {
-            const s = c.getAttribute('data-sub') || 'all';
-            c.classList.toggle('active', currentFilters.has(s));
-        });
-        render();
-    }
-
-    function toggleMultiMode() {
-        isMultiMode = !isMultiMode;
-        selectedDates.clear();
-        document.getElementById('modeSwitch').classList.toggle('active', isMultiMode);
-        document.getElementById('singleAction').style.display = isMultiMode ? "none" : "block";
-        document.getElementById('multiAction').style.display = isMultiMode ? "block" : "none";
-        render();
-    }
-
-    function handleDateClick(dateStr) {
-        if (!isMultiMode) document.getElementById('taskDate').value = dateStr;
-        else {
-            if (selectedDates.has(dateStr)) selectedDates.delete(dateStr);
-            else selectedDates.add(dateStr);
-            document.getElementById('selectedCount').innerText = `${selectedDates.size} 日選択中`;
-            document.getElementById('confirmBtn').disabled = selectedDates.size === 0;
-        }
-        render();
-    }
-
-    async function addSingleTask() {
-        const name = document.getElementById('taskName').value;
-        const date = document.getElementById('taskDate').value;
-        const sub = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("入力エラー");
-        await supabaseClient.from('tasks').insert([{ team: currentTeam, name, deadline: date, subject: sub }]);
-        document.getElementById('taskName').value = '';
-    }
-
-    async function addMultiTasks() {
-        const name = document.getElementById('taskName').value;
-        const sub = document.getElementById('taskSubject').value;
-        const newTasks = Array.from(selectedDates).map(d => ({ team: currentTeam, name, deadline: d, subject: sub }));
-        await supabaseClient.from('tasks').insert(newTasks);
-        toggleMultiMode();
-        document.getElementById('taskName').value = '';
-    }
-
-    async function deleteTask(id) {
-        if(confirm("削除しますか？")) await supabaseClient.from('tasks').delete().eq('id', id);
-    }
-
-    function onDragStart(ev, id) { ev.dataTransfer.setData("taskId", id); }
-    function onDragOver(ev) { ev.preventDefault(); }
-    async function onDrop(ev, newDate) {
-        ev.preventDefault();
-        const id = ev.dataTransfer.getData("taskId");
-        await supabaseClient.from('tasks').update({ deadline: newDate }).eq('id', id);
-    }
-
-    function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
+    function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
 
     function render() {
         const grid = document.getElementById('grid');
@@ -255,17 +222,13 @@
         ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
         const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
         const last = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-        for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:#fafafa; cursor:default;"></div>`;
+        for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:#fafafa"></div>`;
         for(let d=1; d<=last; d++) {
             const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isToday = new Date().toLocaleDateString('sv-SE') === dateStr;
-            const isSelected = selectedDates.has(dateStr);
-            let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" 
-                        onclick="handleDateClick('${dateStr}')" ondragover="onDragOver(event)" ondrop="onDrop(event, '${dateStr}')">
-                        <span class="day-num">${d}</span>`;
-            tasks.filter(t => t.deadline === dateStr && (currentFilters.has('all') || currentFilters.has(t.subject))).forEach(t => {
-                html += `<div class="task-bar bg-${t.subject}" draggable="true" ondragstart="onDragStart(event, '${t.id}')" onclick="event.stopPropagation()">
-                         <span>${t.name}</span><i class="fas fa-times" onclick="deleteTask('${t.id}')"></i></div>`;
+            let html = `<div class="cal-cell ${isToday?'today':''}" onclick="document.getElementById('taskDate').value='${dateStr}'"><span class="day-num">${d}</span>`;
+            tasks.filter(t => t.deadline === dateStr).forEach(t => {
+                html += `<div class="task-bar bg-${t.subject}"><span>${t.name}</span><i class="fas fa-times" onclick="event.stopPropagation();deleteTask('${t.id}')"></i></div>`;
             });
             grid.innerHTML += html + `</div>`;
         }
