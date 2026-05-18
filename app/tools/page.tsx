@@ -22,7 +22,7 @@ const toolsData = {
       id: "python-editor",
       title: "Python エディタ",
       subtitle: "PYTHON IDE",
-      desc: "データ分析やローカルファイル操作に完全対応したPython実行環境。",
+      desc: "データ分析やローカルファイル操作に対応したPython実行環境。Jupiternotebookは実際の動作とは異なります。Jupiternotebookを使用したい場合はgoogleなどで検索して使用することをおすすめします。",
       icon: <Terminal size={24} strokeWidth={1.5} />,
       glow: "from-emerald-400/20 to-transparent",
       textGlow: "group-hover:text-emerald-500",
