@@ -188,14 +188,14 @@
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            redirectTo: window.location.href,
-            queryParams: {
-                access_type: 'offline',
-                prompt: 'select_account' // 👈 これを追加！強制的に再認証を促します
-            }
+            // スコープ指定を一切行わず、認証情報のみを要求する
+            redirectTo: window.location.origin
         }
     });
-    if (error) console.error("Login Error:", error);
+    if (error) {
+        console.error("エラー:", error);
+        alert("ログイン失敗: " + error.message);
+    }
 }
 
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
