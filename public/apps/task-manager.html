@@ -11,73 +11,51 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; transition: background 0.3s; }
         body.dark-mode { background: #0a0a0a; color: #e0e0e0; --border: #27272a; --today-bg: #423b00; --selected-bg: rgba(26,115,232,0.2); }
-        
         .wrapper { width: 100%; margin: 0; }
-
-        /* チームタブ */
         .team-tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
         body.dark-mode .team-tab { background: #1e1e1e; color: #aaa; border-color: #333; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
-
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
-        
-        .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
+        .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         body.dark-mode .sidebar { background: #18181b; }
         h2 { font-size: 14px; margin-bottom: 10px; color: var(--primary); font-weight: 800; }
         label { font-size: 10px; font-weight: bold; color: #5f6368; margin-top: 8px; display: block; }
-        input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; transition: 0.3s; }
+        input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
         body.dark-mode input, body.dark-mode select { background: #2d2d2d; color: #fff; border-color: #444; }
-
-        /* モード切替 */
         .mode-tabs { display: flex; background: #f1f3f4; padding: 4px; border-radius: 10px; margin: 10px 0; }
         body.dark-mode .mode-tabs { background: #2d2d2d; }
         .mode-tab { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 8px; cursor: pointer; border-radius: 7px; transition: 0.2s; color: #666; }
         .mode-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        body.dark-mode .mode-tab.active { background: #444; color: white; }
-
-        /* 🌟 セッション選択ボタン */
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 5px; }
         .session-btn { padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10px; text-align: center; cursor: pointer; font-weight: bold; background: #fff; }
-        body.dark-mode .session-btn { background: #2d2d2d; color: #aaa; }
         .session-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; transition: 0.2s; }
+        .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; }
         .btn-add { background: var(--primary); }
-
-        .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; transition: 0.3s; }
+        .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; }
         body.dark-mode .calendar-container { background: #18181b; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
         body.dark-mode .cal-label { background: #1e1e1e; }
-        
-        .cal-cell { min-height: 120px; border: 0.1px solid #f1f3f4; padding: 2px; position: relative; cursor: pointer; transition: 0.1s; display: flex; flex-direction: column; }
-        body.dark-mode .cal-cell { border-color: #222; }
+        .cal-cell { min-height: 120px; border: 0.1px solid #f1f3f4; padding: 2px; position: relative; cursor: pointer; display: flex; flex-direction: column; }
         .cal-cell.today { background: var(--today-bg) !important; }
         .cal-cell.selected { border: 2.5px solid var(--primary) !important; background: var(--selected-bg); z-index: 2; }
-        
-        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; transition: 0.3s; }
+        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
         body.dark-mode .day-num { color: #ccc; }
-        
-        /* 🌟 セッションスロット（高さ固定用） */
         .session-slot { height: 18px; margin-bottom: 2px; width: 100%; position: relative; }
-
-        /* 期間バーのデザイン */
-        .task-bar { height: 100%; font-size: 9px; padding: 0 6px; color: white; font-weight: bold; display: flex; align-items: center; cursor: grab; transition: 0.2s; position: absolute; inset: 0; }
-        .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .task-bar.range-start { border-radius: 4px 0 0 4px; margin-right: -2px; }
-        .task-bar.range-mid { border-radius: 0; margin-left: -2px; margin-right: -2px; }
-        .task-bar.range-end { border-radius: 0 4px 4px 0; margin-left: -2px; }
+        .task-bar { height: 100%; font-size: 9px; padding: 0 6px; color: white; font-weight: bold; display: flex; align-items: center; cursor: grab; position: absolute; inset: 0; }
+        .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; z-index: 1; }
+        .task-bar.range-start { border-radius: 4px 0 0 4px; }
+        .task-bar.range-mid { border-radius: 0; }
+        .task-bar.range-end { border-radius: 0 4px 4px 0; }
         .task-bar.single { border-radius: 4px; }
         .task-bar i { margin-left: auto; font-size: 8px; cursor: pointer; padding: 2px; }
-
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-
         #user-profile { display: none; align-items: center; justify-content: space-between; padding: 10px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; }
         body.dark-mode #user-profile { background: #2d2d2d; }
     </style>
@@ -127,7 +105,7 @@
 
             <div id="input-single">
                 <label>日付</label><input type="date" id="taskDate">
-                <button class="btn-main btn-add" onclick="addSingleTask()">クラウドに保存</button>
+                <button class="btn-main btn-add" id="btn-save-single" onclick="addSingleTask()">クラウドに保存</button>
             </div>
             <div id="input-multi" style="display: none;">
                 <p id="multiCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold; margin:10px 0;">0日選択中</p>
@@ -136,7 +114,7 @@
             <div id="input-range" style="display: none;">
                 <label>開始日</label><input type="date" id="startDate">
                 <label>終了日</label><input type="date" id="endDate">
-                <button class="btn-main btn-add" style="background:#673ab7" onclick="addRangeTask()">期間で一括登録</button>
+                <button class="btn-main btn-add" style="background:#673ab7" id="btn-save-range" onclick="addRangeTask()">期間で一括登録</button>
             </div>
 
             <button id="btn-sync" class="btn-main" style="background:var(--google-blue); display:none; margin-top:20px;" onclick="syncToGoogle()"><i class="fab fa-google"></i> Google同期</button>
@@ -144,9 +122,9 @@
 
         <div class="calendar-container">
             <div class="cal-header">
-                <button onclick="changeMonth(-1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
-                <h2 id="monthLabel" style="font-size: 16px; font-weight: 800;"></h2>
-                <button onclick="changeMonth(1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
+                <button onclick="changeMonth(-1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-left" style="color:#888;"></i></button>
+                <h2 id="monthLabel" style="font-size: 16px; font-weight: 800; color:var(--text);"></h2>
+                <button onclick="changeMonth(1)" style="border:none; background:none; padding:10px; cursor:pointer;"><i class="fas fa-chevron-right" style="color:#888;"></i></button>
             </div>
             <div class="cal-grid" id="grid"></div>
         </div>
@@ -226,14 +204,23 @@
     }
 
     async function addSingleTask() {
+        if(!userSession) return alert("ログインしてください");
         const name = document.getElementById('taskName').value;
         const date = document.getElementById('taskDate').value;
         const subId = document.getElementById('taskSubject').value;
-        if(!name || !date || !userSession) return alert("情報を入力してください");
-        await supabaseClient.from('tasks').insert([{ 
+        if(!name || !date) return alert("情報を入力してください");
+
+        document.getElementById('btn-save-single').innerText = "保存中...";
+        const { error } = await supabaseClient.from('tasks').insert([{ 
             team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: userSession.user.id, session: currentSession 
         }]);
-        document.getElementById('taskName').value = ''; resetSelection();
+        
+        if(error) {
+            alert("エラー: " + error.message);
+        } else {
+            document.getElementById('taskName').value = ''; resetSelection(); render();
+        }
+        document.getElementById('btn-save-single').innerText = "クラウドに保存";
     }
 
     async function addMultiTasks() {
@@ -242,8 +229,9 @@
         const newTasks = Array.from(selectedDates).map(d => ({ 
             team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: d, subject: subId, user_id: userSession.user.id, session: currentSession 
         }));
-        await supabaseClient.from('tasks').insert(newTasks);
-        document.getElementById('taskName').value = ''; setMode('single');
+        const { error } = await supabaseClient.from('tasks').insert(newTasks);
+        if(error) alert("エラー: " + error.message);
+        else { document.getElementById('taskName').value = ''; setMode('single'); }
     }
 
     async function addRangeTask() {
@@ -261,8 +249,9 @@
             });
             curr.setDate(curr.getDate() + 1);
         }
-        await supabaseClient.from('tasks').insert(rangeTasks);
-        document.getElementById('taskName').value = ''; setMode('single');
+        const { error } = await supabaseClient.from('tasks').insert(rangeTasks);
+        if(error) alert("エラー: " + error.message);
+        else { document.getElementById('taskName').value = ''; setMode('single'); }
     }
 
     async function deleteTask(id, name) {
@@ -321,9 +310,8 @@
             
             let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="handleDateClick('${dateStr}')"><span class="day-num">${d}</span>`;
             
-            // 🌟 1〜4セッションのスロットを作成
             for (let s = 1; s <= 4; s++) {
-                html += `<div class="session-slot" id="slot-${dateStr}-${s}">`;
+                html += `<div class="session-slot">`;
                 const task = tasks.find(t => t.deadline === dateStr && (t.session || 1) == s);
                 if (task) {
                     let rClass = 'single'; let dName = task.name;
