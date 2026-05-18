@@ -2,132 +2,96 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Task Manager - Professional</title>
+    <title>Nexus Task Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* CSSは元のものをそのまま利用 */
-        :root { --primary: #1a73e8; --border: #dadce0; --today-bg: #fff9c4; --selected-bg: #e8f0fe; }
-        body { font-family: sans-serif; background: #f8f9fa; padding: 10px; font-size: 14px; }
-        .error-box { position: fixed; bottom: 20px; right: 20px; background: red; color: white; padding: 15px; border-radius: 8px; z-index: 9999; }
-        .wrapper { width: 100%; }
-        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; }
-        .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
-        .team-tab.active { background: var(--primary); color: white; }
-        .layout { display: flex; flex-direction: column; gap: 10px; }
-        .sidebar { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
-        .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); padding: 10px; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-        .cal-cell { min-height: 100px; border: 1px solid #eee; padding: 5px; cursor: pointer; }
-        .btn-main { width: 100%; padding: 14px; border-radius: 8px; cursor: pointer; background: var(--primary); color: white; border: none; margin-top: 10px; }
+        body { font-family: sans-serif; padding: 20px; }
+        .team-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .team-tab { padding: 10px 20px; background: #eee; cursor: pointer; border-radius: 8px; }
+        .team-tab.active { background: #1a73e8; color: white; }
+        .btn-main { width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; border: 1px solid #ccc; background: #ccc; }
+        .cal-label { background: #f0f0f0; padding: 10px; text-align: center; font-weight: bold; }
+        .cal-cell { background: white; min-height: 100px; padding: 5px; }
     </style>
 </head>
 <body>
 
-<div id="error-display"></div>
+<div class="team-tabs" id="teamTabs"></div>
+<button class="btn-main" id="login-btn" onclick="loginWithGoogle()">Googleログイン</button>
+<div id="user-info" style="margin-bottom:10px; font-weight:bold;"></div>
 
-<div class="wrapper">
-    <div class="team-tabs" id="teamTabs"></div>
-    <div id="auth-section">
-        <button class="btn-main" onclick="loginWithGoogle()">Googleログイン</button>
-        <div id="user-info"></div>
-    </div>
-    <div class="layout">
-        <div class="sidebar">
-            <input type="text" id="taskName" placeholder="タイトル">
-            <button class="btn-main" onclick="addTask()">保存</button>
-        </div>
-        <div class="calendar-container">
-            <div id="monthLabel"></div>
-            <div class="cal-grid" id="grid"></div>
-        </div>
-    </div>
-</div>
+<input type="text" id="taskName" placeholder="タイトル" style="padding:10px; width:100%;">
+<button class="btn-main" onclick="addTask()">保存</button>
+
+<div id="monthLabel" style="font-weight:bold; margin-top:20px;"></div>
+<div class="cal-grid" id="grid"></div>
 
 <script>
-    // エラーを表示する関数
-    window.onerror = function(msg, url, line) {
-        const div = document.createElement('div');
-        div.className = 'error-box';
-        div.innerText = "エラー: " + msg + " (行: " + line + ")";
-        document.body.appendChild(div);
-    };
+    const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    try {
-        const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let viewDate = new Date();
+    let tasks =[];
+    let currentTeam = 'A';
 
-        let viewDate = new Date();
-        let tasks =[];
-        let currentTeam = 'A';
-        let currentUserId = localStorage.getItem('nexus_user_id');
-
-        async function init() {
-            renderTabs();
-            updateMonthLabel();
-            const { data } = await supabase.auth.getSession();
-            if (data?.session) {
-                currentUserId = data.session.user.id;
-                document.getElementById('user-info').innerText = "ログイン中: " + data.session.user.email;
-            }
+    // 1. ページ読み込みと同時にカレンダー描画
+    async function init() {
+        renderTabs();
+        renderCalendar(); // まずカレンダーを出す
+        
+        const { data } = await supabase.auth.getSession();
+        if (data?.session) {
+            document.getElementById('login-btn').style.display = 'none';
+            document.getElementById('user-info').innerText = "ログイン中: " + data.session.user.email;
             fetchTasks();
         }
-
-        async function loginWithGoogle() {
-            const { error } = await supabase.auth.signInWithOAuth({ 
-                provider: 'google', 
-                options: { 
-                    redirectTo: window.location.href,
-                    queryParams: { scope: 'openid email profile' }
-                } 
-            });
-            if (error) throw error;
-        }
-
-        async function fetchTasks() {
-            if (!currentUserId) return;
-            const { data, error } = await supabase.from('tasks').select('*').eq('team', currentTeam);
-            if (error) throw error;
-            tasks = data ||[];
-            render();
-        }
-
-        function render() {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
-            const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
-            const last = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-            for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
-            for(let d=1; d<=last; d++) {
-                grid.innerHTML += `<div class="cal-cell">${d}</div>`;
-            }
-        }
-
-        function renderTabs() {
-            const c = document.getElementById('teamTabs');['A','B','C'].forEach(t => {
-                const b = document.createElement('div');
-                b.className = 'team-tab';
-                b.innerText = t;
-                b.onclick = () => { currentTeam = t; fetchTasks(); };
-                c.appendChild(b);
-            });
-        }
-
-        function updateMonthLabel() {
-            document.getElementById('monthLabel').innerText = (viewDate.getMonth() + 1) + "月";
-        }
-
-        init();
-
-    } catch (err) {
-        const div = document.createElement('div');
-        div.className = 'error-box';
-        div.innerText = "致命的な初期化エラー: " + err.message;
-        document.body.appendChild(div);
     }
+
+    // 2. カレンダー描画（データがなくても枠は必ず出す）
+    function renderCalendar() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
+        
+        const year = viewDate.getFullYear();
+        const month = viewDate.getMonth();
+        document.getElementById('monthLabel').innerText = (month + 1) + "月";
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+        
+        for(let i=0; i<firstDay; i++) grid.innerHTML += `<div class="cal-cell"></div>`;
+        for(let d=1; d<=lastDate; d++) {
+            grid.innerHTML += `<div class="cal-cell">${d}</div>`;
+        }
+    }
+
+    async function loginWithGoogle() {
+        await supabase.auth.signInWithOAuth({ 
+            provider: 'google', 
+            options: { redirectTo: window.location.href, queryParams: { scope: 'openid email profile' } }
+        });
+    }
+
+    async function fetchTasks() {
+        const { data } = await supabase.from('tasks').select('*').eq('team', currentTeam);
+        if (data) { tasks = data; renderCalendar(); } // 再描画
+    }
+
+    function renderTabs() {
+        const c = document.getElementById('teamTabs');
+        ['A','B','C'].forEach(t => {
+            const b = document.createElement('div');
+            b.className = `team-tab ${currentTeam === t ? 'active' : ''}`;
+            b.innerText = t;
+            b.onclick = () => { currentTeam = t; renderTabs(); fetchTasks(); };
+            c.appendChild(b);
+        });
+    }
+
+    init();
 </script>
 </body>
 </html>
