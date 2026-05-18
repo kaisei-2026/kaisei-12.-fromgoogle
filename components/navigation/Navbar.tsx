@@ -44,12 +44,15 @@ export default function Navbar() {
     }
   };
 
-  return (
-    <nav className="fixed top-0 w-full z-[9999] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800 px-6 py-4 transition-colors duration-300">
+   return (
+    <nav className="fixed top-0 w-full z-[10000] bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200/50 dark:border-zinc-800 px-6 py-4">
       <div className="max-w-[1400px] mx-auto flex justify-between items-center">
         <Link href="/" className="text-xl font-black tracking-tighter text-zinc-900 dark:text-white flex items-center gap-2">
-          <div className="w-6 h-6 bg-zinc-900 dark:bg-white rounded-sm rotate-45" />
-          KAISEI.HUB
+          {/* ロゴを四角からスタイリッシュな形に */}
+          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-2 h-2 bg-white rounded-full" />
+          </div>
+          NEXUS.HUB
         </Link>
 
         {/* デスクトップメニュー */}
