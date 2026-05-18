@@ -52,7 +52,7 @@ export default function Navbar() {
           <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
             <div className="w-2 h-2 bg-white rounded-full" />
           </div>
-          NEXUS.HUB
+          KAISEI
         </Link>
 
         {/* デスクトップメニュー */}
