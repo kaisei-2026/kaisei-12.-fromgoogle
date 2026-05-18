@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kaisei Task Manager - Hybrid Ultimate</title>
+    <title>Nexus Hub - Task Manager Ultimate</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -16,7 +16,8 @@
         .instruction-banner { background: #e8f0fe; border: 1px solid var(--primary); padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 11px; display: flex; gap: 8px; line-height: 1.4; }
         body.dark-mode .instruction-banner { background: #1e1e1e; border-color: #333; color: #aaa; }
 
-        .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
+        /* チームタブ */
+        .team-tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
         body.dark-mode .team-tab { background: #1e1e1e; color: #aaa; border-color: #333; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
@@ -31,16 +32,15 @@
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; transition: 0.3s; }
         body.dark-mode input, body.dark-mode select { background: #2d2d2d; color: #fff; border-color: #444; }
 
-        /* モード切替タブ */
-        .mode-tabs { display: flex; background: #f1f3f4; padding: 4px; border-radius: 10px; margin-top: 10px; }
+        /* モード切替 */
+        .mode-tabs { display: flex; background: #f1f3f4; padding: 4px; border-radius: 10px; margin: 10px 0; }
         body.dark-mode .mode-tabs { background: #2d2d2d; }
-        .mode-tab { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 8px; cursor: pointer; border-radius: 7px; transition: 0.2s; }
+        .mode-tab { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 8px; cursor: pointer; border-radius: 7px; transition: 0.2s; color: #666; }
         .mode-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         body.dark-mode .mode-tab.active { background: #444; color: white; }
 
         .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; transition: 0.2s; }
         .btn-add { background: var(--primary); }
-        .btn-confirm { background: #1e8e3e; }
         .btn-google { background: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; }
 
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; transition: 0.3s; }
@@ -49,52 +49,48 @@
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
         body.dark-mode .cal-label { background: #1e1e1e; }
-        .cal-cell { min-height: 110px; border: 0.1px solid #f1f3f4; padding: 2px; position: relative; cursor: pointer; transition: 0.1s; }
+        .cal-cell { min-height: 100px; border: 0.1px solid #f1f3f4; padding: 2px; position: relative; cursor: pointer; transition: 0.1s; }
         body.dark-mode .cal-cell { border-color: #222; }
         .cal-cell.today { background: var(--today-bg) !important; }
-        .cal-cell.selected { border: 2px solid var(--primary); background: var(--selected-bg); z-index: 2; }
+        .cal-cell.selected { border: 2.5px solid var(--primary) !important; background: var(--selected-bg); z-index: 2; }
         
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; transition: 0.3s; }
         body.dark-mode .day-num { color: #ccc; }
         
-        /* 🌟 タスクバーのデザイン (期間対応) */
-        .task-bar { font-size: 9px; padding: 3px 6px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: grab; transition: 0.2s; position: relative; }
+        /* 期間バー（→ デザイン） */
+        .task-bar { font-size: 9px; padding: 3px 6px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: grab; position: relative; }
         .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; z-index: 1; }
-        .task-bar.range-start { border-radius: 6px 0 0 6px; margin-right: -4px; padding-right: 10px; }
-        .task-bar.range-mid { border-radius: 0; margin-left: -4px; margin-right: -4px; padding-left: 10px; padding-right: 10px; }
-        .task-bar.range-end { border-radius: 0 6px 6px 0; margin-left: -4px; padding-left: 10px; }
+        .task-bar.range-start { border-radius: 6px 0 0 6px; margin-right: -4px; }
+        .task-bar.range-mid { border-radius: 0; margin-left: -4px; margin-right: -4px; }
+        .task-bar.range-end { border-radius: 0 6px 6px 0; margin-left: -4px; }
         .task-bar.single { border-radius: 5px; }
+
+        .filter-section { border-top: 1px solid #eee; margin-top: 15px; padding-top: 10px; }
+        .filter-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+        .filter-chip { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 10px; background: #fff; cursor: pointer; font-weight: bold; transition: 0.1s; }
+        body.dark-mode .filter-chip { background: #2d2d2d; color: #aaa; border-color: #444; }
+        .filter-chip.active { background: var(--selected-bg); color: var(--primary); border-color: var(--primary); }
 
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-        
+
         #user-profile { display: none; align-items: center; justify-content: space-between; padding: 10px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; }
         body.dark-mode #user-profile { background: #2d2d2d; }
         #user-info { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; }
         #user-info img { width: 24px; height: 24px; border-radius: 50%; }
-
-        #loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="loading-overlay"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>同期中...</div>
-
 <div class="wrapper">
-    <div class="instruction-banner">
-        <i class="fas fa-info-circle"></i>
-        <div>
-            モードを選択：<strong>通常</strong>（1日）、<strong>複数</strong>（ポチポチ選択）、<strong>期間</strong>（〇〇日〜〇〇日）。<br>
-            期間モードではカレンダーを2回クリックすると自動で開始・終了が入ります。
-        </div>
-    </div>
+    <div class="team-tabs" id="teamTabs"></div>
 
     <div id="auth-section">
         <button id="btn-login" class="btn-main btn-google" onclick="login()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
-            Googleログインして利用を開始
+            Googleログインして同期
         </button>
         <div id="user-profile">
             <div id="user-info"></div>
@@ -102,21 +98,17 @@
         </div>
     </div>
 
-    <div class="team-tabs" id="teamTabs"></div>
-
     <div class="layout">
         <div class="sidebar">
             <h2><i class="fas fa-edit"></i> 課題登録</h2>
-            
             <div class="mode-tabs">
                 <div class="mode-tab active" id="tab-single" onclick="setMode('single')">通常</div>
-                <div class="mode-tab" id="tab-multi" onclick="setMode('multi')">複数選択</div>
-                <div class="mode-tab" id="tab-range" onclick="setMode('range')">期間指定</div>
+                <div class="mode-tab" id="tab-multi" onclick="setMode('multi')">複数</div>
+                <div class="mode-tab" id="tab-range" onclick="setMode('range')">期間</div>
             </div>
 
             <label>タイトル</label>
             <input type="text" id="taskName" placeholder="例: レポート">
-            
             <label>科目</label>
             <select id="taskSubject">
                 <option value="math">数学</option><option value="english">英語</option><option value="gengoku">現国</option>
@@ -126,27 +118,26 @@
             </select>
 
             <div id="input-single">
-                <label>日付</label>
-                <input type="date" id="taskDate">
+                <label>締切日</label><input type="date" id="taskDate">
                 <button class="btn-main btn-add" onclick="addSingleTask()">クラウドに保存</button>
             </div>
-
             <div id="input-multi" style="display: none;">
                 <p id="multiCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold; margin:10px 0;">0日選択中</p>
-                <button class="btn-main btn-confirm" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
+                <button class="btn-main" style="background:#1e8e3e" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
             </div>
-
             <div id="input-range" style="display: none;">
-                <label>開始日</label>
-                <input type="date" id="startDate">
-                <label>終了日</label>
-                <input type="date" id="endDate">
-                <button class="btn-main btn-add" style="background:#673ab7" onclick="addRangeTask()">期間で登録</button>
+                <label>開始日</label><input type="date" id="startDate">
+                <label>終了日</label><input type="date" id="endDate">
+                <button class="btn-main btn-add" style="background:#673ab7" onclick="addRangeTask()">期間で一括登録</button>
             </div>
 
-            <button id="btn-sync" class="btn-main" style="background:var(--google-blue); display:none; margin-top:20px;" onclick="syncToGoogle()">
-                <i class="fab fa-google"></i> Googleカレンダーへ同期
-            </button>
+            <div class="filter-section">
+                <label>表示フィルター</label>
+                <div class="filter-grid" id="filterGrid">
+                    <div class="filter-chip active" id="filter-all" onclick="setFilter('all')">すべて</div>
+                </div>
+            </div>
+            <button id="btn-sync" class="btn-main" style="background:var(--google-blue); display:none; margin-top:20px;" onclick="syncToGoogle()"><i class="fab fa-google"></i> Google同期</button>
         </div>
 
         <div class="calendar-container">
@@ -161,6 +152,7 @@
 </div>
 
 <script>
+    // 🌟 --- Supabase設定 --- 🌟
     const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -169,22 +161,21 @@
     let viewDate = new Date();
     let tasks = [];
     let currentTeam = localStorage.getItem('kaisei_current_team') || 'A';
-    let currentMode = 'single'; // single, multi, range
+    let currentMode = 'single';
     let selectedDates = new Set();
+    let currentFilters = new Set(['all']);
     let userSession = null;
     let isKaiseiUser = false;
 
-    const subjectsMap = {
-        math:'数学', english:'英語', gengoku:'現国', genbun:'言文',
-        kasei:'化生', butsuchi:'物地', koukyo:'公共', chisou:'地総',
-        info:'情報', health:'保体', art:'芸術', home:'家庭', other:'他'
-    };
+    const subjectsMap = { math:'数学', english:'英語', gengoku:'現国', genbun:'言文', kasei:'化生', butsuchi:'物地', koukyo:'公共', chisou:'地総', info:'情報', health:'保体', art:'芸術', home:'家庭', other:'他' };
 
     async function init() {
+        renderTabs();
+        renderFilters();
         updateMonthLabel();
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateAuthUI(session);
-        supabaseClient.auth.onAuthStateChange((event, session) => updateAuthUI(session));
+        supabaseClient.auth.onAuthStateChange((_, s) => updateAuthUI(s));
         await fetchTasks();
         render();
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
@@ -207,113 +198,17 @@
         } else if (currentMode === 'multi') {
             if (selectedDates.has(dateStr)) selectedDates.delete(dateStr);
             else selectedDates.add(dateStr);
-            document.getElementById('multiCount').innerText = `${selectedDates.size} 日選択中`;
+            document.getElementById('multiCount').innerText = `${selectedDates.size}日選択中`;
             document.getElementById('confirmBtn').disabled = selectedDates.size === 0;
         } else if (currentMode === 'range') {
-            const startInp = document.getElementById('startDate');
-            const endInp = document.getElementById('endDate');
-            if (!startInp.value || (startInp.value && endInp.value)) {
-                startInp.value = dateStr;
-                endInp.value = '';
-            } else {
-                if (new Date(dateStr) < new Date(startInp.value)) {
-                    startInp.value = dateStr;
-                } else {
-                    endInp.value = dateStr;
-                }
-            }
+            const s = document.getElementById('startDate');
+            const e = document.getElementById('endDate');
+            if (!s.value || (s.value && e.value)) { s.value = dateStr; e.value = ''; }
+            else { if (new Date(dateStr) < new Date(s.value)) s.value = dateStr; else e.value = dateStr; }
         }
         render();
     }
 
-    async function addSingleTask() {
-        if (!userSession) return alert("ログインしてください");
-        const name = document.getElementById('taskName').value;
-        const date = document.getElementById('taskDate').value;
-        const subId = document.getElementById('taskSubject').value;
-        if(!name || !date) return alert("情報を入力してください");
-        await supabaseClient.from('tasks').insert([{ 
-            team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: userSession.user.id 
-        }]);
-        document.getElementById('taskName').value = '';
-    }
-
-    async function addMultiTasks() {
-        const name = document.getElementById('taskName').value;
-        const subId = document.getElementById('taskSubject').value;
-        const newTasks = Array.from(selectedDates).map((d, i) => ({
-            team: currentTeam, name: `${subjectsMap[subId]}：${name}${selectedDates.size>1?` (${i+1}/${selectedDates.size})`:''}`, deadline: d, subject: subId, user_id: userSession.user.id
-        }));
-        await supabaseClient.from('tasks').insert(newTasks);
-        setMode('single');
-        document.getElementById('taskName').value = '';
-    }
-
-    async function addRangeTask() {
-        const name = document.getElementById('taskName').value;
-        const start = document.getElementById('startDate').value;
-        const end = document.getElementById('endDate').value;
-        const subId = document.getElementById('taskSubject').value;
-        if (!name || !start || !end) return alert("期間を正しく入力してください");
-
-        // 期間登録：一括でレコードを作成する（後でバー表示するため）
-        let curr = new Date(start);
-        let last = new Date(end);
-        let rangeTasks = [];
-        let groupId = Date.now(); // 同じ期間であることを示すID
-        
-        while(curr <= last) {
-            rangeTasks.push({
-                team: currentTeam,
-                name: `${subjectsMap[subId]}：${name}`,
-                deadline: curr.toISOString().split('T')[0],
-                subject: subId,
-                user_id: userSession.user.id,
-                group_id: groupId.toString() // 🌟 これで期間を識別
-            });
-            curr.setDate(curr.getDate() + 1);
-        }
-        await supabaseClient.from('tasks').insert(rangeTasks);
-        document.getElementById('taskName').value = '';
-        document.getElementById('startDate').value = '';
-        document.getElementById('endDate').value = '';
-        setMode('single');
-    }
-
-    async function deleteTask(id, groupId) {
-        if(confirm("削除しますか？")) {
-            if (groupId) {
-                // 🌟 期間タスクなら一括削除
-                await supabaseClient.from('tasks').delete().eq('group_id', groupId);
-            } else {
-                await supabaseClient.from('tasks').delete().eq('id', id);
-            }
-        }
-    }
-
-    async function onDrop(ev, newDate) {
-        ev.preventDefault();
-        const id = ev.dataTransfer.getData("taskId");
-        const task = tasks.find(t => t.id == id);
-        if(!task) return;
-
-        if (task.group_id) {
-            // 🌟 期間タスクのドラッグ移動（開始日を基準に全体をずらす）
-            const oldStart = tasks.filter(t => t.group_id === task.group_id).sort((a,b)=>a.deadline.localeCompare(b.deadline))[0].deadline;
-            const diff = (new Date(newDate) - new Date(oldStart)) / (1000*60*60*24);
-            const group = tasks.filter(t => t.group_id === task.group_id);
-            
-            for (let t of group) {
-                let d = new Date(t.deadline);
-                d.setDate(d.getDate() + diff);
-                await supabaseClient.from('tasks').update({ deadline: d.toISOString().split('T')[0] }).eq('id', t.id);
-            }
-        } else {
-            await supabaseClient.from('tasks').update({ deadline: newDate }).eq('id', id);
-        }
-    }
-
-    // --- その他基本機能 ---
     async function fetchTasks() {
         if (!userSession) return;
         let query = supabaseClient.from('tasks').select('*').eq('team', currentTeam);
@@ -322,22 +217,58 @@
         if (data) { tasks = data; render(); }
     }
 
-    async function login() {
-        const { data } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true, scopes: 'https://www.googleapis.com/auth/calendar.events' }
-        });
-        if (data.url) window.open(data.url, '_blank');
+    async function addSingleTask() {
+        const name = document.getElementById('taskName').value;
+        const date = document.getElementById('taskDate').value;
+        const subId = document.getElementById('taskSubject').value;
+        if(!name || !date || !userSession) return alert("入力エラー");
+        await supabaseClient.from('tasks').insert([{ team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: userSession.user.id }]);
+        document.getElementById('taskName').value = ''; render();
     }
 
-    function updateAuthUI(session) {
-        userSession = session;
-        if (session) {
-            document.getElementById('btn-login').style.display = 'none';
-            document.getElementById('user-profile').style.display = 'flex';
-            document.getElementById('btn-sync').style.display = 'block';
-            isKaiseiUser = session.user.email.endsWith(KAISEI_DOMAIN);
-            document.getElementById('user-info').innerHTML = `<img src="${session.user.user_metadata.avatar_url}"><span>${session.user.user_metadata.full_name}</span>`;
-            fetchTasks();
+    async function addMultiTasks() {
+        const name = document.getElementById('taskName').value;
+        const subId = document.getElementById('taskSubject').value;
+        const newTasks = Array.from(selectedDates).map(d => ({ team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: d, subject: subId, user_id: userSession.user.id }));
+        await supabaseClient.from('tasks').insert(newTasks);
+        setMode('single');
+    }
+
+    async function addRangeTask() {
+        const name = document.getElementById('taskName').value;
+        const start = document.getElementById('startDate').value;
+        const end = document.getElementById('endDate').value;
+        const subId = document.getElementById('taskSubject').value;
+        if (!name || !start || !end) return alert("期間を入力してください");
+        
+        let curr = new Date(start);
+        let last = new Date(end);
+        let rangeTasks = [];
+        let gid = "range_" + Date.now(); // 期間タスクを繋げるための仮想ID（名前の一部として保存）
+
+        while(curr <= last) {
+            rangeTasks.push({ 
+                team: currentTeam, 
+                name: `[${gid}]${subjectsMap[subId]}：${name}`, // 名前にIDを埋め込むことでSQL変更を回避
+                deadline: curr.toISOString().split('T')[0], 
+                subject: subId, 
+                user_id: userSession.user.id 
+            });
+            curr.setDate(curr.getDate() + 1);
+        }
+        await supabaseClient.from('tasks').insert(rangeTasks);
+        setMode('single');
+    }
+
+    async function deleteTask(id, name) {
+        if(!confirm("削除しますか？")) return;
+        if (name.startsWith("[range_")) {
+            const gid = name.split(']')[0] + "]";
+            const { data } = await supabaseClient.from('tasks').select('id').ilike('name', `${gid}%`);
+            const ids = data.map(d => d.id);
+            await supabaseClient.from('tasks').delete().in('id', ids);
+        } else {
+            await supabaseClient.from('tasks').delete().eq('id', id);
         }
     }
 
@@ -353,11 +284,60 @@
         });
     }
 
+    function renderFilters() {
+        const grid = document.getElementById('filterGrid');
+        Object.keys(subjectsMap).forEach(id => {
+            const chip = document.createElement('div');
+            chip.className = 'filter-chip';
+            chip.dataset.sub = id; chip.innerText = subjectsMap[id];
+            chip.onclick = () => setFilter(id);
+            grid.appendChild(chip);
+        });
+    }
+
+    function setFilter(sub) {
+        if (sub === 'all') { currentFilters.clear(); currentFilters.add('all'); }
+        else {
+            currentFilters.delete('all');
+            if (currentFilters.has(sub)) { currentFilters.delete(sub); if(currentFilters.size===0) currentFilters.add('all'); }
+            else currentFilters.add(sub);
+        }
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', currentFilters.has(c.dataset.sub || 'all')));
+        render();
+    }
+
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
     function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
+    async function login() { const { data } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true, scopes: 'https://www.googleapis.com/auth/calendar.events' } }); if (data.url) window.open(data.url, '_blank'); }
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
+    function updateAuthUI(session) {
+        userSession = session;
+        if (session) {
+            document.getElementById('btn-login').style.display = 'none';
+            document.getElementById('user-profile').style.display = 'flex';
+            document.getElementById('btn-sync').style.display = 'block';
+            isKaiseiUser = session.user.email.endsWith(KAISEI_DOMAIN);
+            document.getElementById('user-info').innerHTML = `<img src="${session.user.user_metadata.avatar_url}"><span>${session.user.user_metadata.full_name}</span>`;
+            fetchTasks();
+        }
+    }
     function onDragStart(ev, id) { ev.dataTransfer.setData("taskId", id); }
     function onDragOver(ev) { ev.preventDefault(); }
+    async function onDrop(ev, newDate) {
+        ev.preventDefault();
+        const id = ev.dataTransfer.getData("taskId");
+        const task = tasks.find(t => t.id == id);
+        if(!task) return;
+        if (task.name.startsWith("[range_")) {
+            const gid = task.name.split(']')[0] + "]";
+            const group = tasks.filter(t => t.name.startsWith(gid)).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+            const diff = (new Date(newDate) - new Date(group[0].deadline)) / 86400000;
+            for (let t of group) {
+                let d = new Date(t.deadline); d.setDate(d.getDate() + diff);
+                await supabaseClient.from('tasks').update({ deadline: d.toISOString().split('T')[0] }).eq('id', t.id);
+            }
+        } else { await supabaseClient.from('tasks').update({ deadline: newDate }).eq('id', id); }
+    }
 
     function render() {
         const grid = document.getElementById('grid');
@@ -366,41 +346,32 @@
         const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
         const last = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
         for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:rgba(0,0,0,0.03); cursor:default;"></div>`;
-        
         for(let d=1; d<=last; d++) {
             const dateStr = `${viewDate.getFullYear()}-${String(viewDate.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isToday = new Date().toLocaleDateString('sv-SE') === dateStr;
             const isSelected = selectedDates.has(dateStr) || document.getElementById('startDate').value === dateStr || document.getElementById('endDate').value === dateStr;
-            
             let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="handleDateClick('${dateStr}')" ondragover="onDragOver(event)" ondrop="onDrop(event, '${dateStr}')"><span class="day-num">${d}</span>`;
-            
-            // タスクの描画（期間バーの判定）
-            const dayTasks = tasks.filter(t => t.deadline === dateStr);
-            dayTasks.forEach(t => {
-                let rangeClass = 'single';
-                if (t.group_id) {
-                    const group = tasks.filter(g => g.group_id === t.group_id).sort((a,b)=>a.deadline.localeCompare(b.deadline));
-                    if (t.deadline === group[0].deadline) rangeClass = 'range-start';
-                    else if (t.deadline === group[group.length-1].deadline) rangeClass = 'range-end';
-                    else rangeClass = 'range-mid';
+            tasks.filter(t => t.deadline === dateStr && (currentFilters.has('all') || currentFilters.has(t.subject))).forEach(t => {
+                let rClass = 'single';
+                let displayName = t.name;
+                if (t.name.startsWith("[range_")) {
+                    const gid = t.name.split(']')[0] + "]";
+                    const group = tasks.filter(g => g.name.startsWith(gid)).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+                    displayName = t.name.split(']')[1];
+                    if (t.deadline === group[0].deadline) rClass = 'range-start';
+                    else if (t.deadline === group[group.length-1].deadline) rClass = 'range-end';
+                    else rClass = 'range-mid';
                 }
-
-                html += `<div class="task-bar bg-${t.subject} ${rangeClass}" draggable="true" ondragstart="onDragStart(event, '${t.id}')" onclick="event.stopPropagation()">
-                         <span>${rangeClass === 'range-end' ? '→ ' : ''}${t.name}</span>
-                         ${rangeClass === 'range-end' || rangeClass === 'single' ? `<i class="fas fa-times" style="cursor:pointer; padding:2px;" onclick="deleteTask('${t.id}', '${t.group_id}')"></i>` : ''}
-                         </div>`;
+                html += `<div class="task-bar bg-${t.subject} ${rClass}" draggable="true" ondragstart="onDragStart(event, '${t.id}')" onclick="event.stopPropagation()"><span>${rClass==='range-end'?'→ ':''}${displayName}</span><i class="fas fa-times" onclick="deleteTask('${t.id}', '${t.name}')"></i></div>`;
             });
             grid.innerHTML += html + `</div>`;
         }
     }
-
     function syncTheme() {
-        const theme = localStorage.getItem('app_theme') || 'light';
-        if (theme === 'dark') document.body.classList.add('dark-mode');
-        else document.body.classList.remove('dark-mode');
+        const t = localStorage.getItem('app_theme') || 'light';
+        document.body.classList.toggle('dark-mode', t === 'dark');
     }
-    syncTheme(); setInterval(syncTheme, 500);
-    init();
+    syncTheme(); setInterval(syncTheme, 500); init();
 </script>
 </body>
 </html>
