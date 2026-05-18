@@ -8,6 +8,17 @@ import { useEffect, useState } from "react";
 const toolsData = {
   jp: [
     {
+      id: "task-manager",
+      title: "課題管理カレンダー",
+      subtitle: "TASK MANAGER",
+      desc: "開成の膨大な課題を、カレンダー上で戦略的かつ直感的に管理する。",
+      icon: <CheckSquare size={24} strokeWidth={1.5} />,
+      glow: "from-indigo-400/20 to-transparent",
+      textGlow: "group-hover:text-indigo-500",
+      link: "/tools/task-manager",
+      guide: "【課題管理の使い方】\n1. カレンダーの日付をクリックして課題を登録します。\n2. 「全◯回」を設定すると、毎週や数日おきの課題を一括登録できます。\n3. 登録した課題を長押しして別の日にドラッグ＆ドロップで移動できます。"
+    },
+    {
       id: "python-editor",
       title: "Python エディタ",
       subtitle: "PYTHON IDE",
@@ -17,6 +28,18 @@ const toolsData = {
       textGlow: "group-hover:text-emerald-500",
       link: "/tools/python-editor",
       guide: "【Pythonエディタの使い方】\n1. 「実行」ボタンでコードを動かせます。\n2. .ipynb拡張子を使えばJupyterモード（自動画面クリア）になります。\n3. 「フォルダを開く」でChromebook内の実際のファイルを直接編集・保存（Ctrl+S）できます。"
+    },
+    {
+      id: "huro",
+      title: "フローチャートエディタ",
+      subtitle: "flowchart",
+      desc: "kokecoco作の便利なツール",
+      icon: <Terminal size={24} strokeWidth={1.5} />,
+      glow: "from-emerald-400/20 to-transparent",
+      textGlow: "group-hover:text-emerald-500",
+      // ここを修正します
+      link: "https://kokecoco.github.io/flow-polycanva.complex/", 
+      guide: "【フローチャートエディタの使い方】\n1. ブラウザ上でフローチャートを作成・編集できます。\n2. ツールを自由に配置して、複雑なロジックを視覚化しましょう。"
     },
     {
       id: "code-editor",
@@ -29,17 +52,7 @@ const toolsData = {
       link: "/tools/code-editor",
       guide: "【Webエディタの使い方】\n1. 左側のエディタでコードを書くと、LIVEプレビューに即座に反映されます。\n2. 複数のファイルを切り替えて開発できます。\n3. 「LIVE」ボタンを押すと、別ウィンドウで全画面プレビューが開きます。"
     },
-    {
-      id: "task-manager",
-      title: "課題管理カレンダー",
-      subtitle: "TASK MANAGER",
-      desc: "開成の膨大な課題を、カレンダー上で戦略的かつ直感的に管理する。",
-      icon: <CheckSquare size={24} strokeWidth={1.5} />,
-      glow: "from-indigo-400/20 to-transparent",
-      textGlow: "group-hover:text-indigo-500",
-      link: "/tools/task-manager",
-      guide: "【課題管理の使い方】\n1. カレンダーの日付をクリックして課題を登録します。\n2. 「全◯回」を設定すると、毎週や数日おきの課題を一括登録できます。\n3. 登録した課題を長押しして別の日にドラッグ＆ドロップで移動できます。"
-    },
+    
     {
       id: "forenote",
       title: "高機能手書きノート",
@@ -65,6 +78,17 @@ const toolsData = {
   ],
   en: [
     {
+      id: "task-manager",
+      title: "Task Manager",
+      subtitle: "Calendar & Tasks",
+      desc: "Manage massive workloads strategically and intuitively on a calendar.",
+      icon: <CheckSquare size={24} strokeWidth={1.5} />,
+      glow: "from-indigo-400/20 to-transparent",
+      textGlow: "group-hover:text-indigo-500",
+      link: "/tools/task-manager",
+      guide: "How to use Task Manager:\n1. Click dates to add tasks.\n2. Use 'Repeat' for recurring assignments.\n3. Drag & drop tasks to reschedule."
+    },
+    {
       id: "python-editor",
       title: "Python IDE",
       subtitle: "Python Editor",
@@ -74,6 +98,17 @@ const toolsData = {
       textGlow: "group-hover:text-emerald-500",
       link: "/tools/python-editor",
       guide: "How to use Python IDE:\n1. Click 'RUN' to execute code.\n2. Use .ipynb extension for Jupyter mode.\n3. Open Folder to edit and save local files directly."
+    },
+    {
+      id: "huro",
+      title: "Flowchart Editor",
+      subtitle: "flowchart",
+      desc: "A handy tool created by kokecoco",
+      icon: <Terminal size={24} strokeWidth={1.5} />,
+      glow: "from-emerald-400/20 to-transparent",
+      textGlow: "group-hover:text-emerald-500",
+      link: "https://kokecoco.github.io/flow-polycanva.complex/",
+      guide: "【How to use the Flowchart Editor】\n1. Create and edit flowcharts directly in your browser.\n2. Drag and drop tools freely to visualize complex logic."
     },
     {
       id: "code-editor",
@@ -86,17 +121,7 @@ const toolsData = {
       link: "/tools/code-editor",
       guide: "How to use Web Editor:\n1. Codes reflect instantly in preview.\n2. Switch between multiple files easily.\n3. Click 'LIVE' to open full-screen preview."
     },
-    {
-      id: "task-manager",
-      title: "Task Manager",
-      subtitle: "Calendar & Tasks",
-      desc: "Manage massive workloads strategically and intuitively on a calendar.",
-      icon: <CheckSquare size={24} strokeWidth={1.5} />,
-      glow: "from-indigo-400/20 to-transparent",
-      textGlow: "group-hover:text-indigo-500",
-      link: "/tools/task-manager",
-      guide: "How to use Task Manager:\n1. Click dates to add tasks.\n2. Use 'Repeat' for recurring assignments.\n3. Drag & drop tasks to reschedule."
-    },
+    
     {
       id: "forenote",
       title: "Forenote Pro",
