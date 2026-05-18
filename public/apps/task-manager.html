@@ -193,9 +193,25 @@
 
     async function fetchTasks() {
         if (!currentUserId) return;
-        let query = supabase.from('tasks').select('*').eq('team', currentTeam);
-        const { data } = await query;
-        if (data) { tasks = data; render(); }
+        
+        // ログを出してデータ取得状況を確認
+        console.log("Fetching tasks for user:", currentUserId);
+        
+        const { data, error } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('team', currentTeam);
+            
+        if (error) {
+            console.error("Supabase Error:", error);
+            alert("タスク読み込みエラー: " + error.message);
+        }
+        
+        if (data) {
+            console.log("Tasks loaded:", data);
+            tasks = data; 
+            render(); 
+        }
     }
 
     async function addTask(type) {
