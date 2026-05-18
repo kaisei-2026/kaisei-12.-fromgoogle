@@ -184,17 +184,27 @@
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
     }
 
- async function login() {
+ // ログイン関数をこれに差し替えてください
+async function login() {
+    // 1. まず現在のセッションを完全に破棄して、真っ白な状態でリクエストを送る
+    await supabaseClient.auth.signOut();
+    
+    // 2. Googleへのリクエストを最小構成にする
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // スコープ指定を一切行わず、認証情報のみを要求する
-            redirectTo: window.location.origin
+            redirectTo: window.location.origin, // 絶対パスにする
+            queryParams: {
+                // 以前の「同期機能」の残骸を完全に追い出すためのパラメータ
+                access_type: 'online', 
+                prompt: 'consent' // 強制的に許可画面を出して、以前の権限を上書きさせる
+            }
         }
     });
+
     if (error) {
-        console.error("エラー:", error);
-        alert("ログイン失敗: " + error.message);
+        console.error("ログインエラー:", error);
+        alert("ログインエラーが発生しました。");
     }
 }
 
