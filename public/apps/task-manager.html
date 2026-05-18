@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Nexus Hub - Task Manager Ultimate</title>
+    <title>Nexus Hub - Task Manager Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -18,11 +18,11 @@
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
-        .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
+        .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         body.dark-mode .sidebar { background: #18181b; }
         h2 { font-size: 14px; margin-bottom: 10px; color: var(--primary); font-weight: 800; }
         label { font-size: 10px; font-weight: bold; color: #5f6368; margin-top: 8px; display: block; }
-        input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; transition: 0.3s; }
+        input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
         body.dark-mode input, body.dark-mode select { background: #2d2d2d; color: #fff; border-color: #444; }
         .mode-tabs { display: flex; background: #f1f3f4; padding: 4px; border-radius: 10px; margin: 10px 0; }
         body.dark-mode .mode-tabs { background: #2d2d2d; }
@@ -42,24 +42,20 @@
         .cal-cell { min-height: 120px; border: 0.1px solid #f1f3f4; padding: 2px; position: relative; cursor: pointer; display: flex; flex-direction: column; }
         .cal-cell.today { background: var(--today-bg) !important; }
         .cal-cell.selected { border: 2.5px solid var(--primary) !important; background: var(--selected-bg); z-index: 2; }
-        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; transition: 0.3s; }
+        .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
         body.dark-mode .day-num { color: #ccc; }
-        
-        /* 🌟 セッションスロットのデザイン */
         .session-slot { height: 18px; margin-bottom: 2px; width: 100%; position: relative; }
-        .task-bar { height: 100%; font-size: 9px; padding: 0 6px; color: white; font-weight: bold; display: flex; align-items: center; cursor: pointer; transition: 0.2s; position: absolute; inset: 0; }
+        .task-bar { height: 100%; font-size: 9px; padding: 0 6px; color: white; font-weight: bold; display: flex; align-items: center; cursor: grab; position: absolute; inset: 0; }
         .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; z-index: 1; }
-        .task-bar.range-start { border-radius: 4px 0 0 4px; margin-right: -3px; }
-        .task-bar.range-mid { border-radius: 0; margin-left: -3px; margin-right: -3px; }
-        .task-bar.range-end { border-radius: 0 4px 4px 0; margin-left: -3px; }
+        .task-bar.range-start { border-radius: 4px 0 0 4px; }
+        .task-bar.range-mid { border-radius: 0; }
+        .task-bar.range-end { border-radius: 0 4px 4px 0; }
         .task-bar.single { border-radius: 4px; }
-        .task-bar i { margin-left: auto; font-size: 8px; cursor: pointer; padding: 2px; z-index: 10; }
-
+        .task-bar i { margin-left: auto; font-size: 8px; cursor: pointer; padding: 2px; }
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
         .bg-health { background: #00897b; } .bg-art { background: #7986cb; } .bg-home { background: #a1887f; } .bg-other { background: #90a4ae; }
-        
         #user-profile { display: none; align-items: center; justify-content: space-between; padding: 10px; background: #fff; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; }
         body.dark-mode #user-profile { background: #2d2d2d; }
     </style>
@@ -91,7 +87,7 @@
             <label>タイトル</label>
             <input type="text" id="taskName" placeholder="タイトルを入力">
             
-            <label>セッション (1〜4)</label>
+            <label>セッション (1〜4列目)</label>
             <div class="session-grid">
                 <div class="session-btn active" data-val="1" onclick="setSession(1)">1</div>
                 <div class="session-btn" data-val="2" onclick="setSession(2)">2</div>
@@ -109,7 +105,7 @@
 
             <div id="input-single">
                 <label>日付</label><input type="date" id="taskDate">
-                <button class="btn-main btn-add" id="btn-save-single" onclick="addSingleTask()">保存</button>
+                <button class="btn-main btn-add" id="btn-save-single" onclick="addSingleTask()">クラウドに保存</button>
             </div>
             <div id="input-multi" style="display: none;">
                 <p id="multiCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold; margin:10px 0;">0日選択中</p>
@@ -118,15 +114,9 @@
             <div id="input-range" style="display: none;">
                 <label>開始日</label><input type="date" id="startDate">
                 <label>終了日</label><input type="date" id="endDate">
-                <button class="btn-main" style="background:#673ab7" id="btn-save-range" onclick="addRangeTask()">期間で一括登録</button>
+                <button class="btn-main btn-add" style="background:#673ab7" id="btn-save-range" onclick="addRangeTask()">期間で一括登録</button>
             </div>
 
-            <div class="filter-section">
-                <label>表示フィルター</label>
-                <div class="filter-grid" id="filterGrid" style="display:flex; flex-wrap:wrap; gap:4px; margin-top:5px;">
-                    <div class="filter-chip active" id="filter-all" style="padding:5px 10px; border-radius:6px; border:1px solid var(--border); font-size:10px; cursor:pointer;" onclick="setFilter('all')">すべて</div>
-                </div>
-            </div>
             <button id="btn-sync" class="btn-main" style="background:var(--google-blue); display:none; margin-top:20px;" onclick="syncToGoogle()"><i class="fab fa-google"></i> Google同期</button>
         </div>
 
@@ -156,13 +146,11 @@
     let selectedDates = new Set();
     let userSession = null;
     let isKaiseiUser = false;
-    let currentFilters = new Set(['all']);
 
     const subjectsMap = { math:'数学', english:'英語', gengoku:'現国', genbun:'言文', kasei:'化生', butsuchi:'物地', koukyo:'公共', chisou:'地総', info:'情報', health:'保体', art:'芸術', home:'家庭', other:'他' };
 
     async function init() {
         renderTabs();
-        renderFilters();
         updateMonthLabel();
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateAuthUI(session);
@@ -221,21 +209,32 @@
         const date = document.getElementById('taskDate').value;
         const subId = document.getElementById('taskSubject').value;
         if(!name || !date) return alert("情報を入力してください");
-        await supabaseClient.from('tasks').insert([{ team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: userSession.user.id, session: currentSession }]);
-        document.getElementById('taskName').value = ''; resetSelection();
+
+        document.getElementById('btn-save-single').innerText = "保存中...";
+        const { error } = await supabaseClient.from('tasks').insert([{ 
+            team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: userSession.user.id, session: currentSession 
+        }]);
+        
+        if(error) {
+            alert("エラー: " + error.message);
+        } else {
+            document.getElementById('taskName').value = ''; resetSelection(); render();
+        }
+        document.getElementById('btn-save-single').innerText = "クラウドに保存";
     }
 
     async function addMultiTasks() {
-        if(!userSession) return alert("ログインしてください");
         const name = document.getElementById('taskName').value;
         const subId = document.getElementById('taskSubject').value;
-        const newTasks = Array.from(selectedDates).map(d => ({ team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: d, subject: subId, user_id: userSession.user.id, session: currentSession }));
-        await supabaseClient.from('tasks').insert(newTasks);
-        document.getElementById('taskName').value = ''; resetSelection(); setMode('single');
+        const newTasks = Array.from(selectedDates).map(d => ({ 
+            team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: d, subject: subId, user_id: userSession.user.id, session: currentSession 
+        }));
+        const { error } = await supabaseClient.from('tasks').insert(newTasks);
+        if(error) alert("エラー: " + error.message);
+        else { document.getElementById('taskName').value = ''; setMode('single'); }
     }
 
     async function addRangeTask() {
-        if(!userSession) return alert("ログインしてください");
         const name = document.getElementById('taskName').value;
         const start = document.getElementById('startDate').value;
         const end = document.getElementById('endDate').value;
@@ -244,11 +243,15 @@
         let curr = new Date(start); let last = new Date(end);
         let rangeTasks = []; let gid = "range_" + Date.now();
         while(curr <= last) {
-            rangeTasks.push({ team: currentTeam, name: `[${gid}]${subjectsMap[subId]}：${name}`, deadline: curr.toISOString().split('T')[0], subject: subId, user_id: userSession.user.id, session: currentSession });
+            rangeTasks.push({ 
+                team: currentTeam, name: `[${gid}]${subjectsMap[subId]}：${name}`, deadline: curr.toISOString().split('T')[0], 
+                subject: subId, user_id: userSession.user.id, session: currentSession 
+            });
             curr.setDate(curr.getDate() + 1);
         }
-        await supabaseClient.from('tasks').insert(rangeTasks);
-        document.getElementById('taskName').value = ''; resetSelection(); setMode('single');
+        const { error } = await supabaseClient.from('tasks').insert(rangeTasks);
+        if(error) alert("エラー: " + error.message);
+        else { document.getElementById('taskName').value = ''; setMode('single'); }
     }
 
     async function deleteTask(id, name) {
@@ -278,33 +281,6 @@
         });
     }
 
-    function renderFilters() {
-        const grid = document.getElementById('filterGrid');
-        Object.keys(subjectsMap).forEach(id => {
-            const chip = document.createElement('div');
-            chip.className = 'filter-chip';
-            chip.dataset.sub = id; chip.innerText = subjectsMap[id];
-            chip.style = "padding:5px 10px; border-radius:6px; border:1px solid var(--border); font-size:10px; cursor:pointer;";
-            chip.onclick = () => setFilter(id);
-            grid.appendChild(chip);
-        });
-    }
-
-    function setFilter(sub) {
-        if (sub === 'all') { currentFilters.clear(); currentFilters.add('all'); }
-        else {
-            currentFilters.delete('all');
-            if (currentFilters.has(sub)) { currentFilters.delete(sub); if(currentFilters.size===0) currentFilters.add('all'); }
-            else currentFilters.add(sub);
-        }
-        document.querySelectorAll('.filter-chip').forEach(c => {
-            const s = c.dataset.sub || 'all';
-            c.classList.toggle('active', currentFilters.has(s));
-            c.style.background = currentFilters.has(s) ? "var(--selected-bg)" : "white";
-        });
-        render();
-    }
-
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
     function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
     async function login() { const { data } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true, scopes: 'https://www.googleapis.com/auth/calendar.events' } }); if (data.url) window.open(data.url, '_blank'); }
@@ -318,11 +294,6 @@
             document.getElementById('user-info').innerHTML = `<img src="${session.user.user_metadata.avatar_url}" width="24" height="24" style="border-radius:50%"><span>${session.user.user_metadata.full_name}</span>`;
             fetchTasks();
         }
-    }
-
-    // 🌟 セッション詳細を表示する関数
-    function showTaskDetails(taskName, subId, session) {
-        alert(`【課題詳細】\n教科: ${subjectsMap[subId]}\n課題: ${taskName}\nセッション: ${session}限目相当`);
     }
 
     function render() {
@@ -339,35 +310,26 @@
             
             let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="handleDateClick('${dateStr}')"><span class="day-num">${d}</span>`;
             
-            // 🌟 ロジック：期間課題を最優先（一番上）にソートする
-            const dayTasks = tasks.filter(t => t.deadline === dateStr && (currentFilters.has('all') || currentFilters.has(t.subject)));
-            dayTasks.sort((a, b) => {
-                const aIsRange = a.name.startsWith("[range_");
-                const bIsRange = b.name.startsWith("[range_");
-                if (aIsRange && !bIsRange) return -1;
-                if (!aIsRange && bIsRange) return 1;
-                return (a.session || 1) - (b.session || 1);
-            });
-
-            dayTasks.forEach(task => {
-                let rClass = 'single'; let dName = task.name;
-                if (task.name.startsWith("[range_")) {
-                    const gid = task.name.split(']')[0] + "]";
-                    const group = tasks.filter(g => g.name.startsWith(gid)).sort((a,b)=>a.deadline.localeCompare(b.deadline));
-                    dName = task.name.split(']')[1];
-                    if (task.deadline === group[0].deadline) rClass = 'range-start';
-                    else if (task.deadline === group[group.length-1].deadline) rClass = 'range-end';
-                    else rClass = 'range-mid';
+            for (let s = 1; s <= 4; s++) {
+                html += `<div class="session-slot">`;
+                const task = tasks.find(t => t.deadline === dateStr && (t.session || 1) == s);
+                if (task) {
+                    let rClass = 'single'; let dName = task.name;
+                    if (task.name.startsWith("[range_")) {
+                        const gid = task.name.split(']')[0] + "]";
+                        const group = tasks.filter(g => g.name.startsWith(gid)).sort((a,b)=>a.deadline.localeCompare(b.deadline));
+                        dName = task.name.split(']')[1];
+                        if (task.deadline === group[0].deadline) rClass = 'range-start';
+                        else if (task.deadline === group[group.length-1].deadline) rClass = 'range-end';
+                        else rClass = 'range-mid';
+                    }
+                    html += `<div class="task-bar bg-${task.subject} ${rClass}" onclick="event.stopPropagation()">
+                             <span>${rClass==='range-end'?'→ ':''}${dName}</span>
+                             ${rClass === 'range-end' || rClass === 'single' ? `<i class="fas fa-times" onclick="deleteTask('${task.id}', '${task.name}')"></i>` : ''}
+                             </div>`;
                 }
-                
-                // バーに詳細表示用のクリックイベントを追加
-                html += `<div class="task-bar bg-${task.subject} ${rClass}" 
-                         style="position:relative; margin-bottom:2px; height:18px;"
-                         onclick="event.stopPropagation(); showTaskDetails('${dName}', '${task.subject}', '${task.session || 1}')">
-                         <span>${rClass==='range-end'?'→ ':''}${dName}</span>
-                         <i class="fas fa-times" onclick="event.stopPropagation(); deleteTask('${task.id}', '${task.name}')"></i>
-                         </div>`;
-            });
+                html += `</div>`;
+            }
             grid.innerHTML += html + `</div>`;
         }
     }
