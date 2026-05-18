@@ -17,16 +17,16 @@ export default function Home() {
 
   const content = {
     jp: {
-      heroSub: "Next-Gen Productivity Ecosystem",
+      heroSub: " ",
       insightsTitle: "AIの使いかた",
-      articleTitle: "あなたの可能性を広げる\nAI活用の3つの新常識",
+      articleTitle: "あなたの可能性を広げるAI活用の3つの新常識",
       newsItems: [
-        { date: "2026.05.15", title: "プロフェッショナルIDE「ZENITH」公開", tag: "RELEASE", link: "/tools" },
-        { date: "2026.05.01", title: "クラウド同期システムのセキュリティを強化", tag: "SECURITY", link: "/tools" },
+        { date: "2026.05.15", title: "tools公開", tag: "RELEASE", link: "/tools" },
+        { date: "2026.05.01", title: "クラウド同期システム追加", tag: "SECURITY", link: "/tools" },
       ]
     },
     en: {
-      heroSub: "Next-Gen Productivity Ecosystem",
+      heroSub: " ",
       insightsTitle: "AI Insights",
       articleTitle: "3 New Paradigms of AI\nto Expand Your Potential",
       newsItems: [
@@ -58,7 +58,7 @@ export default function Home() {
             {t.heroSub}
           </h2>
           <h1 className="text-[20vw] md:text-[14rem] font-black tracking-tighter leading-[0.8] drop-shadow-2xl">
-            NEXUS
+            KAISEI
           </h1>
         </motion.div>
       </section>
@@ -97,7 +97,7 @@ export default function Home() {
       </section>
 
       <footer className="py-12 md:py-20 px-8 text-center bg-zinc-50 dark:bg-[#050505] border-t border-zinc-100 dark:border-zinc-800">
-        <p className="text-zinc-400 text-[9px] tracking-[0.5em] font-bold uppercase">© 2026 NEXUS HUB. POWERED BY CLOUD ENGINE.</p>
+        <p className="text-zinc-400 text-[9px] tracking-[0.5em] font-bold uppercase">© 2026 KAISEI HUB. POWERED BY CLOUD ENGINE.</p>
       </footer>
     </div>
   );
