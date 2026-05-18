@@ -126,8 +126,7 @@
     </div>
 </div>
 
-<script>
-    const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
+<script>const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -160,17 +159,14 @@
     }
 
     async function loginWithGoogle() {
-        // 🌟 修正: スコープを制限して学校アカウント制限を回避
-        const { data, error } = await supabase.auth.signInWithOAuth({ 
+        const { error } = await supabase.auth.signInWithOAuth({ 
             provider: 'google', 
             options: { 
-                redirectTo: window.location.href, 
-                skipBrowserRedirect: true,
+                redirectTo: window.location.href,
                 queryParams: { scope: 'openid email profile' } 
             } 
         });
-        if (data.url) window.open(data.url, '_blank');
-        if (error) alert("ログインエラー: " + error.message);
+        if (error) alert("ログイン失敗: " + error.message);
     }
 
     function loginWithId() {
@@ -192,26 +188,9 @@
     }
 
     async function fetchTasks() {
-        if (!currentUserId) return;
-        
-        // ログを出してデータ取得状況を確認
-        console.log("Fetching tasks for user:", currentUserId);
-        
-        const { data, error } = await supabase
-            .from('tasks')
-            .select('*')
-            .eq('team', currentTeam);
-            
-        if (error) {
-            console.error("Supabase Error:", error);
-            alert("タスク読み込みエラー: " + error.message);
-        }
-        
-        if (data) {
-            console.log("Tasks loaded:", data);
-            tasks = data; 
-            render(); 
-        }
+        if (!currentUserId) { render(); return; }
+        const { data } = await supabase.from('tasks').select('*').eq('team', currentTeam);
+        if (data) { tasks = data; render(); }
     }
 
     async function addTask(type) {
@@ -272,7 +251,8 @@
     }
 
     function render() {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
+        const grid = document.getElementById('grid'); grid.innerHTML = '';
+        ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
         const year = viewDate.getFullYear(); const month = viewDate.getMonth();
         const first = new Date(year, month, 1).getDay(); const last = new Date(year, month + 1, 0).getDate();
         for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:rgba(0,0,0,0.03);"></div>`;
@@ -307,7 +287,7 @@
         }
     }
 
-    function renderTabs() { const c = document.getElementById('teamTabs'); c.innerHTML = '';['A','B','C','D','E','F'].forEach(t => { const b = document.createElement('div'); b.className = `team-tab ${currentTeam === t ? 'active' : ''}`; b.innerText = `TEAM ${t}`; b.onclick = () => { currentTeam = t; localStorage.setItem('nexus_team', t); renderTabs(); fetchTasks(); }; c.appendChild(b); }); }
+    function renderTabs() { const c = document.getElementById('teamTabs'); c.innerHTML = ''; ['A','B','C','D','E','F'].forEach(t => { const b = document.createElement('div'); b.className = `team-tab ${currentTeam === t ? 'active' : ''}`; b.innerText = `TEAM ${t}`; b.onclick = () => { currentTeam = t; localStorage.setItem('nexus_team', t); renderTabs(); fetchTasks(); }; c.appendChild(b); }); }
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
     function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
     function syncTheme() { document.body.classList.toggle('dark-mode', localStorage.getItem('app_theme') === 'dark'); }
