@@ -12,59 +12,44 @@
         body { font-family: sans-serif; background: #f8f9fa; color: #202124; padding: 10px; font-size: 14px; overflow-x: hidden; transition: background 0.3s; }
         body.dark-mode { background: #0a0a0a; color: #e0e0e0; --border: #27272a; --today-bg: #423b00; --selected-bg: rgba(26,115,232,0.2); }
         .wrapper { width: 100%; margin: 0; }
-        
-        /* ログイン案内 */
         .auth-notice { background: #ffffff; border: 2px solid var(--primary); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(26, 115, 232, 0.1); }
         body.dark-mode .auth-notice { background: #18181b; border-color: #333; }
         .auth-notice h3 { font-size: 13px; color: var(--primary); margin-bottom: 5px; display: flex; align-items: center; gap: 6px; }
         .auth-notice p { font-size: 11px; color: #5f6368; line-height: 1.5; }
-
-        /* IDログインエリア */
         .id-login-box { display: flex; gap: 5px; margin-bottom: 10px; }
         .id-input { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: bold; }
-
         .team-tabs { display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .team-tab { padding: 8px 16px; background: white; border: 1px solid var(--border); border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: 0.2s; }
         body.dark-mode .team-tab { background: #1e1e1e; color: #aaa; border-color: #333; }
         .team-tab.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(26,115,232,0.3); }
-
         .layout { display: flex; flex-direction: column; gap: 10px; width: 100%; }
         @media (min-width: 1000px) { .layout { flex-direction: row; align-items: flex-start; } .sidebar { width: 320px !important; position: sticky; top: 5px; } }
         .sidebar { width: 100%; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.3s; }
         body.dark-mode .sidebar { background: #18181b; }
-        
         input, select { width: 100%; padding: 12px; margin-top: 4px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; outline: none; background: #fff; }
         body.dark-mode input, body.dark-mode select { background: #2d2d2d; color: #fff; border-color: #444; }
-
         .mode-tabs { display: flex; background: #f1f3f4; padding: 4px; border-radius: 10px; margin: 10px 0; }
         body.dark-mode .mode-tabs { background: #2d2d2d; }
         .mode-tab { flex: 1; text-align: center; font-size: 10px; font-weight: bold; padding: 8px; cursor: pointer; border-radius: 7px; color: #666; }
         .mode-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
         .session-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 5px; }
         .session-btn { padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 10px; text-align: center; cursor: pointer; font-weight: bold; background: #fff; }
         .session-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-
         .btn-main { width: 100%; color: white; border: none; padding: 14px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; font-size: 14px; }
         .btn-add { background: var(--primary); }
         .btn-google { background: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; height: 50px; font-size: 12px;}
-
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; }
         body.dark-mode .calendar-container { background: #18181b; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
         .cal-label { padding: 10px 0; text-align: center; font-size: 11px; font-weight: bold; color: #70757a; background: #f8f9fa; border-bottom: 1px solid var(--border); }
         body.dark-mode .cal-label { background: #1e1e1e; }
-        
         .cal-cell { min-height: 125px; border: 0.1px solid #f1f3f4; padding: 3px; position: relative; cursor: pointer; display: flex; flex-direction: column; }
         body.dark-mode .cal-cell { border-color: #222; }
         .cal-cell.today { background: var(--today-bg) !important; }
         .cal-cell.selected { border: 2.5px solid var(--primary) !important; background: var(--selected-bg); z-index: 2; }
-        
         .day-num { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: block; color: #3c4043; }
         body.dark-mode .day-num { color: #ccc; }
-        
-        /* 🌟 スロット固定 (高さ合わせ) */
         .session-slot { height: 19px; margin-bottom: 2px; width: 100%; position: relative; }
         .task-bar { height: 100%; font-size: 9px; padding: 0 6px; color: white; font-weight: bold; display: flex; align-items: center; cursor: pointer; position: absolute; inset: 0; z-index: 5; }
         .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -73,7 +58,6 @@
         .task-bar.range-end { border-radius: 0 4px 4px 0; margin-left: -3px; }
         .task-bar.single { border-radius: 4px; }
         .task-bar i { margin-left: auto; font-size: 8px; padding: 2px; }
-
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
@@ -149,7 +133,7 @@
 
     const KAISEI_DOMAIN = 'gll-kaisei-s.sapporo-c.ed.jp';
     let viewDate = new Date();
-    let tasks = [];
+    let tasks =[];
     let currentTeam = localStorage.getItem('nexus_team') || 'A';
     let currentMode = 'single';
     let currentSession = 1;
@@ -176,8 +160,17 @@
     }
 
     async function loginWithGoogle() {
-        const { data } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true } });
+        // 🌟 修正: スコープを制限して学校アカウント制限を回避
+        const { data, error } = await supabase.auth.signInWithOAuth({ 
+            provider: 'google', 
+            options: { 
+                redirectTo: window.location.href, 
+                skipBrowserRedirect: true,
+                queryParams: { scope: 'openid email profile' } 
+            } 
+        });
         if (data.url) window.open(data.url, '_blank');
+        if (error) alert("ログインエラー: " + error.message);
     }
 
     function loginWithId() {
@@ -201,8 +194,6 @@
     async function fetchTasks() {
         if (!currentUserId) return;
         let query = supabase.from('tasks').select('*').eq('team', currentTeam);
-        if (!isKaisei && currentUserId.includes('-')) query = query.eq('user_id', currentUserId);
-        else if (!isKaisei) query = query.eq('user_id', currentUserId);
         const { data } = await query;
         if (data) { tasks = data; render(); }
     }
@@ -213,7 +204,7 @@
         const subId = document.getElementById('taskSubject').value;
         if (!name) return alert("タイトルを入力してください");
 
-        let toInsert = [];
+        let toInsert =[];
         if (type === 'single') {
             const date = document.getElementById('taskDate').value;
             toInsert.push({ team: currentTeam, name: `${subjectsMap[subId]}：${name}`, deadline: date, subject: subId, user_id: currentUserId, session: currentSession });
@@ -265,8 +256,7 @@
     }
 
     function render() {
-        const grid = document.getElementById('grid'); grid.innerHTML = '';
-        ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
+        const grid = document.getElementById('grid'); grid.innerHTML = '';['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
         const year = viewDate.getFullYear(); const month = viewDate.getMonth();
         const first = new Date(year, month, 1).getDay(); const last = new Date(year, month + 1, 0).getDate();
         for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:rgba(0,0,0,0.03);"></div>`;
@@ -276,7 +266,6 @@
             const isSelected = selectedDates.has(dateStr) || document.getElementById('startDate').value === dateStr || document.getElementById('endDate').value === dateStr;
             let html = `<div class="cal-cell ${isToday?'today':''} ${isSelected?'selected':''}" onclick="handleDateClick('${dateStr}')"><span class="day-num">${d}</span>`;
             
-            // スロット表示（期間優先）
             const dayTasks = tasks.filter(t => t.deadline === dateStr).sort((a,b) => (b.name.includes('[range') ? 1 : 0) - (a.name.includes('[range') ? 1 : 0) || (a.session||1) - (b.session||1));
             for (let s = 1; s <= 4; s++) {
                 html += `<div class="session-slot">`;
@@ -302,7 +291,7 @@
         }
     }
 
-    function renderTabs() { const c = document.getElementById('teamTabs'); c.innerHTML = ''; ['A','B','C','D','E','F'].forEach(t => { const b = document.createElement('div'); b.className = `team-tab ${currentTeam === t ? 'active' : ''}`; b.innerText = `TEAM ${t}`; b.onclick = () => { currentTeam = t; localStorage.setItem('nexus_team', t); renderTabs(); fetchTasks(); }; c.appendChild(b); }); }
+    function renderTabs() { const c = document.getElementById('teamTabs'); c.innerHTML = '';['A','B','C','D','E','F'].forEach(t => { const b = document.createElement('div'); b.className = `team-tab ${currentTeam === t ? 'active' : ''}`; b.innerText = `TEAM ${t}`; b.onclick = () => { currentTeam = t; localStorage.setItem('nexus_team', t); renderTabs(); fetchTasks(); }; c.appendChild(b); }); }
     function updateMonthLabel() { document.getElementById('monthLabel').innerText = `${viewDate.getFullYear()}年 ${viewDate.getMonth() + 1}月`; }
     function changeMonth(n) { viewDate.setMonth(viewDate.getMonth() + n); updateMonthLabel(); render(); }
     function syncTheme() { document.body.classList.toggle('dark-mode', localStorage.getItem('app_theme') === 'dark'); }
