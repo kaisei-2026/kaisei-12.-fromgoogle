@@ -184,22 +184,18 @@
         supabaseClient.channel('any').on('postgres_changes', {event:'*', schema:'public', table:'tasks'}, () => fetchTasks()).subscribe();
     }
 
-  async function login() {
+ async function login() {
     const { data, error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-            // リダイレクト先を明示的に指定
             redirectTo: window.location.href,
-            // 以前指定していた「カレンダー」への権限要求は削除済み
-            // もしこれでもダメな場合、Google側が「scopeなし」を拒否することがあるため、
-            // 必要最低限のプロフィール取得スコープを明示します
-            scopes: 'email profile' 
+            queryParams: {
+                access_type: 'offline',
+                prompt: 'select_account' // 👈 これを追加！強制的に再認証を促します
+            }
         }
     });
-    if (error) {
-        console.error("ログインエラー:", error);
-        alert("ログインエラー: " + error.message);
-    }
+    if (error) console.error("Login Error:", error);
 }
 
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
