@@ -14,7 +14,6 @@
         
         .wrapper { width: 100%; margin: 0; }
         
-        /* インフォメーション */
         .instruction-banner { background: #e8f0fe; border: 1px solid var(--primary); padding: 12px; border-radius: 12px; margin-bottom: 10px; font-size: 11px; display: flex; gap: 8px; line-height: 1.4; }
         .mode-banner { background: #fff; border: 1px solid #ddd; padding: 10px; border-radius: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold; font-size: 12px; transition: 0.3s; }
         body.dark-mode .mode-banner { background: #1e1e1e; border-color: #333; }
@@ -40,9 +39,7 @@
         .btn-add { background: var(--primary); }
         .btn-confirm { background: #1e8e3e; }
         .btn-google { background: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; height: 50px; }
-        .btn-sync { background: var(--google-blue); }
 
-        /* カレンダー */
         .calendar-container { flex: 1; background: white; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; width: 100%; transition: 0.3s; }
         body.dark-mode .calendar-container { background: #18181b; }
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border); }
@@ -60,14 +57,12 @@
         .task-bar { font-size: 9px; padding: 2px 5px; border-radius: 4px; margin-bottom: 2px; color: white; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: grab; }
         .task-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* フィルター */
         .filter-section { border-top: 1px solid #eee; margin-top: 15px; padding-top: 10px; }
         .filter-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         .filter-chip { padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 10px; background: #fff; cursor: pointer; font-weight: bold; transition: 0.1s; }
         body.dark-mode .filter-chip { background: #2d2d2d; color: #aaa; border-color: #444; }
         .filter-chip.active { background: var(--selected-bg); color: var(--primary); border-color: var(--primary); }
 
-        /* カラー設定 */
         .bg-math { background: #ea4335; } .bg-english { background: #4285f4; } .bg-gengoku { background: #f06292; } 
         .bg-genbun { background: #ba68c8; } .bg-kasei { background: #34a853; } .bg-butsuchi { background: #81c784; }
         .bg-koukyo { background: #fbbc04; } .bg-chisou { background: #ff8f00; } .bg-info { background: #00acc1; } 
@@ -85,13 +80,11 @@
 <div id="loading-overlay"><i class="fas fa-spinner fa-spin fa-2x"></i><br><br>処理中...</div>
 
 <div class="wrapper">
-    <!-- 使い方バナー -->
     <div class="instruction-banner" id="guide-banner">
         <i class="fas fa-info-circle"></i>
         <div>カレンダーをクリックして登録。「複数日選択」で一括登録。課題をドラッグして移動も可能です。</div>
     </div>
 
-    <!-- ログインセクション -->
     <div id="auth-section">
         <button id="btn-login" class="btn-main btn-google" onclick="login()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18">
@@ -103,9 +96,7 @@
         </div>
     </div>
 
-    <!-- モード表示バナー -->
     <div id="current-mode-banner" class="mode-banner" style="display:none;"></div>
-
     <div class="team-tabs" id="teamTabs"></div>
 
     <div class="layout">
@@ -119,9 +110,9 @@
                 <option value="health">保健体育</option><option value="art">芸術</option><option value="home">家庭科</option><option value="other">その他</option>
             </select>
 
-            <div class="mode-switch" id="modeSwitch" onclick="toggleMultiMode()">
+            <div class="mode-switch" id="modeSwitch" onclick="toggleMultiMode()" style="cursor:pointer; padding:10px; display:flex; align-items:center; gap:8px; font-size:12px; margin-top:5px;">
                 <span>複数日を選択する</span>
-                <i class="fas fa-check-double" id="toggleIcon"></i>
+                <i class="fas fa-toggle-off" id="toggleIcon"></i>
             </div>
 
             <div id="singleAction">
@@ -134,10 +125,6 @@
                 <p id="selectedCount" style="font-size:11px; text-align:center; color:var(--primary); font-weight:bold;">0日選択中</p>
                 <button class="btn-main btn-confirm" id="confirmBtn" disabled onclick="addMultiTasks()">選択した日で確定</button>
             </div>
-
-            <button id="btn-sync" class="btn-main btn-sync" style="display:none;" onclick="syncToGoogle()">
-                <i class="fab fa-google"></i> Googleカレンダーへ同期
-            </button>
 
             <div class="filter-section">
                 <label>表示フィルター</label>
@@ -159,14 +146,13 @@
 </div>
 
 <script>
-    // 🌟 --- 自分のSupabase情報を貼り付けてください --- 🌟
     const SUPABASE_URL = 'https://ahovehkshnnlipcssilm.supabase.co'; 
     const SUPABASE_KEY = 'sb_publishable_aoTV062URNq1LknmLrbfhg_yCioD_hE';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const KAISEI_DOMAIN = 'gll-kaisei-s.sapporo-c.ed.jp';
     let viewDate = new Date();
-    let tasks = [];
+    let tasks =[];
     let isMultiMode = false;
     let selectedDates = new Set();
     let currentFilters = new Set(['all']);
@@ -188,7 +174,6 @@
         const { data: { session } } = await supabaseClient.auth.getSession();
         updateAuthUI(session);
 
-        // ログイン監視
         supabaseClient.auth.onAuthStateChange((event, session) => {
             updateAuthUI(session);
         });
@@ -200,10 +185,7 @@
     }
 
     async function login() {
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-            provider: 'google', options: { redirectTo: window.location.href, skipBrowserRedirect: true, scopes: 'https://www.googleapis.com/auth/calendar.events' }
-        });
-        if (data.url) window.open(data.url, '_blank');
+        await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
     }
 
     async function logout() { await supabaseClient.auth.signOut(); window.location.reload(); }
@@ -213,13 +195,11 @@
         const loginBtn = document.getElementById('btn-login');
         const profile = document.getElementById('user-profile');
         const modeBanner = document.getElementById('current-mode-banner');
-        const syncBtn = document.getElementById('btn-sync');
 
         if (session) {
             loginBtn.style.display = 'none';
             profile.style.display = 'flex';
             modeBanner.style.display = 'flex';
-            syncBtn.style.display = 'block';
             
             isKaiseiUser = session.user.email.endsWith(KAISEI_DOMAIN);
             
@@ -237,33 +217,6 @@
             `;
             fetchTasks();
         }
-    }
-
-    // 🌟 Googleカレンダー同期（復活）
-    async function syncToGoogle() {
-        if (!userSession || !userSession.provider_token) {
-            alert("権限が不足しています。一度ログアウトし、再ログイン時に『カレンダー』にチェックを入れてください。");
-            return;
-        }
-        document.getElementById('loading-overlay').style.display = 'flex';
-        let count = 0;
-        for (const task of tasks) {
-            const event = {
-                'summary': task.name,
-                'start': { 'date': task.deadline },
-                'end': { 'date': task.deadline }
-            };
-            try {
-                const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${userSession.provider_token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(event)
-                });
-                if (res.ok) count++;
-            } catch (e) {}
-        }
-        document.getElementById('loading-overlay').style.display = 'none';
-        alert(`${count}件の予定をGoogleカレンダーに同期しました！`);
     }
 
     async function fetchTasks() {
@@ -320,8 +273,7 @@
 
     function renderTabs() {
         const container = document.getElementById('teamTabs');
-        container.innerHTML = '';
-        ['A','B','C','D','E','F'].forEach(t => {
+        container.innerHTML = '';['A','B','C','D','E','F'].forEach(t => {
             const btn = document.createElement('div');
             btn.className = `team-tab ${currentTeam === t ? 'active' : ''}`;
             btn.innerText = `TEAM ${t}`;
@@ -383,8 +335,7 @@
     function render() {
         const grid = document.getElementById('grid');
         if(!grid) return;
-        grid.innerHTML = '';
-        ['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
+        grid.innerHTML = '';['日','月','火','水','木','金','土'].forEach(d => grid.innerHTML += `<div class="cal-label">${d}</div>`);
         const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
         const last = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
         for(let i=0; i<first; i++) grid.innerHTML += `<div class="cal-cell" style="background:rgba(0,0,0,0.03); cursor:default;"></div>`;
